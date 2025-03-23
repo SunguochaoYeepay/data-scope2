@@ -1,0 +1,40 @@
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/datascope?useSSL=false&serverTimezone=UTC&characterEncoding=UTF-8&allowPublicKeyRetrieval=true
+    username: datascope
+    password: datascope123
+  redis:
+    host: localhost
+    port: 6379
+    database: 0
+    password:
+
+logging:
+  level:
+    com.datascope: DEBUG
+    org.springframework: DEBUG
+    org.mybatis: DEBUG
+
+datascope:
+  security:
+    encryption:
+      key: "dev-encryption-key-please-change-in-production"
+  llm:
+    api-key: "your-openrouter-api-key"
+    endpoint: "https://openrouter.ai/api/v1"
+
+# 开发环境特定的其他配置
+springdoc:
+  show-actuator: true
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui.html
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    health:
+      show-details: always
