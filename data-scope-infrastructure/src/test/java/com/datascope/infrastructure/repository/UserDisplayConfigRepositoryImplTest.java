@@ -27,7 +27,8 @@ class UserDisplayConfigRepositoryImplTest {
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        repository = new UserDisplayConfigRepositoryImpl(mapper);
+        repository = new UserDisplayConfigRepositoryImpl();
+        repository.setMybatisMapper(mapper);
     }
 
     @Test

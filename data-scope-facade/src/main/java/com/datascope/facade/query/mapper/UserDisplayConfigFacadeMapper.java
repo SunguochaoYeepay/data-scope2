@@ -3,42 +3,33 @@ package com.datascope.facade.query.mapper;
 import com.datascope.domain.query.entity.UserDisplayConfig;
 import com.datascope.facade.query.dto.UserDisplayConfigDTO;
 import org.mapstruct.Mapper;
-import org.mapstruct.MappingTarget;
 import org.mapstruct.ReportingPolicy;
 
 import java.util.List;
 
 /**
- * Mapper for converting between UserDisplayConfig entity and DTO
+ * Facade mapper for user display configuration
  */
-@Mapper(
-    componentModel = "spring",
-    unmappedTargetPolicy = ReportingPolicy.IGNORE
-)
+@Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface UserDisplayConfigFacadeMapper {
 
     /**
-     * Convert entity to DTO
+     * Convert domain object to DTO
      */
-    UserDisplayConfigDTO toDTO(UserDisplayConfig entity);
+    UserDisplayConfigDTO toDTO(UserDisplayConfig domain);
 
     /**
-     * Convert DTO to entity
+     * Convert DTO to domain object
      */
-    UserDisplayConfig toEntity(UserDisplayConfigDTO dto);
+    UserDisplayConfig toDomain(UserDisplayConfigDTO dto);
 
     /**
-     * Update entity from DTO
+     * Convert domain object list to DTO list
      */
-    void updateEntity(UserDisplayConfigDTO dto, @MappingTarget UserDisplayConfig entity);
+    List<UserDisplayConfigDTO> toDTOList(List<UserDisplayConfig> domains);
 
     /**
-     * Convert entity list to DTO list
+     * Convert DTO list to domain object list
      */
-    List<UserDisplayConfigDTO> toDTOList(List<UserDisplayConfig> entities);
-
-    /**
-     * Convert DTO list to entity list
-     */
-    List<UserDisplayConfig> toEntityList(List<UserDisplayConfigDTO> dtos);
+    List<UserDisplayConfig> toDomainList(List<UserDisplayConfigDTO> dtos);
 }

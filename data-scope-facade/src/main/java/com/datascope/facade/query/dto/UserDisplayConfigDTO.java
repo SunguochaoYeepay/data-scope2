@@ -3,13 +3,16 @@ package com.datascope.facade.query.dto;
 import com.datascope.domain.query.enums.ColumnAlign;
 import com.datascope.domain.query.enums.ColumnFixed;
 import com.datascope.domain.query.enums.MaskType;
+import lombok.Builder;
 import lombok.Data;
-import lombok.experimental.Accessors;
 
 import java.time.LocalDateTime;
 
+/**
+ * DTO for user display configuration
+ */
 @Data
-@Accessors(chain = true)
+@Builder
 public class UserDisplayConfigDTO {
     private String id;
     private String userId;
@@ -17,16 +20,15 @@ public class UserDisplayConfigDTO {
     private String tableName;
     private String columnName;
     private String displayName;
-    private Integer width;
+    private Integer columnWidth;
+    private ColumnFixed fixed;
     private ColumnAlign align;
-    private ColumnFixed columnFixed;
     private Boolean visible;
-    private Integer orderNum;
-    private Boolean sortable;
-    private Boolean searchable;
-    private Boolean required;
+    private Integer order;
     private MaskType maskType;
-    private String maskConfig;
+    private String maskChar;
+    private Boolean sortable;
+    private String sortType;
     private Integer usageCount;
     private LocalDateTime lastUsedAt;
     private String createdBy;

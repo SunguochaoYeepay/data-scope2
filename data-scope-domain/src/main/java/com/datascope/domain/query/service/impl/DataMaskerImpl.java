@@ -6,22 +6,23 @@ import com.datascope.domain.query.util.MaskOptions;
 import org.springframework.stereotype.Service;
 
 /**
- * Implementation of data masking service
+ * Data masking service implementation
  */
 @Service
 public class DataMaskerImpl implements DataMasker {
 
     @Override
-    public String mask(String value, MaskType maskType) {
-        if (value == null || value.isEmpty() || maskType == null) {
-            return value;
+    public String mask(String value, MaskType type) {
+        if (value == null) {
+            return null;
+        }
+        if (value.isEmpty()) {
+            return "";
         }
 
-        switch (maskType) {
-            case NONE:
-                return value;
+        switch (type) {
             case FULL:
-                return maskFull(value);
+                return maskAll(value);
             case LEFT:
                 return maskLeft(value);
             case RIGHT:
@@ -37,8 +38,7 @@ public class DataMaskerImpl implements DataMasker {
             case BANK_CARD:
                 return maskBankCard(value);
             case CUSTOM:
-                // Custom masking should be configured through MaskOptions
-                return value;
+                return maskCustom(value, MaskOptions.custom(value, 1, 1));
             default:
                 return value;
         }
@@ -46,41 +46,42 @@ public class DataMaskerImpl implements DataMasker {
 
     @Override
     public String mask(String value, MaskOptions options) {
-        if (value == null || value.isEmpty() || options == null) {
-            return value;
+        if (value == null) {
+            return null;
+        }
+        if (value.isEmpty()) {
+            return "";
         }
 
         if (options.getType() == MaskType.CUSTOM) {
-            return maskWithPattern(value, options.getMaskChar(), options.getKeepPrefix(), options.getKeepSuffix());
+            return maskCustom(value, options);
         }
 
         return mask(value, options.getType());
     }
 
-    private String maskFull(String value) {
+    private String maskAll(String value) {
         return "*".repeat(value.length());
     }
 
     private String maskLeft(String value) {
-        int maskLength = value.length() / 3;
-        return "*".repeat(maskLength) + value.substring(maskLength);
+        return "*" + value.substring(1);
     }
 
     private String maskRight(String value) {
-        int maskLength = value.length() / 3;
-        return value.substring(0, value.length() - maskLength) + "*".repeat(maskLength);
+        return value.substring(0, value.length() - 1) + "*";
     }
 
     private String maskMiddle(String value) {
-        int length = value.length();
-        int maskLength = length / 3;
-        int start = (length - maskLength) / 2;
-        return value.substring(0, start) + "*".repeat(maskLength) + value.substring(start + maskLength);
+        if (value.length() <= 2) {
+            return value;
+        }
+        return value.charAt(0) + "*".repeat(value.length() - 2) + value.charAt(value.length() - 1);
     }
 
     private String maskEmail(String value) {
         int atIndex = value.indexOf('@');
-        if (atIndex <= 1) {
+        if (atIndex <= 0) {
             return value;
         }
         String name = value.substring(0, atIndex);
@@ -89,36 +90,37 @@ public class DataMaskerImpl implements DataMasker {
     }
 
     private String maskPhone(String value) {
-        if (value.length() < 7) {
+        if (value.length() != 11) {
             return value;
         }
-        return value.substring(0, 3) + "*".repeat(value.length() - 7) + value.substring(value.length() - 4);
+        return value.substring(0, 3) + "*".repeat(4) + value.substring(7);
     }
 
     private String maskIdCard(String value) {
-        if (value.length() < 8) {
+        if (value.length() != 18) {
             return value;
         }
-        return value.substring(0, 4) + "*".repeat(value.length() - 8) + value.substring(value.length() - 4);
+        return value.substring(0, 4) + "*".repeat(10) + value.substring(14);
     }
 
     private String maskBankCard(String value) {
-        if (value.length() < 8) {
+        if (value.length() < 16) {
             return value;
         }
         return value.substring(0, 4) + "*".repeat(value.length() - 8) + value.substring(value.length() - 4);
     }
 
-    private String maskWithPattern(String value, String maskChar, Integer keepPrefix, Integer keepSuffix) {
-        int length = value.length();
-        keepPrefix = keepPrefix != null ? keepPrefix : 0;
-        keepSuffix = keepSuffix != null ? keepSuffix : 0;
+    private String maskCustom(String value, MaskOptions options) {
+        int prefixLen = options.getKeepPrefix();
+        int suffixLen = options.getKeepSuffix();
+        int maskLen = value.length() - prefixLen - suffixLen;
 
-        if (keepPrefix + keepSuffix >= length) {
+        if (maskLen <= 0) {
             return value;
         }
 
-        String mask = (maskChar != null ? maskChar : "*").repeat(length - keepPrefix - keepSuffix);
-        return value.substring(0, keepPrefix) + mask + value.substring(length - keepSuffix);
+        return value.substring(0, prefixLen) +
+            options.getMaskChar().repeat(maskLen) +
+            value.substring(value.length() - suffixLen);
     }
 }

@@ -4,49 +4,44 @@ import com.datascope.domain.query.entity.UserDisplayConfig;
 import com.datascope.domain.query.service.UserDisplayConfigService;
 import com.datascope.facade.query.UserDisplayConfigFacade;
 import com.datascope.facade.query.dto.UserDisplayConfigDTO;
-import com.datascope.facade.query.mapper.UserDisplayConfigMapper;
+import com.datascope.facade.query.mapper.UserDisplayConfigFacadeMapper;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-@Transactional
+@RequiredArgsConstructor
 public class UserDisplayConfigFacadeImpl implements UserDisplayConfigFacade {
-    private final UserDisplayConfigService service;
-    private final UserDisplayConfigMapper mapper;
 
-    public UserDisplayConfigFacadeImpl(UserDisplayConfigService service, UserDisplayConfigMapper mapper) {
-        this.service = service;
-        this.mapper = mapper;
-    }
+    private final UserDisplayConfigService service;
+    private final UserDisplayConfigFacadeMapper mapper;
 
     @Override
-    public UserDisplayConfigDTO save(UserDisplayConfigDTO dto, String operator) {
-        UserDisplayConfig config = mapper.toEntity(dto);
-        config = service.save(config, operator);
-        return mapper.toDto(config);
+    public UserDisplayConfigDTO save(UserDisplayConfigDTO config, String operator) {
+        UserDisplayConfig domain = mapper.toDomain(config);
+        return mapper.toDTO(service.save(domain, operator));
     }
 
     @Override
     public UserDisplayConfigDTO findById(String id) {
         return service.findById(id)
-            .map(mapper::toDto)
+            .map(mapper::toDTO)
             .orElse(null);
     }
 
     @Override
     public List<UserDisplayConfigDTO> findByUserId(String userId) {
         return service.findByUserId(userId).stream()
-            .map(mapper::toDto)
+            .map(mapper::toDTO)
             .collect(Collectors.toList());
     }
 
     @Override
     public List<UserDisplayConfigDTO> findByUserIdAndDataSourceId(String userId, String dataSourceId) {
         return service.findByUserIdAndDataSourceId(userId, dataSourceId).stream()
-            .map(mapper::toDto)
+            .map(mapper::toDTO)
             .collect(Collectors.toList());
     }
 
@@ -54,7 +49,7 @@ public class UserDisplayConfigFacadeImpl implements UserDisplayConfigFacade {
     public List<UserDisplayConfigDTO> findByUserIdAndDataSourceIdAndTableName(
         String userId, String dataSourceId, String tableName) {
         return service.findByUserIdAndDataSourceIdAndTableName(userId, dataSourceId, tableName).stream()
-            .map(mapper::toDto)
+            .map(mapper::toDTO)
             .collect(Collectors.toList());
     }
 
@@ -63,7 +58,7 @@ public class UserDisplayConfigFacadeImpl implements UserDisplayConfigFacade {
         String userId, String dataSourceId, String tableName, String columnName) {
         return service.findByUserIdAndDataSourceIdAndTableNameAndColumnName(
                 userId, dataSourceId, tableName, columnName).stream()
-            .map(mapper::toDto)
+            .map(mapper::toDTO)
             .collect(Collectors.toList());
     }
 
@@ -94,29 +89,25 @@ public class UserDisplayConfigFacadeImpl implements UserDisplayConfigFacade {
     }
 
     @Override
+    public UserDisplayConfigDTO create(UserDisplayConfigDTO config, String operator) {
+        return mapper.toDTO(service.create(mapper.toDomain(config), operator));
+    }
+
+    @Override
+    public UserDisplayConfigDTO update(UserDisplayConfigDTO config, String operator) {
+        return mapper.toDTO(service.update(mapper.toDomain(config), operator));
+    }
+
+    @Override
+    public void updateUsageStatistics(List<UserDisplayConfigDTO> configs) {
+        List<UserDisplayConfig> domains = configs.stream()
+            .map(mapper::toDomain)
+            .collect(Collectors.toList());
+        service.updateUsageStatistics(domains);
+    }
+
+    @Override
     public void incrementUsageCount(String id) {
         service.incrementUsageCount(id);
-    }
-
-    @Override
-    public UserDisplayConfigDTO create(UserDisplayConfigDTO dto, String operator) {
-        UserDisplayConfig config = mapper.toEntity(dto);
-        config = service.create(config, operator);
-        return mapper.toDto(config);
-    }
-
-    @Override
-    public UserDisplayConfigDTO update(UserDisplayConfigDTO dto, String operator) {
-        UserDisplayConfig config = mapper.toEntity(dto);
-        config = service.update(config, operator);
-        return mapper.toDto(config);
-    }
-
-    @Override
-    public void updateUsageStatistics(List<UserDisplayConfigDTO> dtos) {
-        List<UserDisplayConfig> configs = dtos.stream()
-            .map(mapper::toEntity)
-            .collect(Collectors.toList());
-        service.updateUsageStatistics(configs);
     }
 }

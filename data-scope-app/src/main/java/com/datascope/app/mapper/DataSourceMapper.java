@@ -24,13 +24,13 @@ public interface DataSourceMapper {
      * @param dto DTO对象
      * @return 实体对象
      */
-    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "createdTime", ignore = true)
     @Mapping(target = "createdBy", ignore = true)
-    @Mapping(target = "modifiedAt", ignore = true)
-    @Mapping(target = "modifiedBy", ignore = true)
-    @Mapping(target = "lastSyncAt", ignore = true)
+    @Mapping(target = "updatedTime", ignore = true)
+    @Mapping(target = "updatedBy", ignore = true)
+//    @Mapping(target = "lastSyncTime", ignore = true)
     @Mapping(target = "lastSyncStatus", ignore = true)
-    @Mapping(target = "lastSyncMessage", ignore = true)
+//    @Mapping(target = "lastSyncMessage", ignore = true)
     DataSource toEntity(DataSourceDTO dto);
 
     /**
@@ -48,13 +48,13 @@ public interface DataSourceMapper {
      * @param entity 实体对象
      */
     @Mapping(target = "id", ignore = true)
-    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "createdTime", ignore = true)
     @Mapping(target = "createdBy", ignore = true)
-    @Mapping(target = "modifiedAt", ignore = true)
-    @Mapping(target = "modifiedBy", ignore = true)
-    @Mapping(target = "lastSyncAt", ignore = true)
+    @Mapping(target = "updatedTime", ignore = true)
+    @Mapping(target = "updatedBy", ignore = true)
+//    @Mapping(target = "lastSyncTime", ignore = true)
     @Mapping(target = "lastSyncStatus", ignore = true)
-    @Mapping(target = "lastSyncMessage", ignore = true)
+//    @Mapping(target = "lastSyncMessage", ignore = true)
     void updateEntity(DataSourceDTO dto, @MappingTarget DataSource entity);
 
     /**

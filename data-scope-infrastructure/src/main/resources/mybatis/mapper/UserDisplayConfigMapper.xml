@@ -3,7 +3,7 @@
     "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.datascope.infrastructure.mybatis.mapper.UserDisplayConfigMapper">
 
-    <resultMap id="userDisplayConfigMap" type="com.datascope.infrastructure.entity.UserDisplayConfigEntity">
+    <resultMap id="userDisplayConfigMap" type="com.datascope.domain.query.entity.UserDisplayConfig">
         <id property="id" column="id"/>
         <result property="userId" column="user_id"/>
         <result property="dataSourceId" column="data_source_id"/>
@@ -78,7 +78,7 @@
         AND table_name = #{tableName} AND column_name = #{columnName}
     </select>
 
-    <insert id="insert" parameterType="com.datascope.infrastructure.entity.UserDisplayConfigEntity">
+    <insert id="insert" parameterType="com.datascope.domain.query.entity.UserDisplayConfig">
         INSERT INTO user_display_config (
         <include refid="Base_Column_List"/>
         ) VALUES (
@@ -89,7 +89,7 @@
         )
     </insert>
 
-    <update id="update" parameterType="com.datascope.infrastructure.entity.UserDisplayConfigEntity">
+    <update id="update" parameterType="com.datascope.domain.query.entity.UserDisplayConfig">
         UPDATE user_display_config
         SET user_id        = #{userId},
             data_source_id = #{dataSourceId},

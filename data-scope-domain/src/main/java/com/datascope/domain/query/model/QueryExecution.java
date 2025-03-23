@@ -33,7 +33,7 @@ public class QueryExecution {
         this.dataSourceId = dataSourceId;
         this.sql = sql;
         this.parameters = parameters;
-        this.status = QueryExecutionStatus.CREATED;
+        this.status = QueryExecutionStatus.NOT_STARTED;
         this.startTime = LocalDateTime.now();
     }
 

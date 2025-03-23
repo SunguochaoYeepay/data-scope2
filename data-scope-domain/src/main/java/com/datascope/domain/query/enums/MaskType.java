@@ -1,7 +1,7 @@
 package com.datascope.domain.query.enums;
 
 /**
- * Enumeration of data masking types
+ * Data masking type enumeration
  */
 public enum MaskType {
     NONE,           // No masking

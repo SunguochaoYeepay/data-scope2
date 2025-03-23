@@ -1,18 +1,17 @@
 package com.datascope.app.controller.mapper;
 
-import java.util.List;
-
+import com.datascope.app.controller.request.UserDisplayConfigRequest;
+import com.datascope.app.controller.response.UserDisplayConfigResponse;
+import com.datascope.facade.query.dto.UserDisplayConfigDTO;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;
 
-import com.datascope.app.controller.request.UserDisplayConfigRequest;
-import com.datascope.app.controller.response.UserDisplayConfigResponse;
-import com.datascope.facade.query.dto.UserDisplayConfigDTO;
+import java.util.List;
 
 /**
  * User display configuration mapper
- * 
+ *
  * @author dreambt
  */
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
@@ -25,12 +24,11 @@ public interface UserDisplayConfigMapper {
      */
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "usageCount", ignore = true)
-    @Mapping(target = "lastUsedAt", ignore = true)
-    @Mapping(target = "nonce", ignore = true)
-    @Mapping(target = "createdAt", ignore = true)
-    @Mapping(target = "createdBy", ignore = true)
-    @Mapping(target = "modifiedAt", ignore = true)
-    @Mapping(target = "modifiedBy", ignore = true)
+//    @Mapping(target = "nonce", ignore = true)
+//    @Mapping(target = "createdTime", ignore = true)
+//    @Mapping(target = "createdBy", ignore = true)
+//    @Mapping(target = "modifiedTime", ignore = true)
+//    @Mapping(target = "modifiedBy", ignore = true)
     UserDisplayConfigDTO toDTO(UserDisplayConfigRequest request);
 
     /**

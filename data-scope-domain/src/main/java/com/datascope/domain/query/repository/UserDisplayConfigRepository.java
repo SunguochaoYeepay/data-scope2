@@ -5,47 +5,66 @@ import com.datascope.domain.query.entity.UserDisplayConfig;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Repository interface for user display configuration
+ */
 public interface UserDisplayConfigRepository {
-    UserDisplayConfig save(UserDisplayConfig entity);
 
-    List<UserDisplayConfig> saveAll(List<UserDisplayConfig> entities);
+    /**
+     * Save configuration
+     */
+    UserDisplayConfig save(UserDisplayConfig config);
 
+    /**
+     * Find configuration by ID
+     */
     Optional<UserDisplayConfig> findById(String id);
 
-    List<UserDisplayConfig> findAll();
-
-    List<UserDisplayConfig> findAllById(List<String> ids);
-
-    long count();
-
-    boolean existsById(String id);
-
-    void deleteById(String id);
-
-    void deleteAll();
-
-    void deleteAllById(List<String> ids);
-
+    /**
+     * Find configurations by user ID
+     */
     List<UserDisplayConfig> findByUserId(String userId);
 
-    List<UserDisplayConfig> findByDataSourceId(String dataSourceId);
-
+    /**
+     * Find configurations by user ID and data source ID
+     */
     List<UserDisplayConfig> findByUserIdAndDataSourceId(String userId, String dataSourceId);
 
+    /**
+     * Find configurations by user ID, data source ID and table name
+     */
     List<UserDisplayConfig> findByUserIdAndDataSourceIdAndTableName(
             String userId, String dataSourceId, String tableName);
 
+    /**
+     * Find configurations by user ID, data source ID, table name and column name
+     */
     List<UserDisplayConfig> findByUserIdAndDataSourceIdAndTableNameAndColumnName(
             String userId, String dataSourceId, String tableName, String columnName);
 
+    /**
+     * Delete configuration by ID
+     */
+    void deleteById(String id);
+
+    /**
+     * Delete configurations by user ID
+     */
     void deleteByUserId(String userId);
 
-    void deleteByDataSourceId(String dataSourceId);
-
+    /**
+     * Delete configurations by user ID and data source ID
+     */
     void deleteByUserIdAndDataSourceId(String userId, String dataSourceId);
 
+    /**
+     * Delete configurations by user ID, data source ID and table name
+     */
     void deleteByUserIdAndDataSourceIdAndTableName(
         String userId, String dataSourceId, String tableName);
 
-    void copyConfigs(String fromUserId, String toUserId);
+    /**
+     * Copy configurations from one user to another
+     */
+    void copyConfigurations(String fromUserId, String toUserId);
 }

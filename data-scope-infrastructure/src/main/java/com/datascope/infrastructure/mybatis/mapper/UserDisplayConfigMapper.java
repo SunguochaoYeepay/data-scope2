@@ -1,6 +1,6 @@
 package com.datascope.infrastructure.mybatis.mapper;
 
-import com.datascope.infrastructure.entity.UserDisplayConfigEntity;
+import com.datascope.domain.query.entity.UserDisplayConfig;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -9,30 +9,30 @@ import java.util.List;
 @Mapper
 public interface UserDisplayConfigMapper {
 
-    UserDisplayConfigEntity selectById(@Param("id") String id);
+    UserDisplayConfig selectById(@Param("id") String id);
 
-    List<UserDisplayConfigEntity> selectByUserId(@Param("userId") String userId);
+    List<UserDisplayConfig> selectByUserId(@Param("userId") String userId);
 
-    List<UserDisplayConfigEntity> selectByDataSourceId(@Param("dataSourceId") String dataSourceId);
+    List<UserDisplayConfig> selectByDataSourceId(@Param("dataSourceId") String dataSourceId);
 
-    List<UserDisplayConfigEntity> selectByUserIdAndDataSourceId(
+    List<UserDisplayConfig> selectByUserIdAndDataSourceId(
         @Param("userId") String userId,
         @Param("dataSourceId") String dataSourceId);
 
-    List<UserDisplayConfigEntity> selectByUserIdAndDataSourceIdAndTableName(
+    List<UserDisplayConfig> selectByUserIdAndDataSourceIdAndTableName(
         @Param("userId") String userId,
         @Param("dataSourceId") String dataSourceId,
             @Param("tableName") String tableName);
 
-    List<UserDisplayConfigEntity> selectByUserIdAndDataSourceIdAndTableNameAndColumnName(
+    List<UserDisplayConfig> selectByUserIdAndDataSourceIdAndTableNameAndColumnName(
             @Param("userId") String userId,
             @Param("dataSourceId") String dataSourceId,
             @Param("tableName") String tableName,
             @Param("columnName") String columnName);
 
-    void insert(UserDisplayConfigEntity entity);
+    void insert(UserDisplayConfig entity);
 
-    void update(UserDisplayConfigEntity entity);
+    void update(UserDisplayConfig entity);
 
     void deleteById(@Param("id") String id);
 

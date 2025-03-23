@@ -16,21 +16,25 @@
   * Metadata storage
 
 * Implemented query management core functionality:
-  * Query execution model
-  * Query status tracking
+  * Query execution model and status tracking
   * Query repository interface
+  * Query execution service interface and implementation
   * Display configuration
-  * Data masking utilities
+  * Data masking utilities with comprehensive support for:
+    * Basic masking (NONE, FULL)
+    * Directional masking (LEFT, RIGHT, MIDDLE)
+    * Format-specific masking (EMAIL, PHONE, ID_CARD, BANK_CARD)
+    * Custom pattern masking with configurable options
+  * Unit tests for core functionality
 
 ### What's left to build?
 
-* Implement query management additional features:
-  * Query execution service
-  * Query result handling
-  * Query history management
-  * Export functionality
+* Implement query execution engine:
+  * SQL execution logic
   * Natural language to SQL conversion
-  * Table relationship inference
+  * Query result processing
+  * Result export functionality
+  * Query monitoring and management
 
 * Implement low-code integration:
   * JSON-based interaction protocol
@@ -53,4 +57,5 @@
 ### Progress status?
 
 Core domain models and database schema design are complete. Data source management and query management core
-functionality are implemented. Ready to proceed with query execution service and additional features.
+functionality are implemented, including comprehensive data masking capabilities. Query execution service framework is
+in place. Ready to proceed with query execution engine implementation.
