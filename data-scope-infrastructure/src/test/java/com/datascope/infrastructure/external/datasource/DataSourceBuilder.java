@@ -1,6 +1,9 @@
 package com.datascope.infrastructure.external.datasource;
 
+import com.datascope.domain.common.enums.SyncStatus;
 import com.datascope.domain.datasource.entity.DataSource;
+import com.datascope.domain.datasource.enums.DataSourceStatus;
+import com.datascope.domain.datasource.enums.DataSourceType;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
@@ -14,15 +17,15 @@ import lombok.experimental.Accessors;
 public class DataSourceBuilder {
     private String id;
     private String name;
-    private DataSource.DataSourceType type;
+    private DataSourceType type;
     private String host;
     private Integer port;
     private String database;
     private String username;
     private String password;
     private String salt;
-    private DataSource.DataSourceStatus status;
-    private DataSource.SyncStatus lastSyncStatus;
+    private DataSourceStatus status;
+    private SyncStatus lastSyncStatus;
     private String lastSyncMessage;
     private String remark;
 
@@ -30,30 +33,30 @@ public class DataSourceBuilder {
         return new DataSourceBuilder()
             .setId("test-id")
             .setName("test-db")
-            .setType(DataSource.DataSourceType.MYSQL)
+            .setType(DataSourceType.MYSQL)
             .setHost("localhost")
             .setPort(3306)
             .setDatabase("test_db")
             .setUsername("test_user")
             .setPassword("encrypted_password")
             .setSalt("test_salt")
-            .setStatus(DataSource.DataSourceStatus.INACTIVE)
-            .setLastSyncStatus(DataSource.SyncStatus.NOT_SYNCED);
+            .setStatus(DataSourceStatus.INACTIVE)
+            .setLastSyncStatus(SyncStatus.NOT_SYNCED);
     }
 
     public static DataSourceBuilder db2() {
         return new DataSourceBuilder()
             .setId("test-id-2")
             .setName("test-db-2")
-            .setType(DataSource.DataSourceType.DB2)
+            .setType(DataSourceType.DB2)
             .setHost("localhost")
             .setPort(50000)
             .setDatabase("test_db_2")
             .setUsername("test_user_2")
             .setPassword("encrypted_password_2")
             .setSalt("test_salt_2")
-            .setStatus(DataSource.DataSourceStatus.INACTIVE)
-            .setLastSyncStatus(DataSource.SyncStatus.NOT_SYNCED);
+            .setStatus(DataSourceStatus.INACTIVE)
+            .setLastSyncStatus(SyncStatus.NOT_SYNCED);
     }
 
     public DataSource build() {

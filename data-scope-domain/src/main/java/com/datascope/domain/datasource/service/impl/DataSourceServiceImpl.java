@@ -1,6 +1,9 @@
 package com.datascope.domain.datasource.service.impl;
 
+import com.datascope.domain.common.enums.SyncStatus;
 import com.datascope.domain.datasource.entity.DataSource;
+import com.datascope.domain.datasource.enums.DataSourceStatus;
+import com.datascope.domain.datasource.enums.DataSourceType;
 import com.datascope.domain.datasource.exception.DataSourceException;
 import com.datascope.domain.datasource.gateway.DataSourceConnectionGateway;
 import com.datascope.domain.datasource.gateway.PasswordEncryptorGateway;
@@ -137,24 +140,24 @@ public class DataSourceServiceImpl implements DataSourceService {
         DataSource entity = getById(id);
         try {
             // TODO: 实现元数据同步逻辑
-            entity.updateSyncStatus(DataSource.SyncStatus.SUCCESS, "同步成功");
+            entity.updateSyncStatus(SyncStatus.SUCCESS, "同步成功");
             return repository.save(entity);
         } catch (Exception e) {
             log.error("同步数据源元数据失败: {}", id, e);
-            entity.updateSyncStatus(DataSource.SyncStatus.FAILED, e.getMessage());
+            entity.updateSyncStatus(SyncStatus.FAILED, e.getMessage());
             return repository.save(entity);
         }
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<DataSource> getByType(DataSource.DataSourceType type) {
+    public List<DataSource> getByType(DataSourceType type) {
         return repository.findByType(type);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<DataSource> getByStatus(DataSource.DataSourceStatus status) {
+    public List<DataSource> getByStatus(DataSourceStatus status) {
         return repository.findByStatus(status);
     }
 
@@ -172,7 +175,7 @@ public class DataSourceServiceImpl implements DataSourceService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<DataSource> getByTypeAndStatus(DataSource.DataSourceType type, DataSource.DataSourceStatus status) {
+    public List<DataSource> getByTypeAndStatus(DataSourceType type, DataSourceStatus status) {
         return repository.findByTypeAndStatus(type, status);
     }
 

@@ -1,6 +1,7 @@
 package com.datascope.domain.query.entity;
 
 import com.datascope.domain.common.entity.BaseEntity;
+import com.datascope.domain.query.enums.QueryExecutionStatus;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -76,30 +77,5 @@ public class Query extends BaseEntity {
         this.lastExecutedAt = LocalDateTime.now();
         this.lastExecutionStatus = status;
         this.lastExecutionMessage = message;
-    }
-
-    /**
-     * 查询执行状态枚举
-     */
-    public enum QueryExecutionStatus {
-        /**
-         * 执行成功
-         */
-        SUCCESS,
-
-        /**
-         * 执行失败
-         */
-        FAILED,
-
-        /**
-         * 执行中
-         */
-        EXECUTING,
-
-        /**
-         * 未执行
-         */
-        NOT_EXECUTED
     }
 }

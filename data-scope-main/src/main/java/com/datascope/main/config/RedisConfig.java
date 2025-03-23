@@ -1,4 +1,4 @@
-package com.datascope.app.config;
+package com.datascope.main.config;
 
 import io.lettuce.core.RedisClient;
 import io.lettuce.core.RedisURI;

@@ -1,6 +1,7 @@
 package com.datascope.domain.query.model;
 
 import com.datascope.domain.datasource.model.DataSourceId;
+import com.datascope.domain.query.enums.QueryExecutionStatus;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

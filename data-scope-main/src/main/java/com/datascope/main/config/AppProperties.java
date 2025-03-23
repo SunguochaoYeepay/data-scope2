@@ -1,4 +1,4 @@
-package com.datascope.app.config;
+package com.datascope.main.config;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;

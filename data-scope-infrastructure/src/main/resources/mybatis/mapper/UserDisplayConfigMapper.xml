@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.datascope.infrastructure.mybatis.mapper.UserDisplayConfigMapper">
+
+    <resultMap id="userDisplayConfigMap" type="com.datascope.infrastructure.entity.UserDisplayConfigEntity">
+        <id property="id" column="id"/>
+        <result property="userId" column="user_id"/>
+        <result property="dataSourceId" column="data_source_id"/>
+        <result property="tableName" column="table_name"/>
+        <result property="columnName" column="column_name"/>
+        <result property="displayName" column="display_name"/>
+        <result property="width" column="width"/>
+        <result property="align" column="align"/>
+        <result property="columnFixed" column="column_fixed"/>
+        <result property="visible" column="visible"/>
+        <result property="orderNum" column="order_num"/>
+        <result property="sortable" column="sortable"/>
+        <result property="searchable" column="searchable"/>
+        <result property="required" column="required"/>
+        <result property="maskType" column="mask_type"/>
+        <result property="maskConfig" column="mask_config"/>
+        <result property="usageCount" column="usage_count"/>
+        <result property="lastUsedAt" column="last_used_at"/>
+        <result property="createdBy" column="created_by"/>
+        <result property="createdTime" column="created_time"/>
+        <result property="updatedBy" column="updated_by"/>
+        <result property="updatedTime" column="updated_time"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id
+        , user_id, data_source_id, table_name, column_name, display_name, width, align,
+        column_fixed, visible, order_num, sortable, searchable, required, mask_type, mask_config,
+        usage_count, last_used_at, created_by, created_time, updated_by, updated_time
+    </sql>
+
+    <select id="selectById" resultMap="userDisplayConfigMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM user_display_config
+        WHERE id = #{id}
+    </select>
+
+    <select id="selectByUserId" resultMap="userDisplayConfigMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM user_display_config
+        WHERE user_id = #{userId}
+    </select>
+
+    <select id="selectByDataSourceId" resultMap="userDisplayConfigMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM user_display_config
+        WHERE data_source_id = #{dataSourceId}
+    </select>
+
+    <select id="selectByUserIdAndDataSourceId" resultMap="userDisplayConfigMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM user_display_config
+        WHERE user_id = #{userId} AND data_source_id = #{dataSourceId}
+    </select>
+
+    <select id="selectByUserIdAndDataSourceIdAndTableName" resultMap="userDisplayConfigMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM user_display_config
+        WHERE user_id = #{userId} AND data_source_id = #{dataSourceId} AND table_name = #{tableName}
+    </select>
+
+    <select id="selectByUserIdAndDataSourceIdAndTableNameAndColumnName" resultMap="userDisplayConfigMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM user_display_config
+        WHERE user_id = #{userId} AND data_source_id = #{dataSourceId}
+        AND table_name = #{tableName} AND column_name = #{columnName}
+    </select>
+
+    <insert id="insert" parameterType="com.datascope.infrastructure.entity.UserDisplayConfigEntity">
+        INSERT INTO user_display_config (
+        <include refid="Base_Column_List"/>
+        ) VALUES (
+        #{id}, #{userId}, #{dataSourceId}, #{tableName}, #{columnName}, #{displayName},
+        #{width}, #{align}, #{columnFixed}, #{visible}, #{orderNum}, #{sortable},
+        #{searchable}, #{required}, #{maskType}, #{maskConfig}, #{usageCount},
+        #{lastUsedAt}, #{createdBy}, #{createdTime}, #{updatedBy}, #{updatedTime}
+        )
+    </insert>
+
+    <update id="update" parameterType="com.datascope.infrastructure.entity.UserDisplayConfigEntity">
+        UPDATE user_display_config
+        SET user_id        = #{userId},
+            data_source_id = #{dataSourceId},
+            table_name     = #{tableName},
+            column_name    = #{columnName},
+            display_name   = #{displayName},
+            width          = #{width},
+            align          = #{align},
+            column_fixed   = #{columnFixed},
+            visible        = #{visible},
+            order_num      = #{orderNum},
+            sortable       = #{sortable},
+            searchable     = #{searchable},
+            required       = #{required},
+            mask_type      = #{maskType},
+            mask_config    = #{maskConfig},
+            usage_count    = #{usageCount},
+            last_used_at   = #{lastUsedAt},
+            updated_by     = #{updatedBy},
+            updated_time   = #{updatedTime}
+        WHERE id = #{id}
+    </update>
+
+    <delete id="deleteById">
+        DELETE
+        FROM user_display_config
+        WHERE id = #{id}
+    </delete>
+
+    <delete id="deleteByUserId">
+        DELETE
+        FROM user_display_config
+        WHERE user_id = #{userId}
+    </delete>
+
+    <delete id="deleteByDataSourceId">
+        DELETE
+        FROM user_display_config
+        WHERE data_source_id = #{dataSourceId}
+    </delete>
+
+    <delete id="deleteByUserIdAndDataSourceId">
+        DELETE
+        FROM user_display_config
+        WHERE user_id = #{userId}
+          AND data_source_id = #{dataSourceId}
+    </delete>
+
+    <delete id="deleteByUserIdAndDataSourceIdAndTableName">
+        DELETE
+        FROM user_display_config
+        WHERE user_id = #{userId}
+          AND data_source_id = #{dataSourceId}
+          AND table_name = #{tableName}
+    </delete>
+
+    <insert id="copyConfigs">
+        INSERT INTO user_display_config (
+        <include refid="Base_Column_List"/>
+        )
+        SELECT
+        UUID() as id,
+        #{toUserId} as user_id,
+        data_source_id,
+        table_name,
+        column_name,
+        display_name,
+        width,
+        align,
+        column_fixed,
+        visible,
+        order_num,
+        sortable,
+        searchable,
+        required,
+        mask_type,
+        mask_config,
+        0 as usage_count,
+        NULL as last_used_at,
+        #{toUserId} as created_by,
+        NOW() as created_time,
+        #{toUserId} as updated_by,
+        NOW() as updated_time
+        FROM user_display_config
+        WHERE user_id = #{fromUserId}
+    </insert>
+</mapper>

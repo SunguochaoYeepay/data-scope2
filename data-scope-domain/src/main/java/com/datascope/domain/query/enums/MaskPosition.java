@@ -4,24 +4,18 @@ package com.datascope.domain.query.enums;
  * 掩码位置枚举
  */
 public enum MaskPosition {
-
     /**
-     * 从开头开始
+     * 开始位置
      */
     START,
 
     /**
-     * 从中间开始
+     * 中间位置
      */
     MIDDLE,
 
     /**
-     * 从末尾开始
+     * 结束位置
      */
-    END,
-
-    /**
-     * 指定位置
-     */
-    CUSTOM;
+    END
 }

@@ -1,4 +1,4 @@
-package com.datascope.facade.datasource.impl;
+package com.datascope.app.facade.impl;
 
 import com.datascope.app.mapper.DataSourceMapper;
 import com.datascope.domain.datasource.entity.DataSource;
@@ -108,8 +108,8 @@ public class DataSourceFacadeImpl implements DataSourceFacade {
      * @param type 门面层数据源类型
      * @return 领域层数据源类型
      */
-    private DataSource.DataSourceType convertType(DataSourceType type) {
-        return DataSource.DataSourceType.valueOf(type.name());
+    private com.datascope.domain.datasource.enums.DataSourceType convertType(DataSourceType type) {
+        return com.datascope.domain.datasource.enums.DataSourceType.valueOf(type.name());
     }
 
     /**
@@ -118,7 +118,7 @@ public class DataSourceFacadeImpl implements DataSourceFacade {
      * @param status 门面层数据源状态
      * @return 领域层数据源状态
      */
-    private DataSource.DataSourceStatus convertStatus(DataSourceStatus status) {
-        return DataSource.DataSourceStatus.valueOf(status.name());
+    private com.datascope.domain.datasource.enums.DataSourceStatus convertStatus(DataSourceStatus status) {
+        return com.datascope.domain.datasource.enums.DataSourceStatus.valueOf(status.name());
     }
 }

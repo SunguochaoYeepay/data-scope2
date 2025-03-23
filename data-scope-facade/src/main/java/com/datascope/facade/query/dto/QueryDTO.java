@@ -1,5 +1,6 @@
 package com.datascope.facade.query.dto;
 
+import com.datascope.domain.query.enums.QueryExecutionStatus;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
@@ -79,29 +80,4 @@ public class QueryDTO {
      * 最后执行消息
      */
     private String lastExecutionMessage;
-
-    /**
-     * 查询执行状态枚举
-     */
-    public enum QueryExecutionStatus {
-        /**
-         * 执行成功
-         */
-        SUCCESS,
-
-        /**
-         * 执行失败
-         */
-        FAILED,
-
-        /**
-         * 执行中
-         */
-        EXECUTING,
-
-        /**
-         * 未执行
-         */
-        NOT_EXECUTED
-    }
 }

@@ -1,5 +1,6 @@
 package com.datascope.infrastructure.external.datasource;
 
+import com.datascope.domain.datasource.enums.DataSourceType;
 import lombok.Data;
 import lombok.experimental.Accessors;
 

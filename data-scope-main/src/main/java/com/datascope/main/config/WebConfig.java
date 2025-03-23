@@ -1,4 +1,4 @@
-package com.datascope.app.config;
+package com.datascope.main.config;
 
 import com.datascope.app.interceptor.RateLimitInterceptor;
 import com.fasterxml.jackson.databind.ObjectMapper;

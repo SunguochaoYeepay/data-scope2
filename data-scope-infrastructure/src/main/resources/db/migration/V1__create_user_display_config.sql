@@ -1,0 +1,26 @@
+CREATE TABLE user_display_config
+(
+    id             VARCHAR(36) NOT NULL,
+    user_id        VARCHAR(36) NOT NULL,
+    data_source_id VARCHAR(36) NOT NULL,
+    table_name     VARCHAR(64) NOT NULL,
+    column_name    VARCHAR(64) NOT NULL,
+    display_name   VARCHAR(64),
+    width          INT,
+    align          VARCHAR(16),
+    column_fixed   VARCHAR(16),
+    visible        BOOLEAN DEFAULT TRUE,
+    order_num      INT,
+    sortable       BOOLEAN DEFAULT FALSE,
+    searchable     BOOLEAN DEFAULT FALSE,
+    required       BOOLEAN DEFAULT FALSE,
+    mask_type      VARCHAR(16),
+    mask_config    VARCHAR(255),
+    usage_count    INT     DEFAULT 0,
+    last_used_at   TIMESTAMP,
+    created_by     VARCHAR(36),
+    created_time   TIMESTAMP,
+    updated_by     VARCHAR(36),
+    updated_time   TIMESTAMP,
+    PRIMARY KEY (id)
+);

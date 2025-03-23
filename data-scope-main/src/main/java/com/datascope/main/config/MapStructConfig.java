@@ -1,4 +1,4 @@
-package com.datascope.app.config;
+package com.datascope.main.config;
 
 import org.mapstruct.MapperConfig;
 import org.mapstruct.ReportingPolicy;

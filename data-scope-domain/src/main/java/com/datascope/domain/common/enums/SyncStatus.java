@@ -1,23 +1,33 @@
-package com.datascope.domain.metadata.enums;
+package com.datascope.domain.common.enums;
 
 /**
- * 同步状态
+ * 同步状态枚举
  */
 public enum SyncStatus {
+    /**
+     * 未同步
+     */
+    NOT_SYNCED,
+
     /**
      * 同步中
      */
     SYNCING,
 
     /**
-     * 同步成功
+     * 已同步
      */
-    SUCCESS,
+    SYNCED,
 
     /**
      * 同步失败
      */
     FAILED,
+
+    /**
+     * 同步成功
+     */
+    SUCCESS,
 
     /**
      * 同步取消

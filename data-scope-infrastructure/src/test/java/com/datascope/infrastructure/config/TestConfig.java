@@ -1,25 +1,18 @@
 package com.datascope.infrastructure.config;
 
-import com.datascope.domain.datasource.entity.DataSource;
-import com.datascope.infrastructure.external.datasource.TestDataSourceFactory;
-import org.springframework.context.annotation.Bean;
+import org.mybatis.spring.annotation.MapperScan;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
 
-/**
- * 测试配置类
- */
 @Configuration
-@Profile("test")
+@EnableAutoConfiguration
+@EnableTransactionManagement
+@ComponentScan(basePackages = {
+    "com.datascope.infrastructure.repository",
+    "com.datascope.infrastructure.mybatis.mapper"
+})
+@MapperScan("com.datascope.infrastructure.mybatis.mapper")
 public class TestConfig {
-
-    @Bean(name = "testMySqlDataSource")
-    public DataSource testMySqlDataSource() {
-        return TestDataSourceFactory.createMySqlDataSource();
-    }
-
-    @Bean(name = "testDb2DataSource")
-    public DataSource testDb2DataSource() {
-        return TestDataSourceFactory.createDb2DataSource();
-    }
 }

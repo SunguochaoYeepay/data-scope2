@@ -1,6 +1,9 @@
 package com.datascope.infrastructure.external.datasource;
 
+import com.datascope.domain.common.enums.SyncStatus;
 import com.datascope.domain.datasource.entity.DataSource;
+import com.datascope.domain.datasource.enums.DataSourceStatus;
+import com.datascope.domain.datasource.enums.DataSourceType;
 import com.datascope.domain.datasource.gateway.PasswordEncryptorGateway;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
@@ -47,7 +50,7 @@ class DataSourceConnectionGatewayImplTest {
                         field.set(dataSource, "test-db");
                         break;
                     case "type":
-                        field.set(dataSource, DataSource.DataSourceType.MYSQL);
+                        field.set(dataSource, DataSourceType.MYSQL);
                         break;
                     case "host":
                         field.set(dataSource, "localhost");
@@ -68,10 +71,10 @@ class DataSourceConnectionGatewayImplTest {
                         field.set(dataSource, "test_salt");
                         break;
                     case "status":
-                        field.set(dataSource, DataSource.DataSourceStatus.ACTIVE);
+                        field.set(dataSource, DataSourceStatus.ACTIVE);
                         break;
                     case "lastSyncStatus":
-                        field.set(dataSource, DataSource.SyncStatus.NOT_SYNCED);
+                        field.set(dataSource, SyncStatus.NOT_SYNCED);
                         break;
                 }
             }
@@ -126,7 +129,7 @@ class DataSourceConnectionGatewayImplTest {
                         field.set(dataSource2, "test-db-2");
                         break;
                     case "type":
-                        field.set(dataSource2, DataSource.DataSourceType.DB2);
+                        field.set(dataSource2, DataSourceType.DB2);
                         break;
                     case "host":
                         field.set(dataSource2, "localhost");
@@ -147,10 +150,10 @@ class DataSourceConnectionGatewayImplTest {
                         field.set(dataSource2, "test_salt_2");
                         break;
                     case "status":
-                        field.set(dataSource2, DataSource.DataSourceStatus.ACTIVE);
+                        field.set(dataSource2, DataSourceStatus.ACTIVE);
                         break;
                     case "lastSyncStatus":
-                        field.set(dataSource2, DataSource.SyncStatus.NOT_SYNCED);
+                        field.set(dataSource2, SyncStatus.NOT_SYNCED);
                         break;
                 }
             }

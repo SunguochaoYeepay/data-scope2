@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://maven.apache.org/POM/4.0.0"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
@@ -9,10 +10,11 @@
     <packaging>pom</packaging>
 
     <modules>
-        <module>data-scope-app</module>
         <module>data-scope-domain</module>
-        <module>data-scope-facade</module>
         <module>data-scope-infrastructure</module>
+        <module>data-scope-facade</module>
+        <module>data-scope-app</module>
+        <module>data-scope-main</module>
     </modules>
 
     <properties>
@@ -55,6 +57,10 @@
         <lombok.version>1.18.36</lombok.version>
         <mapstruct.version>1.6.0.Beta2</mapstruct.version>
         <mapstruct-lombok.version>0.2.0</mapstruct-lombok.version>
+
+        <flyway.version>9.22.3</flyway.version>
+        <guava.version>33.0.0-jre</guava.version>
+        <jacoco.version>0.8.11</jacoco.version>
     </properties>
 
     <dependencyManagement>
@@ -88,6 +94,8 @@
                 <artifactId>jcc</artifactId>
                 <version>${db2.version}</version>
             </dependency>
+
+            <!-- MyBatis -->
             <dependency>
                 <groupId>org.mybatis</groupId>
                 <artifactId>mybatis</artifactId>
@@ -104,38 +112,59 @@
                 <version>${mybatis-spring-boot.version}</version>
             </dependency>
             <dependency>
+                <groupId>org.mybatis.spring.boot</groupId>
+                <artifactId>mybatis-spring-boot-starter-test</artifactId>
+                <version>${mybatis-spring-boot.version}</version>
+                <scope>test</scope>
+            </dependency>
+
+            <dependency>
                 <groupId>com.zaxxer</groupId>
                 <artifactId>HikariCP</artifactId>
                 <version>${hikaricp.version}</version>
             </dependency>
 
-            <!-- Utils -->
+            <!-- Internal Dependencies -->
             <dependency>
-                <groupId>org.apache.commons</groupId>
-                <artifactId>commons-lang3</artifactId>
-                <version>${commons-lang3.version}</version>
+                <groupId>com.datascope</groupId>
+                <artifactId>data-scope-app</artifactId>
+                <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.apache.commons</groupId>
-                <artifactId>commons-collections4</artifactId>
-                <version>${commons-collections4.version}</version>
+                <groupId>com.datascope</groupId>
+                <artifactId>data-scope-facade</artifactId>
+                <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>commons-io</groupId>
-                <artifactId>commons-io</artifactId>
-                <version>${commons-io.version}</version>
+                <groupId>com.datascope</groupId>
+                <artifactId>data-scope-domain</artifactId>
+                <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.google.guava</groupId>
-                <artifactId>guava</artifactId>
-                <version>${guava.version}</version>
+                <groupId>com.datascope</groupId>
+                <artifactId>data-scope-infrastructure</artifactId>
+                <version>${project.version}</version>
             </dependency>
 
-            <!-- API Docs -->
+            <!-- Database Migration -->
+            <dependency>
+                <groupId>org.flywaydb</groupId>
+                <artifactId>flyway-core</artifactId>
+                <version>${flyway.version}</version>
+            </dependency>
+
+            <!-- API Documentation -->
             <dependency>
                 <groupId>org.springdoc</groupId>
                 <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
                 <version>${springdoc.version}</version>
+            </dependency>
+
+            <!-- Utils -->
+            <dependency>
+                <groupId>com.google.guava</groupId>
+                <artifactId>guava</artifactId>
+                <version>${guava.version}</version>
             </dependency>
 
             <!-- Tools -->
@@ -166,11 +195,6 @@
         <pluginManagement>
             <plugins>
                 <plugin>
-                    <groupId>org.springframework.boot</groupId>
-                    <artifactId>spring-boot-maven-plugin</artifactId>
-                    <version>${spring-boot.version}</version>
-                </plugin>
-                <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-compiler-plugin</artifactId>
                     <version>3.11.0</version>
@@ -196,7 +220,14 @@
                         </annotationProcessorPaths>
                     </configuration>
                 </plugin>
+                <plugin>
+                    <groupId>org.jacoco</groupId>
+                    <artifactId>jacoco-maven-plugin</artifactId>
+                    <version>${jacoco.version}</version>
+                </plugin>
             </plugins>
         </pluginManagement>
+        <plugins>
+        </plugins>
     </build>
 </project>

@@ -1,7 +1,10 @@
 package com.datascope.domain.datasource.repository;
 
+import com.datascope.domain.common.enums.SyncStatus;
 import com.datascope.domain.common.repository.BaseRepository;
 import com.datascope.domain.datasource.entity.DataSource;
+import com.datascope.domain.datasource.enums.DataSourceStatus;
+import com.datascope.domain.datasource.enums.DataSourceType;
 
 import java.util.List;
 
@@ -32,7 +35,7 @@ public interface DataSourceRepository extends BaseRepository<DataSource, String>
      * @param type 数据源类型
      * @return 数据源对象列表
      */
-    List<DataSource> findByType(DataSource.DataSourceType type);
+    List<DataSource> findByType(DataSourceType type);
 
     /**
      * 根据状态查询数据源列表
@@ -40,7 +43,7 @@ public interface DataSourceRepository extends BaseRepository<DataSource, String>
      * @param status 数据源状态
      * @return 数据源对象列表
      */
-    List<DataSource> findByStatus(DataSource.DataSourceStatus status);
+    List<DataSource> findByStatus(DataSourceStatus status);
 
     /**
      * 根据同步状态查询数据源列表
@@ -48,7 +51,7 @@ public interface DataSourceRepository extends BaseRepository<DataSource, String>
      * @param syncStatus 同步状态
      * @return 数据源对象列表
      */
-    List<DataSource> findByLastSyncStatus(DataSource.SyncStatus syncStatus);
+    List<DataSource> findByLastSyncStatus(SyncStatus syncStatus);
 
     /**
      * 根据名称模糊查询数据源列表
@@ -81,5 +84,5 @@ public interface DataSourceRepository extends BaseRepository<DataSource, String>
      * @param status 数据源状态
      * @return 数据源对象列表
      */
-    List<DataSource> findByTypeAndStatus(DataSource.DataSourceType type, DataSource.DataSourceStatus status);
+    List<DataSource> findByTypeAndStatus(DataSourceType type, DataSourceStatus status);
 }

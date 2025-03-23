@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.datascope.infrastructure.mybatis.mapper.UserDisplayConfigMapper">
+
     <resultMap id="BaseResultMap" type="com.datascope.domain.query.entity.UserDisplayConfig">
         <id column="id" property="id"/>
         <result column="user_id" property="userId"/>
@@ -10,7 +11,7 @@
         <result column="display_name" property="displayName"/>
         <result column="width" property="width"/>
         <result column="align" property="align"/>
-        <result column="fixed" property="fixed"/>
+        <result column="column_fixed" property="columnFixed"/>
         <result column="visible" property="visible"/>
         <result column="order_num" property="orderNum"/>
         <result column="sortable" property="sortable"/>
@@ -20,32 +21,33 @@
         <result column="mask_config" property="maskConfig"/>
         <result column="usage_count" property="usageCount"/>
         <result column="last_used_at" property="lastUsedAt"/>
-        <result column="nonce" property="nonce"/>
-        <result column="created_at" property="createdAt"/>
         <result column="created_by" property="createdBy"/>
-        <result column="modified_at" property="modifiedAt"/>
-        <result column="modified_by" property="modifiedBy"/>
+        <result column="created_time" property="createdTime"/>
+        <result column="updated_by" property="updatedBy"/>
+        <result column="updated_time" property="updatedTime"/>
     </resultMap>
 
     <sql id="Base_Column_List">
-        id, user_id, data_source_id, table_name, column_name, display_name, width, align, fixed,
-        visible, order_num, sortable, searchable, required, mask_type, mask_config, usage_count,
-        last_used_at, nonce, created_at, created_by, modified_at, modified_by
+        id
+        , user_id, data_source_id, table_name, column_name, display_name,
+        width, align, column_fixed, visible, order_num, sortable,
+        searchable, required, mask_type, mask_config, usage_count,
+        last_used_at, created_by, created_time, updated_by, updated_time
     </sql>
 
     <insert id="insert" parameterType="com.datascope.domain.query.entity.UserDisplayConfig">
-        INSERT INTO tbl_user_display_config (
+        INSERT INTO user_display_config (
             <include refid="Base_Column_List"/>
         ) VALUES (
             #{id}, #{userId}, #{dataSourceId}, #{tableName}, #{columnName}, #{displayName},
-            #{width}, #{align}, #{fixed}, #{visible}, #{orderNum}, #{sortable}, #{searchable},
-            #{required}, #{maskType}, #{maskConfig}, #{usageCount}, #{lastUsedAt}, #{nonce},
-            #{createdAt}, #{createdBy}, #{modifiedAt}, #{modifiedBy}
+        #{width}, #{align}, #{columnFixed}, #{visible}, #{orderNum}, #{sortable},
+        #{searchable}, #{required}, #{maskType}, #{maskConfig}, #{usageCount},
+        #{lastUsedAt}, #{createdBy}, #{createdTime}, #{updatedBy}, #{updatedTime}
         )
     </insert>
 
     <update id="update" parameterType="com.datascope.domain.query.entity.UserDisplayConfig">
-        UPDATE tbl_user_display_config
+        UPDATE user_display_config
         SET user_id = #{userId},
             data_source_id = #{dataSourceId},
             table_name = #{tableName},
@@ -53,7 +55,7 @@
             display_name = #{displayName},
             width = #{width},
             align = #{align},
-            fixed = #{fixed},
+            column_fixed = #{columnFixed},
             visible = #{visible},
             order_num = #{orderNum},
             sortable = #{sortable},
@@ -63,58 +65,82 @@
             mask_config = #{maskConfig},
             usage_count = #{usageCount},
             last_used_at = #{lastUsedAt},
-            nonce = #{nonce},
-            modified_at = #{modifiedAt},
-            modified_by = #{modifiedBy}
+            updated_by   = #{updatedBy},
+            updated_time = #{updatedTime}
         WHERE id = #{id}
     </update>
 
-    <select id="findById" resultMap="BaseResultMap">
+    <delete id="deleteById" parameterType="string">
+        DELETE
+        FROM user_display_config
+        WHERE id = #{id}
+    </delete>
+
+    <delete id="deleteAll">
+        DELETE
+        FROM user_display_config
+    </delete>
+
+    <delete id="deleteAllById">
+        DELETE FROM user_display_config WHERE id IN
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <select id="selectById" parameterType="string" resultMap="BaseResultMap">
         SELECT <include refid="Base_Column_List"/>
-        FROM tbl_user_display_config
+        FROM user_display_config
         WHERE id = #{id}
     </select>
 
-    <select id="findAll" resultMap="BaseResultMap">
+    <select id="findAllById" resultMap="BaseResultMap">
         SELECT <include refid="Base_Column_List"/>
-        FROM tbl_user_display_config
+        FROM user_display_config
+        WHERE id IN
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
     </select>
 
-    <delete id="deleteById">
-        DELETE FROM tbl_user_display_config WHERE id = #{id}
-    </delete>
-
-    <select id="existsById" resultType="boolean">
-        SELECT COUNT(*) FROM tbl_user_display_config WHERE id = #{id}
+    <select id="selectAll" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM user_display_config
     </select>
 
     <select id="count" resultType="long">
-        SELECT COUNT(*) FROM tbl_user_display_config
+        SELECT COUNT(*)
+        FROM user_display_config
     </select>
 
-    <select id="findByUserId" resultMap="BaseResultMap">
+    <select id="existsById" parameterType="string" resultType="boolean">
+        SELECT EXISTS(SELECT 1 FROM user_display_config WHERE id = #{id})
+    </select>
+
+    <select id="selectByUserId" resultMap="BaseResultMap">
         SELECT <include refid="Base_Column_List"/>
-        FROM tbl_user_display_config
+        FROM user_display_config
         WHERE user_id = #{userId}
     </select>
 
-    <select id="findByUserIdAndDataSourceId" resultMap="BaseResultMap">
+    <select id="selectByUserIdAndDataSourceId" resultMap="BaseResultMap">
         SELECT <include refid="Base_Column_List"/>
-        FROM tbl_user_display_config
+        FROM user_display_config
         WHERE user_id = #{userId} AND data_source_id = #{dataSourceId}
     </select>
 
-    <select id="findByUserIdAndDataSourceIdAndTableName" resultMap="BaseResultMap">
+    <select id="selectByUserIdAndDataSourceIdAndTableName" resultMap="BaseResultMap">
         SELECT <include refid="Base_Column_List"/>
-        FROM tbl_user_display_config
+        FROM user_display_config
         WHERE user_id = #{userId}
           AND data_source_id = #{dataSourceId}
           AND table_name = #{tableName}
     </select>
 
-    <select id="findByUserIdAndDataSourceIdAndTableNameAndColumnName" resultMap="BaseResultMap">
+    <select id="selectByUserIdAndDataSourceIdAndTableNameAndColumnName" resultMap="BaseResultMap">
         SELECT <include refid="Base_Column_List"/>
-        FROM tbl_user_display_config
+        FROM user_display_config
         WHERE user_id = #{userId}
           AND data_source_id = #{dataSourceId}
           AND table_name = #{tableName}
@@ -122,16 +148,21 @@
     </select>
 
     <delete id="deleteByUserId">
-        DELETE FROM tbl_user_display_config WHERE user_id = #{userId}
+        DELETE
+        FROM user_display_config
+        WHERE user_id = #{userId}
     </delete>
 
     <delete id="deleteByUserIdAndDataSourceId">
-        DELETE FROM tbl_user_display_config
-        WHERE user_id = #{userId} AND data_source_id = #{dataSourceId}
+        DELETE
+        FROM user_display_config
+        WHERE user_id = #{userId}
+          AND data_source_id = #{dataSourceId}
     </delete>
 
     <delete id="deleteByUserIdAndDataSourceIdAndTableName">
-        DELETE FROM tbl_user_display_config
+        DELETE
+        FROM user_display_config
         WHERE user_id = #{userId}
           AND data_source_id = #{dataSourceId}
           AND table_name = #{tableName}

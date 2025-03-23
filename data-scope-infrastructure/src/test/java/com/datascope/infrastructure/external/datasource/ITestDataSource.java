@@ -1,5 +1,7 @@
 package com.datascope.infrastructure.external.datasource;
 
+import com.datascope.domain.datasource.enums.DataSourceType;
+
 public interface ITestDataSource {
     String getId();
 

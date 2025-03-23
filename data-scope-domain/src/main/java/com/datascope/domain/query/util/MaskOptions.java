@@ -1,95 +1,56 @@
 package com.datascope.domain.query.util;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import com.datascope.domain.query.enums.MaskType;
 
 /**
- * 数据掩码配置
+ * Data masking configuration options
  */
-@Getter
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
 public class MaskOptions {
-    /**
-     * 掩码类型
-     */
-    private MaskType type;
+    private final MaskType type;
+    private final String maskChar;
+    private final Integer keepPrefix;
+    private final Integer keepSuffix;
 
-    /**
-     * 掩码字符
-     */
-    private String maskChar;
+    private MaskOptions(MaskType type, String maskChar, Integer keepPrefix, Integer keepSuffix) {
+        this.type = type;
+        this.maskChar = maskChar != null ? maskChar : "*";
+        this.keepPrefix = keepPrefix != null ? keepPrefix : 0;
+        this.keepSuffix = keepSuffix != null ? keepSuffix : 0;
+    }
 
-    /**
-     * 保留前几位
-     */
-    private Integer keepPrefix;
-
-    /**
-     * 保留后几位
-     */
-    private Integer keepSuffix;
-
-    /**
-     * 创建手机号掩码配置
-     */
     public static MaskOptions phone() {
-        return MaskOptions.builder()
-            .type(MaskType.PHONE)
-            .maskChar("*")
-            .keepPrefix(3)
-            .keepSuffix(4)
-                .build();
+        return new MaskOptions(MaskType.PHONE, "*", 3, 4);
     }
 
-    /**
-     * 创建邮箱掩码配置
-     */
     public static MaskOptions email() {
-        return MaskOptions.builder()
-            .type(MaskType.EMAIL)
-            .maskChar("*")
-            .keepPrefix(3)
-            .keepSuffix(0)
-                .build();
+        return new MaskOptions(MaskType.EMAIL, "*", 1, 0);
     }
 
-    /**
-     * 创建身份证掩码配置
-     */
     public static MaskOptions idCard() {
-        return MaskOptions.builder()
-            .type(MaskType.ID_CARD)
-            .maskChar("*")
-            .keepPrefix(6)
-            .keepSuffix(4)
-                .build();
+        return new MaskOptions(MaskType.ID_CARD, "*", 4, 4);
     }
 
-    /**
-     * 创建银行卡掩码配置
-     */
     public static MaskOptions bankCard() {
-        return MaskOptions.builder()
-            .type(MaskType.BANK_CARD)
-            .maskChar("*")
-            .keepPrefix(4)
-            .keepSuffix(4)
-                .build();
+        return new MaskOptions(MaskType.BANK_CARD, "*", 4, 4);
     }
 
-    /**
-     * 创建自定义掩码配置
-     */
     public static MaskOptions custom(String maskChar, Integer keepPrefix, Integer keepSuffix) {
-        return MaskOptions.builder()
-            .type(MaskType.CUSTOM)
-            .maskChar(maskChar)
-            .keepPrefix(keepPrefix)
-            .keepSuffix(keepSuffix)
-                .build();
+        return new MaskOptions(MaskType.CUSTOM, maskChar, keepPrefix, keepSuffix);
+    }
+
+    public MaskType getType() {
+        return type;
+    }
+
+    public String getMaskChar() {
+        return maskChar;
+    }
+
+    public Integer getKeepPrefix() {
+        return keepPrefix;
+    }
+
+    public Integer getKeepSuffix() {
+        return keepSuffix;
     }
 }
