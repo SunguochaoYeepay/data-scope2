@@ -5,9 +5,9 @@ package com.datascope.domain.query.model;
  */
 public enum QueryExecutionStatus {
     /**
-     * 等待执行
+     * 已创建
      */
-    PENDING,
+    CREATED,
 
     /**
      * 执行中
@@ -15,12 +15,17 @@ public enum QueryExecutionStatus {
     RUNNING,
 
     /**
-     * 执行完成
+     * 已完成
      */
     COMPLETED,
 
     /**
      * 执行失败
      */
-    FAILED
+    FAILED,
+
+    /**
+     * 已取消
+     */
+    CANCELLED
 }

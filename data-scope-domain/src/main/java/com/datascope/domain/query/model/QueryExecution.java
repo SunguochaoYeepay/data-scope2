@@ -1,10 +1,10 @@
 package com.datascope.domain.query.model;
 
-import com.datascope.domain.common.model.AuditInfo;
 import com.datascope.domain.datasource.model.DataSourceId;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
-import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.UUID;
@@ -13,35 +13,38 @@ import java.util.UUID;
  * 查询执行记录
  */
 @Getter
+@NoArgsConstructor
+@EqualsAndHashCode(of = "id")
 public class QueryExecution {
-    private final UUID id;
-    private final DataSourceId dataSourceId;
-    private final String sql;
-    private final Map<String, Object> parameters;
-    private final LocalDateTime startTime;
+    private UUID id;
+    private DataSourceId dataSourceId;
+    private String sql;
+    private Map<String, Object> parameters;
     private QueryExecutionStatus status;
+    private LocalDateTime startTime;
     private LocalDateTime endTime;
+    private Long resultCount;
     private String errorMessage;
-    private Long rowCount;
-    private AuditInfo auditInfo;
+    private String userId;
 
     public QueryExecution(DataSourceId dataSourceId, String sql, Map<String, Object> parameters) {
         this.id = UUID.randomUUID();
         this.dataSourceId = dataSourceId;
         this.sql = sql;
         this.parameters = parameters;
-        this.status = QueryExecutionStatus.PENDING;
+        this.status = QueryExecutionStatus.CREATED;
         this.startTime = LocalDateTime.now();
     }
 
     public void markAsStarted() {
         this.status = QueryExecutionStatus.RUNNING;
+        this.startTime = LocalDateTime.now();
     }
 
-    public void markAsCompleted(Long rowCount) {
+    public void markAsCompleted(Long resultCount) {
         this.status = QueryExecutionStatus.COMPLETED;
         this.endTime = LocalDateTime.now();
-        this.rowCount = rowCount;
+        this.resultCount = resultCount;
     }
 
     public void markAsFailed(String errorMessage) {
@@ -50,14 +53,24 @@ public class QueryExecution {
         this.errorMessage = errorMessage;
     }
 
-    public Duration getDuration() {
-        if (startTime == null || endTime == null) {
-            return Duration.ZERO;
-        }
-        return Duration.between(startTime, endTime);
+    public void markAsCancelled() {
+        this.status = QueryExecutionStatus.CANCELLED;
+        this.endTime = LocalDateTime.now();
     }
 
-    public void setAuditInfo(AuditInfo auditInfo) {
-        this.auditInfo = auditInfo;
+    public boolean isRunning() {
+        return this.status == QueryExecutionStatus.RUNNING;
+    }
+
+    public boolean isCompleted() {
+        return this.status == QueryExecutionStatus.COMPLETED;
+    }
+
+    public boolean isFailed() {
+        return this.status == QueryExecutionStatus.FAILED;
+    }
+
+    public boolean isCancelled() {
+        return this.status == QueryExecutionStatus.CANCELLED;
     }
 }
