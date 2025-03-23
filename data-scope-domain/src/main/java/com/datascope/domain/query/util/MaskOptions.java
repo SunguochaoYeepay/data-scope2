@@ -1,79 +1,95 @@
 package com.datascope.domain.query.util;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
-
-import java.util.function.Function;
+import lombok.NoArgsConstructor;
 
 /**
- * 掩码选项
+ * 数据掩码配置
  */
 @Getter
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class MaskOptions {
+    /**
+     * 掩码类型
+     */
+    private MaskType type;
 
     /**
-     * 保留左侧字符数
+     * 掩码字符
      */
-    private int leftKeep;
+    private String maskChar;
 
     /**
-     * 保留右侧字符数
+     * 保留前几位
      */
-    private int rightKeep;
+    private Integer keepPrefix;
 
     /**
-     * 自定义掩码处理器
+     * 保留后几位
      */
-    private Function<String, String> customMasker;
+    private Integer keepSuffix;
 
     /**
-     * 创建默认掩码选项
+     * 创建手机号掩码配置
      */
-    public static MaskOptions defaultOptions() {
+    public static MaskOptions phone() {
         return MaskOptions.builder()
-                .leftKeep(1)
-                .rightKeep(1)
+            .type(MaskType.PHONE)
+            .maskChar("*")
+            .keepPrefix(3)
+            .keepSuffix(4)
                 .build();
     }
 
     /**
-     * 创建邮箱掩码选项
+     * 创建邮箱掩码配置
      */
-    public static MaskOptions emailOptions() {
+    public static MaskOptions email() {
         return MaskOptions.builder()
-                .leftKeep(1)
-                .rightKeep(1)
+            .type(MaskType.EMAIL)
+            .maskChar("*")
+            .keepPrefix(3)
+            .keepSuffix(0)
                 .build();
     }
 
     /**
-     * 创建手机号掩码选项
+     * 创建身份证掩码配置
      */
-    public static MaskOptions mobileOptions() {
+    public static MaskOptions idCard() {
         return MaskOptions.builder()
-                .leftKeep(3)
-                .rightKeep(4)
+            .type(MaskType.ID_CARD)
+            .maskChar("*")
+            .keepPrefix(6)
+            .keepSuffix(4)
                 .build();
     }
 
     /**
-     * 创建身份证号掩码选项
+     * 创建银行卡掩码配置
      */
-    public static MaskOptions idCardOptions() {
+    public static MaskOptions bankCard() {
         return MaskOptions.builder()
-                .leftKeep(6)
-                .rightKeep(4)
+            .type(MaskType.BANK_CARD)
+            .maskChar("*")
+            .keepPrefix(4)
+            .keepSuffix(4)
                 .build();
     }
 
     /**
-     * 创建银行卡号掩码选项
+     * 创建自定义掩码配置
      */
-    public static MaskOptions bankCardOptions() {
+    public static MaskOptions custom(String maskChar, Integer keepPrefix, Integer keepSuffix) {
         return MaskOptions.builder()
-                .leftKeep(6)
-                .rightKeep(4)
+            .type(MaskType.CUSTOM)
+            .maskChar(maskChar)
+            .keepPrefix(keepPrefix)
+            .keepSuffix(keepSuffix)
                 .build();
     }
 }

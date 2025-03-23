@@ -8,7 +8,7 @@ import java.util.List;
 /**
  * 数据源仓储接口
  */
-public interface DataSourceRepository extends BaseRepository<DataSource> {
+public interface DataSourceRepository extends BaseRepository<DataSource, String> {
 
     /**
      * 根据名称查询数据源

@@ -10,7 +10,7 @@ import java.util.List;
  *
  * @author dreambt
  */
-public interface UserDisplayConfigRepository extends BaseRepository<UserDisplayConfig> {
+public interface UserDisplayConfigRepository extends BaseRepository<UserDisplayConfig, String> {
     /**
      * Find configurations by user ID
      *
