@@ -1,31 +1,42 @@
 spring:
-  profiles:
-    active: dev
   application:
     name: data-scope
+  profiles:
+    active: dev
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     type: com.zaxxer.hikari.HikariDataSource
     hikari:
       minimum-idle: 5
-      maximum-pool-size: 15
+      maximum-pool-size: 20
       idle-timeout: 30000
       pool-name: DataScopeHikariCP
       max-lifetime: 1800000
       connection-timeout: 30000
       connection-test-query: SELECT 1
   redis:
-    timeout: 5000
+    host: localhost
+    port: 6379
+    database: 0
+    timeout: 10000
     lettuce:
       pool:
         max-active: 8
+        max-wait: -1
         max-idle: 8
         min-idle: 0
-        max-wait: -1ms
+
+server:
+  port: 8080
+  servlet:
+    context-path: /api
+  tomcat:
+    max-threads: 200
+    min-spare-threads: 10
 
 mybatis:
   mapper-locations: classpath*:mapper/**/*.xml
-  type-aliases-package: com.datascope.domain
+  type-aliases-package: com.datascope.domain.entity
   configuration:
     map-underscore-to-camel-case: true
     default-fetch-size: 100
@@ -36,51 +47,18 @@ springdoc:
     enabled: true
     path: /v3/api-docs
   swagger-ui:
-    enabled: true
     path: /swagger-ui.html
-  packages-to-scan: com.datascope.facade.api
-
-server:
-  port: 8080
-  servlet:
-    context-path: /api
-  tomcat:
-    max-threads: 200
-    min-spare-threads: 10
-    max-connections: 10000
-    connection-timeout: 5000
-
-datascope:
-  security:
-    encryption:
-      algorithm: AES
-      key-size: 256
-      salt-size: 16
-    masking:
-      enabled: true
-      patterns:
-        email: "$$$@***.com"
-        phone: "($$$) $$$-****"
-        creditCard: "****-****-****-$$$$"
-  query:
-    timeout: 30
-    max-rows: 50000
-    rate-limit:
-      enabled: true
-      max-requests: 100
-      time-window: 60
-  metadata:
-    sync:
-      enabled: true
-      cron: "0 0 2 * * ?"
-      batch-size: 1000
-  cache:
     enabled: true
-    ttl: 3600
-  llm:
-    provider: openrouter
-    model: gpt-3.5-turbo
-    timeout: 10000
+  packages-to-scan: com.datascope.app.controller
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always
 
 logging:
   level:
@@ -90,7 +68,21 @@ logging:
     org.mybatis: INFO
   file:
     name: logs/data-scope.log
-  logback:
-    rollingpolicy:
-      max-file-size: 10MB
-      max-history: 30
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+
+app:
+  datasource:
+    max-connections: 100
+    query-timeout-seconds: 30
+    max-download-records: 50000
+  security:
+    aes-key: ${AES_KEY:your-aes-key-here}
+    salt: ${SALT:your-salt-here}
+  openrouter:
+    api-key: ${OPENROUTER_API_KEY:your-api-key-here}
+    model: mistralai/mistral-7b-instruct
+    max-tokens: 1000
+  rate-limit:
+    max-requests-per-second: 10

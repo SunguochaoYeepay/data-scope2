@@ -1,40 +1,64 @@
+server:
+  port: 8080
+  servlet:
+    context-path: /api
+
 spring:
   datasource:
-    url: jdbc:mysql://localhost:3306/datascope?useSSL=false&serverTimezone=UTC&characterEncoding=UTF-8&allowPublicKeyRetrieval=true
-    username: datascope
-    password: datascope123
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/data_scope?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai
+    username: root
+    password: root
+    hikari:
+      minimum-idle: 5
+      maximum-pool-size: 20
+      idle-timeout: 300000
+      connection-timeout: 20000
+      connection-test-query: SELECT 1
+
   redis:
     host: localhost
     port: 6379
     database: 0
-    password:
+    timeout: 10000
+    lettuce:
+      pool:
+        max-active: 8
+        max-wait: -1
+        max-idle: 8
+        min-idle: 0
 
-logging:
-  level:
-    com.datascope: DEBUG
-    org.springframework: DEBUG
-    org.mybatis: DEBUG
+mybatis:
+  config-location: classpath:mybatis-config.xml
+  mapper-locations: classpath*:mapper/**/*.xml
+  type-aliases-package: com.datascope.domain.**.entity
 
-datascope:
-  security:
-    encryption:
-      key: "dev-encryption-key-please-change-in-production"
-  llm:
-    api-key: "your-openrouter-api-key"
-    endpoint: "https://openrouter.ai/api/v1"
-
-# 开发环境特定的其他配置
 springdoc:
-  show-actuator: true
+  api-docs:
+    enabled: true
+    path: /v3/api-docs
   swagger-ui:
     enabled: true
     path: /swagger-ui.html
+  packages-to-scan: com.datascope.app.controller
+
+logging:
+  level:
+    root: INFO
+    com.datascope: DEBUG
+    org.springframework: INFO
+    org.mybatis: DEBUG
+  file:
+    name: logs/data-scope.log
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} - %msg%n"
 
 management:
   endpoints:
     web:
       exposure:
-        include: "*"
+        include: health,info,metrics
   endpoint:
     health:
       show-details: always
