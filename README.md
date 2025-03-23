@@ -1,202 +1,183 @@
 # DataScope
 
-DataScope is a comprehensive data management and query system that enables seamless integration of various database systems and provides intelligent data discovery capabilities through a low-code platform integration.
+DataScope是一个全面的数据管理和查询系统，支持多数据源集成、智能数据发现和低代码平台集成。
 
-## Features
+## 功能特性
 
-### Data Source Management
-- Support for MySQL and DB2 databases
-- Automated metadata extraction and synchronization
-- Secure credential management
-- Connection pooling and monitoring
-- Health checks and diagnostics
+### 数据源管理
 
-### Metadata Management
-- Comprehensive schema discovery
-- Automated relationship inference
-- Table and column documentation
-- Index and constraint tracking
-- Change history tracking
+- 支持MySQL、DB2等多种数据库系统
+- 自动化元数据提取和同步
+- 数据源健康监控
+- 密码加密存储
 
-### Query Management
-- SQL query editor with syntax highlighting
-- Natural language query interface
-- Visual query builder
-- Query versioning
-- Execution history
+### 智能数据发现
 
-### Low Code Integration
-- JSON-based configuration protocol
-- Flexible UI component generation
-- Query parameter management
-- Result display customization
-- Data export capabilities
+- 直观的数据浏览界面
+- 自然语言查询支持
+- 智能表关系推断
+- SQL查询优化建议
 
-## Getting Started
+### 低代码集成
 
-### Prerequisites
-- Java 17 or higher
-- Maven 3.8 or higher
-- MySQL 8.2 or higher
-- Redis 6.0 or higher
+- 标准化集成协议
+- 灵活的界面配置
+- AI辅助配置生成
+- 多种展示形式支持
 
-### Installation
+## 技术栈
 
-1. Clone the repository
+### 后端技术
+
+- Java 8+
+- Spring Boot 2.7+
+- MyBatis 3.5+
+- Redis 6.0+
+
+### 前端技术
+
+- HTML5
+- Tailwind CSS
+- FontAwesome
+- 第三方组件库
+
+### 数据存储
+
+- MySQL 8.0+
+- Redis缓存
+
+## 快速开始
+
+### 环境要求
+
+- JDK 8+
+- Maven 3.6+
+- MySQL 8.0+
+- Redis 6.0+
+
+### 安装步骤
+
+1. 克隆项目
 ```bash
 git clone https://github.com/yourusername/data-scope.git
 cd data-scope
 ```
 
-2. Build the project
-```bash
-./mvnw clean install
+2. 配置数据库
+
+```sql
+create database data_scope;
 ```
 
-3. Configure application properties
+3. 修改配置
 ```bash
-cp data-scope-app/src/main/resources/application.example.yml data-scope-app/src/main/resources/application.yml
+cp src/main/resources/application.example.yml src/main/resources/application.yml
+# 编辑application.yml配置数据库连接信息
 ```
 
-4. Start the application
+4. 编译打包
 ```bash
-./mvnw spring-boot:run -pl data-scope-app
+mvn clean package
 ```
 
-### Docker Deployment
-
-1. Build Docker image
+5. 运行应用
 ```bash
-docker build -t data-scope .
+java -jar data-scope-main/target/data-scope.jar
 ```
 
-2. Run with Docker Compose
-```bash
-docker-compose up -d
-```
+### 访问系统
 
-## Project Structure
+- 访问地址：http://localhost:8080
+- 默认用户名：admin
+- 默认密码：admin123
+
+## 项目结构
 
 ```
 data-scope/
-├── data-scope-app/        # Application layer
-├── data-scope-domain/     # Domain layer
-├── data-scope-facade/     # API layer
-├── data-scope-infrastructure/  # Infrastructure layer
-├── docs/                  # Documentation
-└── ui/                    # UI templates
+├── data-scope-app/          # 应用层
+├── data-scope-domain/       # 领域层
+├── data-scope-facade/       # 门面层
+├── data-scope-infrastructure/# 基础设施层
+├── data-scope-main/         # 启动模块
+├── docs/                    # 项目文档
+└── README.md               # 项目说明
 ```
 
-## Documentation
+## 文档说明
 
-- [Architecture Design](docs/architecture.md)
-- [API Documentation](docs/api_versioning.md)
-- [Database Schema](docs/database_schema.md)
-- [User Stories](docs/user_stories.md)
-- [Low Code Protocol](docs/low_code_protocol.md)
+- [用户故事](docs/user_stories.md)
+- [数据库设计](docs/database_design.md)
+- [系统架构](docs/architecture.md)
+- [API设计](docs/api_design.md)
+- [低代码集成](docs/lowcode_integration.md)
 
-## Development
+## 开发指南
 
-### Build
+### 代码规范
+
+- 遵循DDD架构设计
+- 采用Java代码规范
+- 使用统一的命名规则
+- 编写完整的注释
+
+### 提交规范
+
+- feat: 新功能
+- fix: 修复问题
+- docs: 文档变更
+- style: 代码格式
+- refactor: 代码重构
+- test: 测试相关
+- chore: 其他修改
+
+### 分支管理
+
+- main: 主分支
+- develop: 开发分支
+- feature/*: 特性分支
+- hotfix/*: 紧急修复分支
+
+## 测试
+
+### 单元测试
 ```bash
-./mvnw clean install
+mvn test
 ```
 
-### Test
+### 集成测试
 ```bash
-./mvnw test
+mvn verify
 ```
 
-### Code Style
+## 部署
+
+### Docker部署
 ```bash
-./mvnw checkstyle:check
+docker build -t data-scope .
+docker run -p 8080:8080 data-scope
 ```
 
-## Configuration
+### 配置说明
 
-### Application Properties
-```yaml
-spring:
-  datasource:
-    url: jdbc:mysql://localhost:3306/datascope
-    username: root
-    password: secret
+- application.yml: 应用配置
+- logback-spring.xml: 日志配置
+- docker-compose.yml: 容器编排
 
-  redis:
-    host: localhost
-    port: 6379
+## 贡献指南
 
-server:
-  port: 8080
-```
+1. Fork 项目
+2. 创建特性分支
+3. 提交修改
+4. 推送到分支
+5. 创建Pull Request
 
-### Logging
-```yaml
-logging:
-  level:
-    root: INFO
-    com.datascope.datascope: DEBUG
-```
+## 许可证
 
-## API Examples
+[MIT License](LICENSE)
 
-### Add Data Source
-```bash
-curl -X POST http://localhost:8080/api/v1/datasources \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "Production DB",
-    "type": "MYSQL",
-    "host": "localhost",
-    "port": 3306,
-    "database": "production",
-    "username": "user",
-    "password": "password"
-  }'
-```
+## 联系方式
 
-### Execute Query
-```bash
-curl -X POST http://localhost:8080/api/v1/queries/execute \
-  -H "Content-Type: application/json" \
-  -d '{
-    "queryId": "123",
-    "parameters": {
-      "startDate": "2025-01-01",
-      "region": "North"
-    }
-  }'
-```
-
-## Monitoring
-
-### Metrics
-- Application metrics available at `/actuator/prometheus`
-- Health check at `/actuator/health`
-- Database connection status
-- Query execution statistics
-
-### Grafana Dashboards
-- System metrics dashboard
-- Query performance dashboard
-- Data source monitoring
-- User activity tracking
-
-## Contributing
-
-Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduct and the process for submitting pull requests.
-
-## Security
-
-For security issues, please read [SECURITY.md](SECURITY.md) and report vulnerabilities as described there.
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## Acknowledgments
-
-- Spring Boot team for the excellent framework
-- MyBatis team for the ORM framework
-- OpenAI for natural language processing capabilities
-- All contributors who have helped with code and documentation
+- 项目负责人：Your Name
+- 邮箱：your.email@example.com
+- 问题反馈：GitHub Issues

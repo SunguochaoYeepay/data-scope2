@@ -1,23 +1,20 @@
 package com.datascope.domain.query.service.impl;
 
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
-
+import com.datascope.domain.query.entity.UserDisplayConfig;
+import com.datascope.domain.query.repository.UserDisplayConfigRepository;
+import com.datascope.domain.query.service.UserDisplayConfigService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
-import com.datascope.domain.query.entity.UserDisplayConfig;
-import com.datascope.domain.query.repository.UserDisplayConfigRepository;
-import com.datascope.domain.query.service.UserDisplayConfigService;
-
-import lombok.RequiredArgsConstructor;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 /**
  * User display configuration service implementation
- * 
+ *
  * @author dreambt
  */
 @Service
@@ -30,7 +27,7 @@ public class UserDisplayConfigServiceImpl implements UserDisplayConfigService {
     public UserDisplayConfig create(UserDisplayConfig entity) {
         validate(entity);
         entity.setId(UUID.randomUUID().toString());
-        entity.prePersist();
+//        entity.prePersist();
         return repository.save(entity);
     }
 
@@ -39,11 +36,11 @@ public class UserDisplayConfigServiceImpl implements UserDisplayConfigService {
     public UserDisplayConfig update(UserDisplayConfig entity) {
         validate(entity);
         Assert.notNull(entity.getId(), "ID must not be null");
-        
+
         Optional<UserDisplayConfig> existing = repository.findById(entity.getId());
         Assert.isTrue(existing.isPresent(), "Entity not found");
-        
-        entity.preUpdate();
+
+//        entity.preUpdate();
         return repository.save(entity);
     }
 
@@ -71,6 +68,11 @@ public class UserDisplayConfigServiceImpl implements UserDisplayConfigService {
     @Override
     public long count() {
         return repository.count();
+    }
+
+    @Override
+    public void deleteAll() {
+        // TODO
     }
 
     @Override

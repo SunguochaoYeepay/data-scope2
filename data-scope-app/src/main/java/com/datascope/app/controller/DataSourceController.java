@@ -1,8 +1,9 @@
 package com.datascope.app.controller;
 
-import com.datascope.domain.datasource.entity.DataSource;
 import com.datascope.facade.datasource.DataSourceFacade;
 import com.datascope.facade.datasource.dto.DataSourceDTO;
+import com.datascope.facade.datasource.enums.DataSourceStatus;
+import com.datascope.facade.datasource.enums.DataSourceType;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -52,8 +53,8 @@ public class DataSourceController {
     @Operation(summary = "获取所有数据源")
     @GetMapping
     public ResponseEntity<List<DataSourceDTO>> getAll(
-            @Parameter(description = "数据源类型") @RequestParam(required = false) DataSource.DataSourceType type,
-            @Parameter(description = "数据源状态") @RequestParam(required = false) DataSource.DataSourceStatus status) {
+        @Parameter(description = "数据源类型") @RequestParam(required = false) DataSourceType type,
+        @Parameter(description = "数据源状态") @RequestParam(required = false) DataSourceStatus status) {
         if (type != null && status != null) {
             return ResponseEntity.ok(facade.getByTypeAndStatus(type, status));
         } else if (type != null) {

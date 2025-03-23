@@ -1,221 +1,124 @@
-# User Stories
+# DataScope 用户故事
 
-## Data Source Management
+## 数据源管理
 
-### Adding Data Sources
-1. As a data administrator, I want to add a new data source by providing connection details so that users can query data from it
-   - Input connection details (host, port, database, credentials)
-   - Test connection before saving
-   - Support MySQL and DB2 databases
-   - Encrypt sensitive information like passwords
-   - Validate connection parameters
+### 添加数据源
 
-2. As a data administrator, I want to configure connection pool settings so that database resources are used efficiently
-   - Set maximum pool size
-   - Configure connection timeout
-   - Set idle timeout
-   - Configure validation query
+作为系统管理员，我希望能够添加新的数据源，以便连接和管理不同的数据库系统。
 
-3. As a data administrator, I want to enable/disable automatic metadata synchronization so that schema changes are reflected
-   - Schedule sync frequency
-   - Configure sync timeout
-   - Select specific schemas to sync
-   - View sync history
+- 可以指定数据源名称、类型（MySQL、DB2）、连接信息等
+- 支持测试连接功能
+- 密码需要加密存储
+- 可以添加备注说明
 
-### Managing Data Sources
-1. As a data administrator, I want to modify existing data source settings to maintain accurate connection information
-   - Update connection details
-   - Modify pool settings
-   - Change sync settings
-   - Update description
+### 编辑数据源
 
-2. As a data administrator, I want to view the status and health of data sources to ensure system reliability
-   - Monitor active connections
-   - View connection errors
-   - Check sync status
-   - See last successful connection
+作为系统管理员，我希望能够编辑现有数据源的信息，以便更新连接参数或其他设置。
 
-3. As a data administrator, I want to temporarily disable a data source without deleting it
-   - Toggle data source status
-   - Notify affected users
-   - Maintain historical queries
-   - Preserve metadata
+- 可以修改除数据源类型外的所有信息
+- 修改后需要重新测试连接
+- 保留修改历史记录
 
-## Metadata Management
+### 管理数据源状态
 
-### Metadata Synchronization
-1. As a system, I want to automatically extract and store metadata from data sources to maintain an up-to-date catalog
-   - Extract table definitions
-   - Capture column properties
-   - Record indexes
-   - Store statistics
+作为系统管理员，我希望能够启用/停用数据源，以便控制数据源的可用性。
 
-2. As a data administrator, I want to manually trigger metadata synchronization when needed
-   - Sync specific tables
-   - Force full sync
-   - View sync progress
-   - Get sync completion notification
+- 可以启用/停用数据源
+- 停用后该数据源下的所有查询将无法执行
+- 记录状态变更历史
 
-3. As a user, I want to view metadata sync history to understand changes
-   - See sync timestamps
-   - View changed objects
-   - Check error logs
-   - Track schema evolution
+### 同步元数据
 
-### Metadata Exploration
-1. As a user, I want to browse available tables and their structures to understand the data model
-   - View table list
-   - See column details
-   - Check indexes
-   - Read descriptions
+作为系统管理员，我希望能够同步数据源的元数据，以便获取最新的数据库结构信息。
 
-2. As a user, I want to search metadata using keywords to quickly find relevant tables
-   - Search table names
-   - Search column names
-   - Filter by schema
-   - Sort results
+- 可以手动触发同步
+- 支持增量同步
+- 显示同步进度和结果
+- 记录同步历史
 
-3. As a user, I want to view relationships between tables to understand data connections
-   - See foreign keys
-   - View inferred relations
-   - Visualize relationships
-   - Navigate through relations
+## 数据查询
 
-## Query Management
+### 自然语言查询
 
-### Query Building
-1. As a user, I want to write SQL queries using an editor with syntax highlighting
-   - SQL syntax highlighting
-   - Auto-completion
-   - Error checking
-   - Format SQL
+作为业务用户，我希望能够使用自然语言描述来查询数据，以便更直观地获取所需信息。
 
-2. As a user, I want to use natural language to describe my query requirements
-   - Enter plain English description
-   - Get SQL suggestions
-   - Refine generated SQL
-   - Save successful queries
+- 支持中文自然语言输入
+- 自动转换为SQL语句
+- 显示转换后的SQL供确认
+- 可以调整和优化查询语句
 
-3. As a user, I want to use a visual query builder to create queries without writing SQL
-   - Select tables
-   - Choose columns
-   - Define conditions
-   - Set joins
+### SQL查询
 
-### Query Execution
-1. As a user, I want to execute queries and view results in a tabular format
-   - Run queries
-   - View results
-   - Sort columns
-   - Filter data
+作为专业用户，我希望能够直接编写SQL查询，以便更精确地获取数据。
 
-2. As a user, I want to export query results in different formats
-   - Export to CSV
-   - Download Excel
-   - Copy to clipboard
-   - Save as JSON
+- 提供SQL编辑器
+- 支持语法高亮和自动补全
+- 可以保存常用查询
+- 支持查询性能优化建议
 
-3. As a user, I want to set query parameters to make queries reusable
-   - Define parameters
-   - Set default values
-   - Make parameters required/optional
-   - Support different data types
+### 查询历史
 
-### Query History
-1. As a user, I want to view my query execution history
-   - See execution time
-   - Check query status
-   - View error messages
-   - Re-run queries
+作为用户，我希望能够查看和管理查询历史，以便重用或参考之前的查询。
 
-2. As a user, I want to save frequently used queries for future use
-   - Save queries
-   - Add descriptions
-   - Organize in folders
-   - Share with others
+- 记录查询语句和执行时间
+- 可以标记收藏
+- 支持搜索历史记录
+- 可以复制历史查询
 
-3. As a user, I want to version control my queries to track changes
-   - Create versions
-   - Compare versions
-   - Restore old versions
-   - Add change notes
+## 界面配置
 
-## Display Configuration
+### 查询表单配置
 
-### Result Display
-1. As a user, I want to configure how query results are displayed
-   - Choose visible columns
-   - Set column order
-   - Format data types
-   - Configure pagination
+作为用户，我希望能够配置查询表单的显示方式，以便更好地满足业务需求。
 
-2. As a user, I want to mask sensitive data in query results
-   - Configure mask patterns
-   - Set column sensitivity
-   - Preview masking
-   - Override masks with permissions
+- 可以设置字段显示顺序
+- 可以配置必填字段
+- 支持默认值设置
+- 可以设置字段校验规则
 
-3. As a user, I want to add custom operations for result rows
-   - Define actions
-   - Set conditions
-   - Configure tooltips
-   - Handle callbacks
+### 结果显示配置
 
-### Query Interface
-1. As a user, I want to customize the query interface layout
-   - Arrange panels
-   - Resize sections
-   - Show/hide elements
-   - Save preferences
+作为用户，我希望能够自定义查询结果的显示方式，以便更好地展示数据。
 
-2. As a user, I want the system to remember my display preferences
-   - Save column visibility
-   - Remember sort order
-   - Keep filter values
-   - Maintain layout
+- 可以选择显示/隐藏列
+- 可以设置列宽和对齐方式
+- 支持列的排序和筛选
+- 可以配置数据格式化方式
 
-3. As a user, I want to configure query form fields
-   - Set field order
-   - Make fields required
-   - Add validations
-   - Set default values
+### 个性化设置
 
-## Performance and Security
+作为用户，我希望能够保存个人的显示偏好，以便获得一致的使用体验。
 
-### Performance
-1. As a system administrator, I want to limit query execution time to prevent resource exhaustion
-   - Set timeout limits
-   - Configure warnings
-   - Log long-running queries
-   - Cancel stuck queries
+- 保存个人的列显示设置
+- 记住常用的查询条件
+- 支持导出个人配置
+- 可以导入配置模板
 
-2. As a system administrator, I want to control the maximum number of rows returned
-   - Set row limits
-   - Configure pagination
-   - Handle large datasets
-   - Optimize memory usage
+## 系统集成
 
-3. As a system administrator, I want to rate limit API requests to prevent abuse
-   - Set request limits
-   - Configure timeouts
-   - Track usage
-   - Handle violations
+### 低代码平台集成
 
-### Security
-1. As a security administrator, I want to ensure sensitive data is properly protected
-   - Encrypt passwords
-   - Mask sensitive data
-   - Audit access
-   - Control permissions
+作为开发人员，我希望能够方便地将查询功能集成到低代码平台，以便快速开发应用。
 
-2. As a security administrator, I want to track all data access attempts
-   - Log queries
-   - Record access times
-   - Track export actions
-   - Monitor failures
+- 提供标准的集成接口
+- 支持配置的导入导出
+- 可以复用查询模板
+- 支持权限控制
 
-3. As a security administrator, I want to integrate with existing authentication systems
-   - Support SSO
-   - Handle roles
-   - Manage permissions
-   - Track sessions
+### API接口
+
+作为开发人员，我希望能够通过API调用查询功能，以便在其他系统中使用。
+
+- 提供RESTful API
+- 支持多种认证方式
+- 提供详细的API文档
+- 支持API版本控制
+
+### 数据导出
+
+作为用户，我希望能够导出查询结果，以便进行离线分析或报告。
+
+- 支持CSV格式导出
+- 可以选择导出的列
+- 支持大数据量分批导出
+- 记录导出历史

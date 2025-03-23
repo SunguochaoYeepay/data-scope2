@@ -20,7 +20,7 @@
 ### Project Structure
 ```
 data-scope/
-├── data-scope-app/          # Application layer
+├── app/          # Application layer
 ├── data-scope-domain/       # Domain layer
 ├── data-scope-facade/       # Interface layer
 ├── data-scope-infrastructure/  # Infrastructure layer
@@ -147,6 +147,12 @@ public class MyBatisDataSourceRepository implements DataSourceRepository {
     }
 }
 ```
+
+#### 其他指引
+
+- domain模块不依赖facade模块，因此需要在facade模块中重新定义DTO或者枚举，在app模块中实现facade和domain的转换
+- domain 模块不能直接调用 infrastructure 模块中的类，如果需要这样调用时可以这么实现：在domain 模块中提供 Gateway
+  接口，然后在infrastructure 模块实现。比如在domain 模块提供一个PasswordEncryptorGateway接口，在infrastructure 模块实现改接口。
 
 ### Testing Guidelines
 

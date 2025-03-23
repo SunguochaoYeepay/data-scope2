@@ -1,313 +1,179 @@
-# Architecture Design
+# DataScope 系统架构设计
 
-## Overview
-DataScope is designed using Domain-Driven Design (DDD) principles with a layered architecture to ensure separation of concerns, maintainability, and extensibility.
+## 整体架构
 
-## Architecture Layers
+系统采用前后端分离的模块化架构，主要分为以下几个部分：
 
-### 1. Facade Layer (data-scope-facade)
-- Defines external APIs and DTOs
-- Handles API versioning
-- Manages request/response transformations
-- Implements API documentation
-- Provides interface contracts
+### 前端架构
 
-Components:
-- REST Controllers
-- API DTOs
-- API Documentation
-- Request/Response Models
-- API Validators
+- 基于HTML + Tailwind CSS构建
+- 使用FontAwesome图标库
+- 采用模块化组件设计
+- 支持响应式布局
 
-### 2. Application Layer (data-scope-app)
-- Orchestrates use cases
-- Manages transactions
-- Coordinates domain objects
-- Implements business workflows
-- Handles cross-cutting concerns
+### 后端架构
 
-Components:
-- Application Services
-- Command Handlers
-- Query Handlers
-- Event Handlers
-- Assemblers/Mappers
+- 采用DDD领域驱动设计
+- 基于SpringBoot框架
+- 使用Maven多模块管理
+- 遵循SOLID设计原则
 
-### 3. Domain Layer (data-scope-domain)
-- Contains business logic
-- Defines domain models
-- Implements business rules
-- Manages domain events
-- Defines repository interfaces
+## 模块划分
 
-Components:
-- Domain Models
-- Value Objects
-- Domain Services
-- Repository Interfaces
-- Domain Events
+### data-scope-app (应用层)
 
-### 4. Infrastructure Layer (data-scope-infrastructure)
-- Implements technical concerns
-- Provides persistence
-- Manages external integrations
-- Handles caching
-- Implements repositories
+- 处理HTTP请求响应
+- 实现接口控制器
+- 处理全局异常
+- 配置系统参数
+- 实现接口限流
 
-Components:
-- Repository Implementations
-- Database Access
-- Cache Management
-- External Services
-- Technical Services
+### data-scope-domain (领域层)
 
-## Key Components
+- 实现核心业务逻辑
+- 定义领域模型
+- 定义领域服务
+- 定义仓储接口
+- 处理业务异常
 
-### Data Source Management
-```
-┌─────────────────┐
-│    Facade       │
-│  DataSourceAPI  │
-└───────┬─────────┘
-        │
-┌───────┴─────────┐
-│  Application    │
-│DataSourceService│
-└───────┬─────────┘
-        │
-┌───────┴─────────┐
-│    Domain       │
-│   DataSource    │
-└───────┬─────────┘
-        │
-┌───────┴─────────┐
-│ Infrastructure  │
-│DataSourceRepo   │
-└─────────────────┘
-```
+### data-scope-facade (门面层)
 
-### Metadata Management
-```
-┌─────────────────┐
-│    Facade       │
-│  MetadataAPI    │
-└───────┬─────────┘
-        │
-┌───────┴─────────┐
-│  Application    │
-│MetadataService  │
-└───────┬─────────┘
-        │
-┌───────┴─────────┐
-│    Domain       │
-│    Metadata     │
-└───────┬─────────┘
-        │
-┌───────┴─────────┐
-│ Infrastructure  │
-│  MetadataRepo   │
-└─────────────────┘
-```
+- 定义外部服务接口
+- 实现DTO转换
+- 封装业务操作
+- 处理跨领域调用
 
-### Query Management
-```
-┌─────────────────┐
-│    Facade       │
-│   QueryAPI      │
-└───────┬─────────┘
-        │
-┌───────┴─────────┐
-│  Application    │
-│  QueryService   │
-└───────┬─────────┘
-        │
-┌───────┴─────────┐
-│    Domain       │
-│     Query       │
-└───────┬─────────┘
-        │
-┌───────┴─────────┐
-│ Infrastructure  │
-│   QueryRepo     │
-└─────────────────┘
-```
+### data-scope-infrastructure (基础设施层)
 
-## Cross-Cutting Concerns
+- 实现数据持久化
+- 实现缓存管理
+- 实现消息队列
+- 实现第三方集成
+- 提供技术支持
 
-### Security
-- Authentication via external system
-- Role-based authorization
-- Data encryption
-- Audit logging
-- Rate limiting
+### data-scope-main (启动模块)
 
-### Performance
-- Connection pooling
-- Query optimization
-- Result caching
-- Pagination
-- Timeout management
+- 提供应用入口
+- 配置系统环境
+- 管理依赖注入
+- 初始化资源
 
-### Monitoring
-- Health checks
-- Metrics collection
-- Performance monitoring
-- Error tracking
-- Usage analytics
+## 核心功能模块
 
-### Error Handling
-- Global exception handling
-- Error standardization
-- Retry mechanisms
-- Circuit breakers
-- Fallback strategies
+### 数据源管理模块
 
-## Technical Stack
+- 数据源配置管理
+- 元数据同步管理
+- 连接池管理
+- 密码加密存储
 
-### Core Framework
-- Java 17
-- Spring Boot 3.2
-- Spring Cloud
-- MyBatis
+### 查询管理模块
 
-### Database
-- MySQL 8.2
-- DB2 11.5
-- Redis (Caching)
-- HikariCP (Connection Pool)
+- SQL查询执行
+- 自然语言处理
+- 查询优化建议
+- 查询历史记录
 
-### API Documentation
-- OpenAPI/Swagger
-- SpringDoc
+### 显示配置模块
 
-### Development Tools
-- Maven
-- Lombok
-- MapStruct
-- JUnit 5
-- Mockito
+- 用户偏好设置
+- 界面布局配置
+- 数据展示规则
+- 掩码规则管理
 
-## Design Patterns
+### 系统集成模块
 
-### Domain Layer
-- Aggregate Roots
-- Entities
-- Value Objects
-- Domain Events
-- Repositories
-- Domain Services
+- API接口管理
+- 低代码平台集成
+- 权限认证管理
+- 数据导出功能
 
-### Application Layer
-- Command Pattern
-- Query Pattern
-- Observer Pattern
-- Strategy Pattern
-- Factory Pattern
+## 技术架构
 
-### Infrastructure Layer
-- Repository Pattern
-- Adapter Pattern
-- Decorator Pattern
-- Proxy Pattern
-- Builder Pattern
+### 开发框架
 
-## Extension Points
+- Java 8+
+- Spring Boot 2.7+
+- MyBatis 3.5+
+- Redis 6.0+
 
-### Data Source Types
-- Abstract factory for data source connections
-- Plugin system for new database types
-- Custom connection parameters
-- Type-specific query builders
+### 数据存储
 
-### Query Processing
-- Custom query transformers
-- Result processors
-- Data formatters
-- Export handlers
+- MySQL 8.0+
+- Redis缓存
+- 本地文件存储
 
-### Display Configuration
-- Custom display components
-- Layout templates
-- Theme support
-- Widget framework
+### 系统监控
 
-## Deployment Architecture
+- Spring Boot Actuator
+- Prometheus监控
+- Grafana可视化
 
-### Components
-```
-┌─────────────────┐
-│   Web Server    │
-│    (Nginx)      │
-└───────┬─────────┘
-        │
-┌───────┴─────────┐
-│  Application    │
-│    Server       │
-└───────┬─────────┘
-        │
-┌───────┴─────────┐
-│    Redis        │
-│    Cache        │
-└─────────────────┘
-```
+### 开发工具
 
-### Scaling Strategy
-- Horizontal scaling of application servers
-- Redis cluster for caching
-- Connection pool per data source
-- Load balancing
-- Session management
+- Maven 3.6+
+- Git版本控制
+- Docker容器化
+- Jenkins CI/CD
 
-## Security Architecture
+## 安全架构
 
-### Data Protection
-- Password encryption
-- Data masking
-- Secure communication
-- Access control
-- Audit trails
+### 访问控制
 
-### API Security
-- Authentication
-- Authorization
-- Rate limiting
-- Input validation
-- Output sanitization
+- 基于JWT的认证
+- 基于RBAC的授权
+- API访问限流
+- 敏感数据加密
 
-## Monitoring Architecture
+### 数据安全
 
-### Health Monitoring
-- Application health
-- Database connections
-- Cache status
-- External services
-- Resource usage
+- 密码加盐加密
+- 数据传输加密
+- 敏感数据脱敏
+- 操作日志审计
 
-### Performance Monitoring
-- Response times
-- Query execution
-- Cache hit rates
-- Error rates
-- Resource utilization
+## 部署架构
 
-## Future Extensions
+### 开发环境
 
-### Multi-tenancy
-- Tenant isolation
-- Resource quotas
-- Custom configurations
-- Data segregation
+- 本地开发环境
+- 代码质量检查
+- 单元测试覆盖
+- 接口自动测试
 
-### AI Integration
-- Query suggestions
-- Schema analysis
-- Relationship inference
-- Usage optimization
-- Anomaly detection
+### 测试环境
 
-### Advanced Analytics
-- Query patterns
-- Usage trends
-- Performance analysis
-- Cost optimization
-- Security analysis
+- 集成测试环境
+- 性能测试环境
+- 自动化测试
+- 缺陷跟踪
+
+### 生产环境
+
+- 应用服务器集群
+- 数据库主从架构
+- Redis集群
+- 负载均衡
+
+## 扩展性设计
+
+### 水平扩展
+
+- 应用服务无状态
+- 分布式缓存
+- 分布式会话
+- 负载均衡
+
+### 垂直扩展
+
+- 模块化设计
+- 插件化架构
+- 配置化开发
+- 服务化集成
+
+### 可扩展点
+
+- 数据源类型
+- 查询引擎
+- 展示组件
+- 集成接口

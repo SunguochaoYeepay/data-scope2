@@ -1,10 +1,12 @@
 package com.datascope.facade.datasource.impl;
 
+import com.datascope.app.mapper.DataSourceMapper;
 import com.datascope.domain.datasource.entity.DataSource;
 import com.datascope.domain.datasource.service.DataSourceService;
 import com.datascope.facade.datasource.DataSourceFacade;
 import com.datascope.facade.datasource.dto.DataSourceDTO;
-import com.datascope.facade.datasource.mapper.DataSourceFacadeMapper;
+import com.datascope.facade.datasource.enums.DataSourceStatus;
+import com.datascope.facade.datasource.enums.DataSourceType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -18,7 +20,7 @@ import java.util.List;
 public class DataSourceFacadeImpl implements DataSourceFacade {
 
     private final DataSourceService service;
-    private final DataSourceFacadeMapper mapper;
+    private final DataSourceMapper mapper;
 
     @Override
     public DataSourceDTO create(DataSourceDTO dto, String operator) {
@@ -86,17 +88,37 @@ public class DataSourceFacadeImpl implements DataSourceFacade {
     }
 
     @Override
-    public List<DataSourceDTO> getByType(DataSource.DataSourceType type) {
-        return mapper.toDTOList(service.getByType(type));
+    public List<DataSourceDTO> getByType(DataSourceType type) {
+        return mapper.toDTOList(service.getByType(convertType(type)));
     }
 
     @Override
-    public List<DataSourceDTO> getByStatus(DataSource.DataSourceStatus status) {
-        return mapper.toDTOList(service.getByStatus(status));
+    public List<DataSourceDTO> getByStatus(DataSourceStatus status) {
+        return mapper.toDTOList(service.getByStatus(convertStatus(status)));
     }
 
     @Override
-    public List<DataSourceDTO> getByTypeAndStatus(DataSource.DataSourceType type, DataSource.DataSourceStatus status) {
-        return mapper.toDTOList(service.getByTypeAndStatus(type, status));
+    public List<DataSourceDTO> getByTypeAndStatus(DataSourceType type, DataSourceStatus status) {
+        return mapper.toDTOList(service.getByTypeAndStatus(convertType(type), convertStatus(status)));
+    }
+
+    /**
+     * 转换数据源类型
+     *
+     * @param type 门面层数据源类型
+     * @return 领域层数据源类型
+     */
+    private DataSource.DataSourceType convertType(DataSourceType type) {
+        return DataSource.DataSourceType.valueOf(type.name());
+    }
+
+    /**
+     * 转换数据源状态
+     *
+     * @param status 门面层数据源状态
+     * @return 领域层数据源状态
+     */
+    private DataSource.DataSourceStatus convertStatus(DataSourceStatus status) {
+        return DataSource.DataSourceStatus.valueOf(status.name());
     }
 }

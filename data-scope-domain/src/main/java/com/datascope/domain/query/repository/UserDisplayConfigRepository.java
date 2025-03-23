@@ -1,16 +1,16 @@
 package com.datascope.domain.query.repository;
 
-import java.util.List;
-
 import com.datascope.domain.common.repository.BaseRepository;
 import com.datascope.domain.query.entity.UserDisplayConfig;
 
+import java.util.List;
+
 /**
  * User display configuration repository interface
- * 
+ *
  * @author dreambt
  */
-public interface UserDisplayConfigRepository extends BaseRepository<UserDisplayConfig, String> {
+public interface UserDisplayConfigRepository extends BaseRepository<UserDisplayConfig> {
     /**
      * Find configurations by user ID
      *

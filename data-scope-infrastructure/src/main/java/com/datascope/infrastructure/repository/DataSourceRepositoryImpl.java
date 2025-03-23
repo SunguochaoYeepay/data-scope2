@@ -1,21 +1,16 @@
 package com.datascope.infrastructure.repository;
 
+import com.datascope.domain.datasource.entity.DataSource;
+import com.datascope.infrastructure.mybatis.mapper.DataSourceMapper;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Repository;
+
 import java.util.List;
 import java.util.Optional;
 
-import org.springframework.stereotype.Repository;
-
-import com.datascope.domain.datasource.entity.DataSource;
-import com.datascope.domain.datasource.enums.DataSourceType;
-import com.datascope.domain.datasource.enums.DataSourceStatus;
-import com.datascope.domain.datasource.repository.DataSourceRepository;
-import com.datascope.infrastructure.mybatis.mapper.DataSourceMapper;
-
-import lombok.RequiredArgsConstructor;
-
 /**
  * 数据源仓储实现
- * 
+ *
  * @author dreambt
  */
 @Repository
@@ -35,12 +30,12 @@ public class DataSourceRepositoryImpl implements DataSourceRepository {
 
     @Override
     public Optional<DataSource> findById(String id) {
-        return Optional.ofNullable(mapper.findById(id));
+        return Optional.ofNullable(mapper.selectById(id));
     }
 
     @Override
     public List<DataSource> findAll() {
-        return mapper.findAll();
+        return mapper.selectAll();
     }
 
     @Override
@@ -64,33 +59,23 @@ public class DataSourceRepositoryImpl implements DataSourceRepository {
     }
 
     @Override
-    public List<DataSource> findByName(String name) {
-        return mapper.findByName(name);
+    public DataSource findByName(String name) {
+        return mapper.selectByName(name);
     }
 
     @Override
-    public List<DataSource> findByType(DataSourceType type) {
-        return mapper.findByType(type);
+    public List<DataSource> findByType(DataSource.DataSourceType type) {
+        return mapper.selectByType(type);
     }
 
     @Override
-    public List<DataSource> findByStatus(DataSourceStatus status) {
-        return mapper.findByStatus(status);
+    public List<DataSource> findByStatus(DataSource.DataSourceStatus status) {
+        return mapper.selectByStatus(status);
     }
 
     @Override
-    public List<DataSource> findByNameAndType(String name, DataSourceType type) {
-        return mapper.findByNameAndType(name, type);
-    }
-
-    @Override
-    public List<DataSource> findByNameAndStatus(String name, DataSourceStatus status) {
-        return mapper.findByNameAndStatus(name, status);
-    }
-
-    @Override
-    public List<DataSource> findByTypeAndStatus(DataSourceType type, DataSourceStatus status) {
-        return mapper.findByTypeAndStatus(type, status);
+    public List<DataSource> findByTypeAndStatus(DataSource.DataSourceType type, DataSource.DataSourceStatus status) {
+        return mapper.selectByTypeAndStatus(type, status);
     }
 
     @Override

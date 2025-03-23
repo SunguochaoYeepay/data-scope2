@@ -2,6 +2,8 @@ package com.datascope.domain.datasource.service.impl;
 
 import com.datascope.domain.datasource.entity.DataSource;
 import com.datascope.domain.datasource.exception.DataSourceException;
+import com.datascope.domain.datasource.gateway.DataSourceConnectionGateway;
+import com.datascope.domain.datasource.gateway.PasswordEncryptorGateway;
 import com.datascope.domain.datasource.repository.DataSourceRepository;
 import com.datascope.domain.datasource.service.DataSourceService;
 import lombok.RequiredArgsConstructor;
@@ -21,17 +23,26 @@ import java.util.List;
 public class DataSourceServiceImpl implements DataSourceService {
 
     private final DataSourceRepository repository;
+    private final PasswordEncryptorGateway passwordEncryptorGateway;
+    private final DataSourceConnectionGateway dataSourceConnectionGateway;
 
     @Override
     @Transactional
     public DataSource create(DataSource entity, String operator) {
         validateDataSource(entity);
-        
+
         if (repository.existsByName(entity.getName())) {
             throw DataSourceException.nameExists(entity.getName());
         }
 
+        // 生成盐值并加密密码
+        String salt = passwordEncryptorGateway.generateSalt();
+        String encryptedPassword = passwordEncryptorGateway.encrypt(entity.getPassword(), salt);
+
+        entity.setSalt(salt);
+        entity.setPassword(encryptedPassword);
         entity.init(operator);
+
         return repository.save(entity);
     }
 
@@ -44,10 +55,19 @@ public class DataSourceServiceImpl implements DataSourceService {
         DataSource existing = repository.findById(entity.getId())
                 .orElseThrow(() -> DataSourceException.notFound(entity.getId()));
 
-        if (!existing.getName().equals(entity.getName()) 
+        if (!existing.getName().equals(entity.getName())
                 && repository.existsByName(entity.getName())) {
             throw DataSourceException.nameExists(entity.getName());
         }
+
+        // 如果密码发生变化，重新加密
+        if (!existing.getPassword().equals(entity.getPassword())) {
+            String encryptedPassword = passwordEncryptorGateway.encrypt(entity.getPassword(), existing.getSalt());
+            entity.setPassword(encryptedPassword);
+        }
+
+        // 关闭旧的连接池
+        dataSourceConnectionGateway.closeDataSource(entity.getId());
 
         entity.update(operator);
         return repository.save(entity);
@@ -79,6 +99,8 @@ public class DataSourceServiceImpl implements DataSourceService {
     @Override
     @Transactional
     public void delete(String id, String operator) {
+        // 关闭连接池
+        dataSourceConnectionGateway.closeDataSource(id);
         repository.deleteById(id);
     }
 
@@ -102,8 +124,7 @@ public class DataSourceServiceImpl implements DataSourceService {
     public boolean testConnection(String id) {
         DataSource entity = getById(id);
         try {
-            // TODO: 实现数据源连接测试逻辑
-            return true;
+            return dataSourceConnectionGateway.testConnection(entity);
         } catch (Exception e) {
             log.error("测试数据源连接失败: {}", id, e);
             return false;
@@ -167,7 +188,5 @@ public class DataSourceServiceImpl implements DataSourceService {
         Assert.notNull(entity.getPort(), "端口号不能为空");
         Assert.hasText(entity.getDatabase(), "数据库名称不能为空");
         Assert.hasText(entity.getUsername(), "用户名不能为空");
-        Assert.hasText(entity.getPassword(), "密码不能为空");
-        Assert.hasText(entity.getSalt(), "密码盐值不能为空");
     }
 }

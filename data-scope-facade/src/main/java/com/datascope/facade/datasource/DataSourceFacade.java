@@ -1,7 +1,8 @@
 package com.datascope.facade.datasource;
 
-import com.datascope.domain.datasource.entity.DataSource;
 import com.datascope.facade.datasource.dto.DataSourceDTO;
+import com.datascope.facade.datasource.enums.DataSourceStatus;
+import com.datascope.facade.datasource.enums.DataSourceType;
 
 import java.util.List;
 
@@ -116,7 +117,7 @@ public interface DataSourceFacade {
      * @param type 数据源类型
      * @return 数据源DTO列表
      */
-    List<DataSourceDTO> getByType(DataSource.DataSourceType type);
+    List<DataSourceDTO> getByType(DataSourceType type);
 
     /**
      * 根据状态获取数据源列表
@@ -124,7 +125,7 @@ public interface DataSourceFacade {
      * @param status 数据源状态
      * @return 数据源DTO列表
      */
-    List<DataSourceDTO> getByStatus(DataSource.DataSourceStatus status);
+    List<DataSourceDTO> getByStatus(DataSourceStatus status);
 
     /**
      * 根据类型和状态获取数据源列表
@@ -133,5 +134,5 @@ public interface DataSourceFacade {
      * @param status 数据源状态
      * @return 数据源DTO列表
      */
-    List<DataSourceDTO> getByTypeAndStatus(DataSource.DataSourceType type, DataSource.DataSourceStatus status);
+    List<DataSourceDTO> getByTypeAndStatus(DataSourceType type, DataSourceStatus status);
 }
