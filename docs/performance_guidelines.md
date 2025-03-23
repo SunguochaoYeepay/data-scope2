@@ -1,255 +1,308 @@
 # Performance Guidelines
 
 ## Overview
-This document outlines performance requirements, optimization strategies, and best practices for the DataScope system.
+This document outlines performance guidelines and best practices for the DataScope system to ensure optimal performance, scalability, and resource utilization.
 
-## Performance Requirements
+## Database Performance
 
-### Response Times
-- API Response Time: < 500ms (95th percentile)
-- Query Execution: < 30 seconds
-- Metadata Sync: < 5 minutes per data source
-- UI Rendering: < 2 seconds for initial load
-- Page Navigation: < 1 second
+### Connection Pool Management
+```yaml
+# HikariCP Configuration
+spring:
+  datasource:
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+      idle-timeout: 300000
+      connection-timeout: 20000
+      max-lifetime: 1200000
+```
 
-### Throughput
-- Concurrent Users: Up to 1000
-- Queries per Second: Up to 100
-- API Requests per Second: Up to 1000
-- Metadata Sync: Up to 10 concurrent jobs
+Best Practices:
+1. Size pool based on: (core_count * 2) + effective_spindle_count
+2. Monitor connection usage patterns
+3. Set appropriate timeouts
+4. Configure statement caching
+5. Enable metrics collection
 
-### Resource Utilization
-- CPU Usage: < 70% under normal load
-- Memory Usage: < 80% of available RAM
-- Disk I/O: < 70% of capacity
-- Network Bandwidth: < 60% of capacity
+### Query Optimization
+1. Use Indexes Effectively
+   - Create indexes for frequently queried columns
+   - Monitor index usage
+   - Regularly update statistics
+   - Remove unused indexes
+
+2. Query Design
+   - Use prepared statements
+   - Limit result sets
+   - Avoid SELECT *
+   - Use appropriate JOIN types
+   - Implement pagination
+
+3. Execution Plans
+   - Regularly analyze execution plans
+   - Monitor slow queries
+   - Optimize based on actual usage patterns
+   - Use query hints when necessary
 
 ## Caching Strategy
 
-### Redis Caching
-```java
-@Configuration
-public class CacheConfig {
-    @Bean
-    public RedisCacheManager cacheManager(RedisConnectionFactory factory) {
-        RedisCacheConfiguration config = RedisCacheConfiguration.defaultCacheConfig()
-            .entryTtl(Duration.ofMinutes(30))
-            .serializeKeysWith(RedisSerializationContext.SerializationPair.fromSerializer(new StringRedisSerializer()))
-            .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(new GenericJackson2JsonRedisSerializer()));
-
-        return RedisCacheManager.builder(factory)
-            .cacheDefaults(config)
-            .withCacheConfiguration("metadata", RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofHours(24)))
-            .withCacheConfiguration("queries", RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofMinutes(10)))
-            .build();
-    }
-}
+### Redis Configuration
+```yaml
+spring:
+  redis:
+    host: localhost
+    port: 6379
+    timeout: 2000
+    lettuce:
+      pool:
+        max-active: 8
+        max-idle: 8
+        min-idle: 2
+        max-wait: -1
 ```
 
-### Cache Keys
-- Metadata: `metadata:{datasourceId}:{schema}:{table}`
-- Query Results: `query:{hash}:{params}`
-- User Preferences: `user:{userId}:preferences`
-- Display Configs: `display:{userId}:{datasourceId}:{table}`
+### Caching Levels
+1. Application Cache
+   - Query results
+   - Metadata
+   - User preferences
+   - Configuration data
 
-### Cache Invalidation
-- Metadata: On sync or manual update
-- Query Results: Time-based expiry
-- User Preferences: On update
-- Display Configs: On update
+2. Query Cache
+   - Prepared statements
+   - Execution plans
+   - Result sets
 
-## Query Optimization
+3. Data Cache
+   - Frequently accessed data
+   - Reference data
+   - Lookup tables
 
-### SQL Optimization
-- Use prepared statements
-- Implement query timeout
-- Add appropriate indexes
-- Optimize JOIN operations
-- Use pagination
-- Avoid SELECT *
+### Cache Policies
+1. Time-based Expiration
+   - Short-lived (5-15 minutes)
+   - Medium-lived (1-4 hours)
+   - Long-lived (1-7 days)
 
-### Example Query Pattern
-```java
-@Repository
-public class OptimizedQueryRepository {
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
+2. Capacity-based Eviction
+   - LRU (Least Recently Used)
+   - LFU (Least Frequently Used)
+   - Size-based limits
 
-    public List<Map<String, Object>> executeQuery(String sql, Map<String, Object> params, int timeout) {
-        return jdbcTemplate.execute((Connection conn) -> {
-            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-                stmt.setQueryTimeout(timeout);
-                setParameters(stmt, params);
-                return extractResults(stmt.executeQuery());
-            }
-        });
-    }
-}
-```
+## Resource Management
 
-## Rate Limiting
-
-### API Rate Limits
-```java
-@Configuration
-public class RateLimitConfig {
-    @Bean
-    public Bucket4j.Builder bucketBuilder() {
-        return Bucket4j.builder()
-            .addLimit(Bandwidth.classic(100, Refill.intervally(100, Duration.ofMinutes(1))))
-            .addLimit(Bandwidth.classic(1000, Refill.intervally(1000, Duration.ofHours(1))));
-    }
-}
-```
-
-### Limits by Resource
-- Query Execution: 10 per minute per user
-- Metadata Sync: 1 per hour per data source
-- API Requests: 100 per minute per user
-- Export Data: 1 per minute per user
-
-## Connection Pooling
-
-### HikariCP Configuration
-```java
-@Configuration
-public class DataSourceConfig {
-    @Bean
-    public HikariConfig hikariConfig() {
-        HikariConfig config = new HikariConfig();
-        config.setMaximumPoolSize(10);
-        config.setMinimumIdle(5);
-        config.setIdleTimeout(300000);
-        config.setConnectionTimeout(20000);
-        config.setMaxLifetime(1200000);
-        return config;
-    }
-}
-```
-
-### Pool Sizing Guidelines
-- Maximum Pool Size = (Core Count * 2) + 1
-- Minimum Idle = Maximum Pool Size / 4
-- Connection Timeout = 20 seconds
-- Idle Timeout = 5 minutes
-- Max Lifetime = 20 minutes
-
-## Memory Management
-
-### JVM Configuration
+### Memory Management
+1. JVM Configuration
 ```bash
 JAVA_OPTS="\
     -Xms2g \
     -Xmx4g \
+    -XX:MetaspaceSize=256m \
+    -XX:MaxMetaspaceSize=512m \
     -XX:+UseG1GC \
-    -XX:MaxGCPauseMillis=200 \
-    -XX:+HeapDumpOnOutOfMemoryError \
-    -XX:HeapDumpPath=/var/log/datascope/heap-dump.hprof"
+    -XX:MaxGCPauseMillis=200"
 ```
 
-### Memory Guidelines
-- Heap Size: 25-50% of available RAM
-- MetaSpace: 256MB initial
-- Direct Memory: 20% of heap
-- Stack Size: 1MB per thread
+2. Heap Management
+   - Monitor heap usage
+   - Configure appropriate generations
+   - Set GC logging
+   - Analyze GC patterns
 
-## Monitoring and Optimization
+### Thread Pool Configuration
+```yaml
+server:
+  tomcat:
+    threads:
+      max: 200
+      min-spare: 10
+    max-connections: 8192
+    accept-count: 100
+```
 
-### Metrics to Monitor
-- Response Times
-- Error Rates
-- Cache Hit Rates
-- Connection Pool Usage
-- Memory Usage
-- GC Activity
-- Thread States
-- CPU Usage
-- Disk I/O
-- Network I/O
+### Resource Limits
+1. Query Execution
+   - Maximum rows: 50,000
+   - Timeout: 30 seconds
+   - Memory per query: 256MB
+   - Concurrent queries: 20
 
-### Performance Testing
-- Load Testing: Apache JMeter
-- Stress Testing: Gatling
-- Profiling: JProfiler/YourKit
-- Monitoring: Prometheus/Grafana
+2. File Operations
+   - Upload size: 10MB
+   - Download size: 100MB
+   - Temp file retention: 24 hours
 
-### Test Scenarios
+## Performance Monitoring
+
+### Metrics Collection
+1. System Metrics
+   - CPU usage
+   - Memory utilization
+   - Disk I/O
+   - Network traffic
+
+2. Application Metrics
+   - Response times
+   - Error rates
+   - Thread pool status
+   - Cache hit rates
+
+3. Database Metrics
+   - Connection pool status
+   - Query execution times
+   - Lock contention
+   - Buffer pool usage
+
+### Prometheus Configuration
+```yaml
+management:
+  endpoints:
+    web:
+      exposure:
+        include: prometheus,health,info,metrics
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+```
+
+### Grafana Dashboards
+1. System Dashboard
+   - Resource utilization
+   - JVM metrics
+   - GC statistics
+   - Thread pool status
+
+2. Application Dashboard
+   - Request rates
+   - Response times
+   - Error rates
+   - Cache statistics
+
+3. Database Dashboard
+   - Connection pool
+   - Query performance
+   - Lock statistics
+   - Table statistics
+
+## Performance Testing
+
+### Load Testing
+1. Test Scenarios
+   - Normal load
+   - Peak load
+   - Stress conditions
+   - Recovery testing
+
+2. Test Metrics
+   - Response time
+   - Throughput
+   - Error rate
+   - Resource usage
+
+### Performance Benchmarks
+1. API Response Times
+   - P95 < 500ms
+   - P99 < 1000ms
+   - Average < 200ms
+
+2. Query Performance
+   - Simple queries < 100ms
+   - Complex queries < 1000ms
+   - Batch operations < 5000ms
+
+## Optimization Techniques
+
+### Query Optimization
+1. Batch Processing
 ```java
-@Test
-public void loadTest() {
-    // Simulate 100 concurrent users
-    // Execute for 10 minutes
-    // Monitor response times
-    // Check error rates
-    // Verify resource usage
+@Transactional
+public void batchUpdate(List<Entity> entities) {
+    for (List<Entity> batch : Lists.partition(entities, 1000)) {
+        repository.saveAll(batch);
+    }
 }
 ```
 
-## Performance Optimization Tips
+2. Async Processing
+```java
+@Async
+public CompletableFuture<Result> processAsync(Request request) {
+    return CompletableFuture.supplyAsync(() -> {
+        // Processing logic
+    });
+}
+```
 
-### Database
-- Use appropriate indexes
-- Optimize queries
-- Regular maintenance
-- Monitor query plans
-- Partition large tables
+### Caching Implementation
+1. Result Caching
+```java
+@Cacheable(
+    value = "queryResults",
+    key = "#query.id",
+    unless = "#result == null"
+)
+public QueryResult executeQuery(Query query) {
+    // Query execution logic
+}
+```
 
-### Application
-- Use async processing
-- Implement caching
-- Pool connections
-- Optimize serialization
-- Use compression
+2. Metadata Caching
+```java
+@Cacheable(
+    value = "metadata",
+    key = "#dataSourceId",
+    unless = "#result == null"
+)
+public Metadata getMetadata(String dataSourceId) {
+    // Metadata retrieval logic
+}
+```
 
-### Frontend
-- Minimize HTTP requests
-- Use CDN
-- Compress assets
-- Lazy loading
-- Virtual scrolling
-
-### Network
-- Use HTTP/2
-- Enable compression
-- Minimize payload size
-- Use connection pooling
-- Implement timeouts
-
-## Scalability Considerations
+## Scalability Guidelines
 
 ### Horizontal Scaling
-- Stateless design
-- Distributed caching
-- Load balancing
-- Session management
-- Database sharding
+1. Stateless Design
+   - No local session state
+   - Distributed caching
+   - Shared nothing architecture
+
+2. Load Balancing
+   - Round-robin
+   - Least connections
+   - Resource-based
 
 ### Vertical Scaling
-- CPU optimization
-- Memory utilization
-- Disk I/O
-- Network capacity
-- Connection pooling
+1. Resource Allocation
+   - CPU optimization
+   - Memory utilization
+   - Disk I/O tuning
+
+2. Configuration Tuning
+   - Thread pools
+   - Connection pools
+   - Cache sizes
 
 ## Performance Checklist
 
-### Development
-- [ ] Use appropriate data structures
-- [ ] Implement caching
-- [ ] Optimize database queries
-- [ ] Handle concurrent requests
-- [ ] Implement timeouts
+### Development Phase
+- [ ] Use appropriate data types
+- [ ] Implement proper indexing
+- [ ] Configure connection pools
+- [ ] Set up caching
+- [ ] Enable monitoring
 
-### Testing
-- [ ] Run load tests
+### Testing Phase
+- [ ] Conduct load tests
+- [ ] Measure response times
 - [ ] Monitor resource usage
-- [ ] Check response times
-- [ ] Verify error handling
-- [ ] Test concurrent users
+- [ ] Analyze bottlenecks
+- [ ] Validate scalability
 
-### Deployment
-- [ ] Configure JVM properly
-- [ ] Set up monitoring
-- [ ] Enable metrics collection
-- [ ] Configure logging
+### Production Phase
+- [ ] Monitor metrics
 - [ ] Set up alerts
+- [ ] Regular optimization
+- [ ] Capacity planning
+- [ ] Performance reviews

@@ -4,6 +4,7 @@
 # Log files
 *.log
 logs/
+*.log.*
 
 # BlueJ files
 *.ctxt
@@ -36,38 +37,117 @@ buildNumber.properties
 .mvn/timing.properties
 .mvn/wrapper/maven-wrapper.jar
 
-# IntelliJ IDEA
+# IDE - IntelliJ IDEA
 .idea/
 *.iws
 *.iml
 *.ipr
+out/
 
-# Eclipse
+# IDE - Eclipse
 .settings/
 .classpath
 .project
 .factorypath
+bin/
 
-# NetBeans
-/nbproject/private/
-/nbbuild/
-/dist/
-/nbdist/
-/.nb-gradle/
-build/
+# IDE - VS Code
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.code-workspace
 
-# VS Code
-.vscode/
-.history/
-
-# Mac
+# Operating System
 .DS_Store
-
-# Windows
-Thumbs.db
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
 ehthumbs.db
-Desktop.ini
+Thumbs.db
 
-# Project specific
+# Application specific
 application-local.yml
 application-local.properties
+*.env
+.env.*
+!.env.example
+
+# Docker
+.docker/data/
+docker-compose.override.yml
+
+# Node (for UI development)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Testing
+coverage/
+.coverage/
+htmlcov/
+.tox/
+.pytest_cache/
+nosetests.xml
+coverage.xml
+*.cover
+
+# Security
+*.pem
+*.key
+*.p12
+*.jks
+*.keystore
+*.truststore
+
+# Temporary files
+*.swp
+*.swo
+*~
+tmp/
+temp/
+
+# Build output
+build/
+dist/
+out/
+
+# Gradle
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+
+# Spring Boot
+spring-boot-*.pid
+
+# Redis
+*.rdb
+dump.rdb
+
+# Logs and databases
+*.sqlite
+*.db
+
+# Generated files
+generated/
+.generated/
+src/generated/
+
+# Documentation
+docs/_build/
+site/
+
+# Cache
+.cache/
+.npm/
+.yarn/
+
+# Other
+*.bak
+*.tmp
+*.temp
+.history/

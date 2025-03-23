@@ -3,7 +3,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.example</groupId>
+    <groupId>com.datascope</groupId>
     <artifactId>data-scope</artifactId>
     <version>1.0.0-SNAPSHOT</version>
     <packaging>pom</packaging>
@@ -19,11 +19,11 @@
         <java.version>17</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        
+
         <!-- Spring -->
         <spring-boot.version>3.2.0</spring-boot.version>
         <spring-cloud.version>2023.0.0</spring-cloud.version>
-        
+
         <!-- Database -->
         <mysql.version>8.2.0</mysql.version>
         <db2.version>11.5.8.0</db2.version>
@@ -31,25 +31,25 @@
         <mybatis-spring.version>3.0.3</mybatis-spring.version>
         <mybatis-spring-boot.version>3.0.3</mybatis-spring-boot.version>
         <hikaricp.version>5.1.0</hikaricp.version>
-        
+
         <!-- Cache -->
         <redis.version>3.2.0</redis.version>
-        
+
         <!-- Utils -->
         <commons-lang3.version>3.13.0</commons-lang3.version>
         <commons-collections4.version>4.4</commons-collections4.version>
         <commons-io.version>2.15.1</commons-io.version>
         <guava.version>32.1.3-jre</guava.version>
         <jackson.version>2.15.3</jackson.version>
-        
+
         <!-- API Docs -->
         <springdoc.version>2.3.0</springdoc.version>
-        
+
         <!-- Testing -->
         <junit-jupiter.version>5.10.1</junit-jupiter.version>
         <mockito.version>5.8.0</mockito.version>
         <assertj.version>3.24.2</assertj.version>
-        
+
         <!-- Tools -->
         <lombok.version>1.18.30</lombok.version>
         <mapstruct.version>1.5.5.Final</mapstruct.version>

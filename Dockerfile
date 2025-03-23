@@ -1,41 +1,36 @@
 # Build stage
-FROM maven:3.8-openjdk-17-slim AS build
+FROM maven:3.9.5-eclipse-temurin-17-focal AS build
 WORKDIR /app
 COPY . .
 RUN mvn clean package -DskipTests
 
 # Run stage
-FROM eclipse-temurin:17-jre-jammy
+FROM eclipse-temurin:17-jre-focal
 WORKDIR /app
 
-# Add maintainer info
-LABEL maintainer="dreambt <your.email@example.com>"
+# Add Tini for proper signal handling
+ENV TINI_VERSION v0.19.0
+ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /tini
+RUN chmod +x /tini
+ENTRYPOINT ["/tini", "--"]
 
-# Set timezone
-ENV TZ=Asia/Shanghai
-RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+# Create non-root user
+RUN groupadd -r datascope && useradd -r -g datascope datascope
 
-# Create app directory
-RUN mkdir -p /app/logs /app/config
+# Copy application files
+COPY --from=build /app/data-scope-app/target/data-scope-app-*.jar app.jar
 
-# Copy jar from build stage
-COPY --from=build /app/data-scope-main/target/data-scope-main.jar /app/app.jar
+# Set proper permissions
+RUN chown -R datascope:datascope /app
 
-# Copy config files
-COPY --from=build /app/data-scope-main/src/main/resources/application.yml /app/config/
-COPY --from=build /app/data-scope-main/src/main/resources/logback-spring.xml /app/config/
+# Switch to non-root user
+USER datascope
 
-# Environment variables
-ENV JAVA_OPTS="-Xms2g -Xmx2g -XX:+UseG1GC -XX:MaxGCPauseMillis=200"
-ENV SPRING_PROFILES_ACTIVE="prod"
-ENV SPRING_CONFIG_LOCATION="file:/app/config/"
+# Set environment variables
+ENV JAVA_OPTS="-Xms512m -Xmx2g -XX:+UseG1GC -XX:MaxGCPauseMillis=200"
 
 # Expose ports
 EXPOSE 8080
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --retries=3 \
-  CMD curl -f http://localhost:8080/actuator/health || exit 1
-
 # Start application
-ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar /app/app.jar"]
+CMD ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]

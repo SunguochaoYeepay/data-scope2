@@ -1,7 +1,43 @@
 # Security Guidelines
 
 ## Overview
-This document outlines security requirements and best practices for the DataScope system to ensure data protection and secure access.
+This document outlines security guidelines and best practices for the DataScope system to ensure data protection, secure access, and compliance with security standards.
+
+## Authentication & Authorization
+
+### Authentication Integration
+```java
+@Configuration
+public class SecurityConfig {
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) {
+        return http
+            .oauth2ResourceServer()
+                .jwt()
+                .jwtAuthenticationConverter(jwtAuthConverter)
+            .and()
+            .authorizeHttpRequests()
+                .requestMatchers("/api/v1/public/**").permitAll()
+                .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
+                .anyRequest().authenticated()
+            .and()
+            .csrf()
+                .disable()
+            .build();
+    }
+}
+```
+
+### Role-Based Access Control
+```java
+@PreAuthorize("hasRole('ADMIN')")
+public class DataSourceAdminService {
+    @PreAuthorize("hasPermission(#dataSourceId, 'MANAGE')")
+    public void updateDataSource(String dataSourceId, DataSourceConfig config) {
+        // Update logic
+    }
+}
+```
 
 ## Data Protection
 
@@ -10,103 +46,42 @@ This document outlines security requirements and best practices for the DataScop
 @Component
 public class PasswordEncryptor {
     private static final String ALGORITHM = "AES/GCM/NoPadding";
-    private static final int SALT_LENGTH = 16;
-    private static final int IV_LENGTH = 12;
-    private static final int TAG_LENGTH = 128;
-
-    @Value("${security.encryption.key}")
-    private String secretKey;
-
+    private final SecretKey secretKey;
+    
     public String encrypt(String password) {
-        try {
-            byte[] salt = generateSalt();
-            byte[] iv = generateIV();
-            SecretKey key = deriveKey(secretKey, salt);
-            
-            Cipher cipher = Cipher.getInstance(ALGORITHM);
-            GCMParameterSpec spec = new GCMParameterSpec(TAG_LENGTH, iv);
-            cipher.init(Cipher.ENCRYPT_MODE, key, spec);
-            
-            byte[] encrypted = cipher.doFinal(password.getBytes(StandardCharsets.UTF_8));
-            return Base64.getEncoder().encodeToString(
-                ByteBuffer.allocate(salt.length + iv.length + encrypted.length)
-                    .put(salt)
-                    .put(iv)
-                    .put(encrypted)
-                    .array()
-            );
-        } catch (Exception e) {
-            throw new SecurityException("Encryption failed", e);
-        }
+        byte[] iv = generateIV();
+        Cipher cipher = Cipher.getInstance(ALGORITHM);
+        cipher.init(Cipher.ENCRYPT_MODE, secretKey, new GCMParameterSpec(128, iv));
+        byte[] encrypted = cipher.doFinal(password.getBytes());
+        return Base64.encode(concat(iv, encrypted));
     }
-
+    
     public String decrypt(String encryptedPassword) {
-        try {
-            byte[] decoded = Base64.getDecoder().decode(encryptedPassword);
-            ByteBuffer buffer = ByteBuffer.wrap(decoded);
-            
-            byte[] salt = new byte[SALT_LENGTH];
-            byte[] iv = new byte[IV_LENGTH];
-            byte[] encrypted = new byte[decoded.length - SALT_LENGTH - IV_LENGTH];
-            
-            buffer.get(salt);
-            buffer.get(iv);
-            buffer.get(encrypted);
-            
-            SecretKey key = deriveKey(secretKey, salt);
-            Cipher cipher = Cipher.getInstance(ALGORITHM);
-            GCMParameterSpec spec = new GCMParameterSpec(TAG_LENGTH, iv);
-            cipher.init(Cipher.DECRYPT_MODE, key, spec);
-            
-            return new String(cipher.doFinal(encrypted), StandardCharsets.UTF_8);
-        } catch (Exception e) {
-            throw new SecurityException("Decryption failed", e);
-        }
-    }
-
-    private SecretKey deriveKey(String secret, byte[] salt) throws Exception {
-        KeySpec spec = new PBEKeySpec(secret.toCharArray(), salt, 65536, 256);
-        SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
-        return new SecretKeySpec(factory.generateSecret(spec).getEncoded(), "AES");
-    }
-
-    private byte[] generateSalt() {
-        byte[] salt = new byte[SALT_LENGTH];
-        new SecureRandom().nextBytes(salt);
-        return salt;
-    }
-
-    private byte[] generateIV() {
-        byte[] iv = new byte[IV_LENGTH];
-        new SecureRandom().nextBytes(iv);
-        return iv;
+        byte[] decoded = Base64.decode(encryptedPassword);
+        byte[] iv = Arrays.copyOfRange(decoded, 0, 12);
+        byte[] encrypted = Arrays.copyOfRange(decoded, 12, decoded.length);
+        
+        Cipher cipher = Cipher.getInstance(ALGORITHM);
+        cipher.init(Cipher.DECRYPT_MODE, secretKey, new GCMParameterSpec(128, iv));
+        return new String(cipher.doFinal(encrypted));
     }
 }
 ```
 
-### Sensitive Data Masking
+### Data Masking
 ```java
-public enum MaskType {
-    FULL,      // Replace all characters
-    PARTIAL,   // Show first/last N characters
-    CUSTOM     // Custom masking pattern
-}
-
 @Component
 public class DataMasker {
-    public String mask(String value, MaskType type, String pattern) {
-        if (value == null) return null;
-        
+    public String maskValue(String value, MaskingType type) {
         switch (type) {
             case FULL:
                 return "*".repeat(value.length());
             case PARTIAL:
-                if (value.length() <= 4) return value;
                 return value.substring(0, 2) + 
                        "*".repeat(value.length() - 4) + 
                        value.substring(value.length() - 2);
-            case CUSTOM:
-                return applyCustomMask(value, pattern);
+            case EMAIL:
+                return maskEmail(value);
             default:
                 return value;
         }
@@ -114,107 +89,84 @@ public class DataMasker {
 }
 ```
 
-## Access Control
-
-### Rate Limiting
-```java
-@Component
-public class RateLimitInterceptor implements HandlerInterceptor {
-    private final RateLimiter rateLimiter;
-    
-    @Override
-    public boolean preHandle(HttpServletRequest request, 
-                           HttpServletResponse response, 
-                           Object handler) {
-        String userId = extractUserId(request);
-        if (!rateLimiter.tryAcquire(userId)) {
-            response.setStatus(HttpStatus.TOO_MANY_REQUESTS.value());
-            return false;
-        }
-        return true;
-    }
-}
-```
-
-### Query Timeout
-```java
-@Component
-public class QueryExecutor {
-    @Value("${query.timeout.seconds:30}")
-    private int queryTimeout;
-    
-    public ResultSet executeQuery(String sql, Connection conn) throws SQLException {
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setQueryTimeout(queryTimeout);
-            return stmt.executeQuery();
-        }
-    }
-}
-```
-
-## Security Headers
-
-### Configuration
-```java
-@Configuration
-public class SecurityConfig {
-    @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        return http
-            .headers()
-                .xssProtection()
-                .and()
-                .contentSecurityPolicy("default-src 'self'")
-                .and()
-                .frameOptions().deny()
-                .and()
-                .httpStrictTransportSecurity()
-                .and()
-            .build();
-    }
-}
-```
-
-## Input Validation
+## API Security
 
 ### Request Validation
 ```java
 @Validated
 @RestController
-public class DataSourceController {
-    @PostMapping("/datasources")
-    public ResponseEntity<DataSourceDTO> create(
-            @Valid @RequestBody DataSourceDTO dto) {
-        // Implementation
+public class QueryController {
+    @PostMapping("/api/v1/queries")
+    public ResponseEntity<QueryResult> executeQuery(
+            @Valid @RequestBody QueryRequest request) {
+        // Query execution logic
     }
 }
 
-public class DataSourceDTO {
-    @NotBlank(message = "Name is required")
-    @Size(max = 50, message = "Name must not exceed 50 characters")
-    private String name;
+public class QueryRequest {
+    @NotNull
+    @Size(max = 1000)
+    private String sql;
     
-    @NotNull(message = "Port is required")
-    @Range(min = 1, max = 65535, message = "Port must be between 1 and 65535")
-    private Integer port;
-    
-    @Pattern(regexp = "^[a-zA-Z0-9._-]+$", 
-             message = "Database name contains invalid characters")
-    private String databaseName;
+    @NotNull
+    @Pattern(regexp = "^[a-zA-Z0-9-_]+$")
+    private String dataSourceId;
 }
 ```
 
-### SQL Injection Prevention
+### Rate Limiting
 ```java
-@Component
-public class SQLValidator {
-    private static final Pattern UNSAFE_PATTERN = 
-        Pattern.compile("(?i)(delete|drop|truncate|alter|create|exec|union)");
-    
-    public void validate(String sql) {
-        if (UNSAFE_PATTERN.matcher(sql).find()) {
-            throw new SecurityException("Unsafe SQL detected");
-        }
+@Configuration
+public class RateLimitConfig {
+    @Bean
+    public RateLimiter rateLimiter() {
+        return RateLimiter.builder()
+            .limitForPeriod(100)
+            .limitRefreshPeriod(Duration.ofMinutes(1))
+            .timeout(Duration.ofSeconds(1))
+            .build();
+    }
+}
+
+@RateLimiter(name = "queryApi")
+public QueryResult executeQuery(QueryRequest request) {
+    // Query execution logic
+}
+```
+
+## Secure Communication
+
+### TLS Configuration
+```yaml
+server:
+  ssl:
+    enabled: true
+    key-store: classpath:keystore.p12
+    key-store-password: ${KEY_STORE_PASSWORD}
+    key-store-type: PKCS12
+    key-alias: datascope
+    protocol: TLS
+    enabled-protocols: TLSv1.2,TLSv1.3
+```
+
+### Secure Headers
+```java
+@Configuration
+public class SecurityHeadersConfig {
+    @Bean
+    public WebSecurityCustomizer webSecurityCustomizer() {
+        return web -> web.httpSecurity()
+            .headers()
+                .contentSecurityPolicy("default-src 'self'")
+                .and()
+                .xssProtection()
+                .and()
+                .frameOptions()
+                .deny()
+                .and()
+                .hsts()
+                .includeSubDomains(true)
+                .maxAgeInSeconds(31536000);
     }
 }
 ```
@@ -223,106 +175,147 @@ public class SQLValidator {
 
 ### Audit Events
 ```java
-@Entity
-@Table(name = "tbl_audit_log")
-public class AuditLog {
-    @Id
-    private String id;
+@Component
+public class SecurityAuditLogger {
+    @EventListener
+    public void onAuthenticationSuccess(AuthenticationSuccessEvent event) {
+        log.info("User {} successfully authenticated", 
+            event.getAuthentication().getName());
+    }
     
-    @Column(nullable = false)
-    private String userId;
+    @EventListener
+    public void onAuthenticationFailure(AuthenticationFailureEvent event) {
+        log.warn("Authentication failed for user {}: {}", 
+            event.getAuthentication().getName(),
+            event.getException().getMessage());
+    }
+}
+```
+
+### Activity Logging
+```java
+@Aspect
+@Component
+public class SecurityAuditAspect {
+    @Around("@annotation(Audited)")
+    public Object auditMethod(ProceedingJoinPoint joinPoint) {
+        String user = SecurityContextHolder.getContext()
+            .getAuthentication().getName();
+        String action = joinPoint.getSignature().getName();
+        
+        log.info("User {} performing action {}", user, action);
+        try {
+            Object result = joinPoint.proceed();
+            log.info("Action {} completed successfully", action);
+            return result;
+        } catch (Exception e) {
+            log.error("Action {} failed: {}", action, e.getMessage());
+            throw e;
+        }
+    }
+}
+```
+
+## Security Testing
+
+### Security Test Configuration
+```java
+@SpringBootTest
+@AutoConfigureMockMvc
+public class SecurityTests {
+    @Test
+    @WithMockUser(roles = "USER")
+    public void whenUnauthorized_thenReturn403() {
+        mockMvc.perform(post("/api/v1/admin/datasources"))
+            .andExpect(status().isForbidden());
+    }
     
-    @Column(nullable = false)
-    private String action;
-    
-    @Column(nullable = false)
-    private String resource;
-    
-    @Column(nullable = false)
-    private LocalDateTime timestamp;
-    
-    @Column
-    private String ipAddress;
-    
-    @Column
-    private String userAgent;
-    
-    @Column(length = 1000)
-    private String details;
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    public void whenAuthorized_thenReturn200() {
+        mockMvc.perform(post("/api/v1/admin/datasources"))
+            .andExpect(status().isOk());
+    }
 }
 ```
 
 ## Security Checklist
 
-### Development
-- [ ] Use HTTPS everywhere
-- [ ] Implement input validation
-- [ ] Encrypt sensitive data
-- [ ] Use prepared statements
-- [ ] Implement rate limiting
-- [ ] Set security headers
-- [ ] Enable CSRF protection
-- [ ] Configure CORS properly
-- [ ] Implement audit logging
-- [ ] Use secure password storage
+### Development Phase
+- [ ] Input validation implemented
+- [ ] Password encryption configured
+- [ ] HTTPS enabled
+- [ ] Security headers configured
+- [ ] Authentication integrated
+- [ ] Authorization rules defined
+- [ ] Rate limiting implemented
+- [ ] Audit logging configured
 
-### Deployment
-- [ ] Use secure configurations
-- [ ] Enable firewalls
-- [ ] Update dependencies
-- [ ] Configure TLS properly
-- [ ] Set up monitoring
-- [ ] Configure backups
-- [ ] Use secure protocols
-- [ ] Implement access controls
-- [ ] Regular security updates
-- [ ] Incident response plan
+### Testing Phase
+- [ ] Security tests written
+- [ ] Penetration testing performed
+- [ ] Vulnerability scanning done
+- [ ] Access control verified
+- [ ] Data encryption validated
+- [ ] Audit logs verified
 
-### Testing
-- [ ] Security testing
-- [ ] Penetration testing
-- [ ] Vulnerability scanning
-- [ ] Load testing
-- [ ] Audit log review
-- [ ] Access control testing
-- [ ] Input validation testing
-- [ ] Error handling testing
-- [ ] Authentication testing
-- [ ] Authorization testing
+### Production Phase
+- [ ] Secrets properly managed
+- [ ] TLS certificates valid
+- [ ] Security monitoring active
+- [ ] Audit logging enabled
+- [ ] Backup encryption verified
+- [ ] Access reviews scheduled
 
 ## Security Best Practices
 
-### Authentication
-- Use strong password policies
-- Implement MFA where possible
-- Secure session management
-- Token-based authentication
-- Regular session timeout
+### Password Management
+1. Use strong encryption
+2. Implement password policies
+3. Secure password storage
+4. Regular password rotation
+5. Multi-factor authentication
 
-### Authorization
-- Role-based access control
-- Principle of least privilege
-- Regular access review
-- Resource-level permissions
-- Dynamic authorization
+### Access Control
+1. Principle of least privilege
+2. Role-based access control
+3. Regular access reviews
+4. Session management
+5. Token-based authentication
 
 ### Data Protection
-- Encrypt data at rest
-- Encrypt data in transit
-- Secure key management
-- Regular key rotation
-- Data classification
+1. Encryption at rest
+2. Encryption in transit
+3. Data masking
+4. Secure backup
+5. Data retention policies
 
 ### Monitoring
-- Security event logging
-- Real-time alerting
-- Regular log review
-- Anomaly detection
-- Incident response
+1. Security event logging
+2. Real-time alerting
+3. Audit trail maintenance
+4. Access monitoring
+5. Anomaly detection
 
-### Compliance
-- Data privacy laws
-- Industry regulations
-- Security standards
-- Regular audits
-- Documentation
+## Incident Response
+
+### Response Plan
+1. Incident detection
+2. Initial assessment
+3. Containment measures
+4. Investigation process
+5. Recovery procedures
+6. Post-incident review
+
+### Contact Information
+```yaml
+security:
+  contacts:
+    primary:
+      name: Security Team
+      email: security@example.com
+      phone: +1-234-567-8900
+    backup:
+      name: IT Support
+      email: support@example.com
+      phone: +1-234-567-8901

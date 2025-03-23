@@ -3,7 +3,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <groupId>com.example</groupId>
+        <groupId>com.datascope</groupId>
         <artifactId>data-scope</artifactId>
         <version>1.0.0-SNAPSHOT</version>
     </parent>
@@ -14,17 +14,17 @@
     <dependencies>
         <!-- Internal Dependencies -->
         <dependency>
-            <groupId>com.example</groupId>
+            <groupId>com.datascope</groupId>
             <artifactId>data-scope-domain</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>com.example</groupId>
+            <groupId>com.datascope</groupId>
             <artifactId>data-scope-facade</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>com.example</groupId>
+            <groupId>com.datascope</groupId>
             <artifactId>data-scope-infrastructure</artifactId>
             <version>${project.version}</version>
         </dependency>
@@ -115,7 +115,7 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
-                    <mainClass>com.example.datascope.DataScopeApplication</mainClass>
+                    <mainClass>com.datascope.datascope.DataScopeApplication</mainClass>
                     <excludes>
                         <exclude>
                             <groupId>org.projectlombok</groupId>

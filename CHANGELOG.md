@@ -1,159 +1,213 @@
-# DataScope 更新日志
+# Changelog
 
-所有重要的更改都会记录在此文件中。
+All notable changes to DataScope will be documented in this file.
 
-格式基于 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.0.0/)，
-并且本项目遵循 [语义化版本](https://semver.org/lang/zh-CN/)。
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [未发布]
+## [Unreleased]
 
-### 新增
-- 初始项目结构
-- DDD分层架构设计
-- 数据源管理基础功能
-- 查询管理基础功能
-- 低代码集成协议
+### Added
+- Initial project structure setup
+- Basic documentation framework
+- Maven module configuration
+- Docker deployment support
+- Monitoring setup with Prometheus and Grafana
 
-### 变更
-- 无
+### Changed
+- None
 
-### 修复
-- 无
+### Deprecated
+- None
 
-### 移除
-- 无
+### Removed
+- None
+
+### Fixed
+- None
+
+### Security
+- Initial security configuration
+- Basic authentication setup
+- Password encryption implementation
 
 ## [1.0.0] - 2025-03-23
 
-### 新增
-- 数据源管理
-  * MySQL数据源支持
-  * DB2数据源支持
-  * 数据源连接测试
-  * 元数据自动提取
-  * 增量同步机制
+### Added
+- Project initialization
+- Core module structure
+  - Application layer
+  - Domain layer
+  - Facade layer
+  - Infrastructure layer
+- Basic documentation
+  - README
+  - Contributing guidelines
+  - Security policy
+  - API documentation
+  - Architecture design
+- Development setup
+  - Maven configuration
+  - Docker support
+  - CI/CD pipeline
+- Monitoring
+  - Prometheus integration
+  - Grafana dashboards
+  - Health checks
+- Security
+  - Authentication framework
+  - Authorization setup
+  - Data encryption
+  - Security guidelines
 
-- 查询管理
-  * SQL查询支持
-  * 自然语言查询
-  * 查询历史记录
-  * 查询收藏功能
-  * 查询结果导出
+### Technical Details
+- Java 17 support
+- Spring Boot 3.2.0
+- MyBatis integration
+- Redis caching
+- MySQL/DB2 support
+- Docker containerization
+- Prometheus monitoring
+- Grafana dashboards
 
-- 智能推荐
-  * 表关系推断
-  * 显示属性推荐
-  * 查询条件优化
-  * 用户偏好学习
+### Documentation
+- Architecture documentation
+- API documentation
+- Security guidelines
+- Performance guidelines
+- Error handling documentation
+- Monitoring setup
+- Contributing guidelines
 
-- 低代码集成
-  * JSON格式协议
-  * 统一查询API
-  * 界面配置支持
-  * 多种展示形式
+### Development Tools
+- Maven build system
+- Docker compose setup
+- Prometheus configuration
+- Grafana dashboards
+- Code style configuration
 
-### 安全性
-- 密码加密存储
-- SQL注入防护
-- 请求频率限制
-- 查询超时控制
-- 数据导出限制
+## Types of Changes
 
-### 性能优化
-- 查询缓存机制
-- 连接池优化
-- 批量处理优化
-- 异步处理支持
+### Added
+For new features.
 
-### 监控和日志
-- 健康检查接口
-- 性能指标监控
-- 操作日志记录
-- 异常监控告警
+### Changed
+For changes in existing functionality.
 
-## [0.9.0] - 2025-03-15
+### Deprecated
+For soon-to-be removed features.
 
-### 新增
-- 项目基础架构
-- 核心领域模型
-- 基础设施层
-- 测试框架
-- 文档体系
+### Removed
+For now removed features.
 
-### 技术栈
-- Spring Boot 3.x
-- MyBatis
-- Redis
-- MySQL
-- Maven
+### Fixed
+For any bug fixes.
 
-### 文档
-- 架构设计文档
-- API接口文档
-- 数据库设计
-- 部署文档
-- 开发指南
+### Security
+In case of vulnerabilities.
 
-## [0.1.0] - 2025-03-01
+## Commit Message Format
 
-### 新增
-- 项目初始化
-- 基础框架搭建
-- 开发规范制定
-- CI/CD配置
-- 基础文档
-
-## 版本规范
-
-### 版本号格式
 ```
-v{major}.{minor}.{patch}
+type(scope): description
+
+[optional body]
+
+[optional footer]
 ```
 
-### 版本说明
-- major：重大更新，可能包含不兼容的API变更
-- minor：功能更新，向后兼容的功能性变更
-- patch：问题修复，向后兼容的问题修复
+### Types
+- feat: New feature
+- fix: Bug fix
+- docs: Documentation
+- style: Formatting
+- refactor: Code restructuring
+- test: Adding tests
+- chore: Maintenance
 
-### 发布周期
-- 主版本：根据重大功能发布
-- 次版本：每月发布
-- 修订版本：根据问题修复情况随时发布
+### Scope
+- app: Application layer
+- domain: Domain layer
+- facade: API layer
+- infra: Infrastructure layer
+- docs: Documentation
+- build: Build system
+- ci: CI/CD
+- docker: Docker configuration
+- monitor: Monitoring setup
 
-## 贡献指南
+### Examples
 
-### 提交规范
 ```
-<type>(<scope>): <subject>
+feat(query): add natural language processing support
 
-<body>
+Implement OpenRouter API integration for converting
+natural language to SQL queries.
 
-<footer>
+Closes #123
 ```
 
-### 类型说明
-- feat：新功能
-- fix：修复问题
-- docs：文档更新
-- style：代码格式
-- refactor：重构
-- test：测试相关
-- chore：构建相关
+```
+fix(datasource): resolve connection pool timeout
 
-## 问题反馈
+Update HikariCP configuration to handle connection
+timeouts properly.
 
-如果你在使用过程中发现任何问题，请通过以下方式反馈：
+Fixes #456
+```
 
-1. 提交 Issue
-2. 发送邮件
-3. 技术社区讨论
+```
+docs(api): update API documentation
 
-## 联系方式
+Add detailed examples and improve formatting of
+API documentation.
 
-- 作者：dreambt
-- 邮箱：your.email@example.com
-- GitHub：https://github.com/dreambt/data-scope
+Related to #789
+```
 
-## 许可证
+## Release Process
 
-本项目采用 Apache License 2.0 许可证。详见 [LICENSE](LICENSE) 文件。
+1. Version Update
+   - Update version in pom.xml
+   - Update CHANGELOG.md
+   - Create release branch
+
+2. Testing
+   - Run all tests
+   - Perform integration testing
+   - Check documentation
+
+3. Release
+   - Create release tag
+   - Build release artifacts
+   - Update documentation
+   - Deploy to production
+
+4. Post-Release
+   - Announce release
+   - Update version to next snapshot
+   - Close milestone
+   - Update roadmap
+
+## Versioning
+
+We use [SemVer](http://semver.org/) for versioning:
+
+- MAJOR version for incompatible API changes
+- MINOR version for new functionality in a backwards compatible manner
+- PATCH version for backwards compatible bug fixes
+
+## Issue References
+
+Issues should be referenced in commit messages using the following format:
+- Fixes #123
+- Closes #456
+- Related to #789
+
+## Contact
+
+For major changes, please open an issue first to discuss what you would like to change.
+
+- Email: support@example.com
+- GitHub Issues: https://github.com/example/data-scope/issues
+- Slack: #data-scope-dev

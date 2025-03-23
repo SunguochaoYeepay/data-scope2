@@ -135,7 +135,7 @@ server:
 logging:
   level:
     root: INFO
-    com.example.datascope: DEBUG
+    com.datascope.datascope: DEBUG
 ```
 
 ## API Examples

@@ -1,200 +1,297 @@
 # Monitoring and Logging Guidelines
 
 ## Overview
-This document outlines the monitoring and logging standards for the DataScope system to ensure proper observability and troubleshooting capabilities.
-
-## Logging Configuration
-
-### Log Levels
-- ERROR: System errors requiring immediate attention
-- WARN: Potentially harmful situations
-- INFO: Important business events
-- DEBUG: Detailed information for debugging
-- TRACE: Most detailed level, used sparingly
-
-### Logback Configuration
-```xml
-<configuration>
-    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
-        <encoder>
-            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
-        </encoder>
-    </appender>
-
-    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>/var/log/datascope/application.log</file>
-        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>/var/log/datascope/application.%d{yyyy-MM-dd}.log</fileNamePattern>
-            <maxHistory>30</maxHistory>
-            <totalSizeCap>3GB</totalSizeCap>
-        </rollingPolicy>
-        <encoder>
-            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
-        </encoder>
-    </appender>
-
-    <root level="INFO">
-        <appender-ref ref="CONSOLE" />
-        <appender-ref ref="FILE" />
-    </root>
-</configuration>
-```
-
-### Structured Logging
-```java
-@Slf4j
-public class DataSourceService {
-    public void syncMetadata(String dataSourceId) {
-        MDC.put("dataSourceId", dataSourceId);
-        try {
-            log.info("Starting metadata sync for data source");
-            // Processing
-            log.info("Completed metadata sync for data source");
-        } finally {
-            MDC.remove("dataSourceId");
-        }
-    }
-}
-```
+This document outlines the monitoring and logging strategy for the DataScope system, ensuring comprehensive observability and troubleshooting capabilities.
 
 ## Monitoring
 
-### Metrics Collection
+### Application Metrics
 
-#### Application Metrics
-```java
-@Configuration
-public class MetricsConfig {
-    @Bean
-    MeterRegistry meterRegistry() {
-        return new PrometheusMeterRegistry(PrometheusConfig.DEFAULT);
-    }
+#### Core Metrics
+1. Request Metrics
+   - Request count
+   - Response times
+   - Error rates
+   - Status codes
 
-    @Bean
-    TimedAspect timedAspect(MeterRegistry registry) {
-        return new TimedAspect(registry);
-    }
-}
-```
-
-#### Key Metrics
-1. System Metrics
-   - CPU Usage
-   - Memory Usage
-   - Disk I/O
-   - Network I/O
-   - GC Statistics
-
-2. Application Metrics
-   - Request Count
-   - Response Times
-   - Error Rates
-   - Active Sessions
-   - Thread Pool Stats
+2. Performance Metrics
+   - JVM metrics
+   - Thread pool stats
+   - Memory usage
+   - GC metrics
 
 3. Business Metrics
-   - Query Execution Time
-   - Sync Job Duration
-   - Cache Hit Rates
-   - Active Users
-   - Feature Usage
+   - Query execution times
+   - Data source health
+   - Cache hit rates
+   - User activity
 
 ### Prometheus Configuration
 ```yaml
-global:
-  scrape_interval: 15s
-  evaluation_interval: 15s
-
-scrape_configs:
-  - job_name: 'datascope'
-    metrics_path: '/actuator/prometheus'
-    static_configs:
-      - targets: ['localhost:8080']
+management:
+  endpoints:
+    web:
+      exposure:
+        include: prometheus,health,info,metrics
+  metrics:
+    tags:
+      application: data-scope
+    export:
+      prometheus:
+        enabled: true
 ```
 
 ### Grafana Dashboards
 
 #### System Dashboard
-- CPU Usage Graph
-- Memory Usage Graph
-- Disk I/O Graph
-- Network I/O Graph
-- GC Statistics
+```json
+{
+  "dashboard": {
+    "panels": [
+      {
+        "title": "CPU Usage",
+        "type": "graph",
+        "metrics": ["system_cpu_usage", "process_cpu_usage"]
+      },
+      {
+        "title": "Memory Usage",
+        "type": "graph",
+        "metrics": ["jvm_memory_used", "jvm_memory_max"]
+      },
+      {
+        "title": "GC Statistics",
+        "type": "graph",
+        "metrics": ["jvm_gc_pause_seconds", "jvm_gc_collection_seconds"]
+      }
+    ]
+  }
+}
+```
 
 #### Application Dashboard
-- Request Rate Graph
-- Response Time Graph
-- Error Rate Graph
-- Active Sessions Graph
-- Cache Hit Rate Graph
+```json
+{
+  "dashboard": {
+    "panels": [
+      {
+        "title": "Request Rate",
+        "type": "graph",
+        "metrics": ["http_server_requests_seconds_count"]
+      },
+      {
+        "title": "Response Time",
+        "type": "heatmap",
+        "metrics": ["http_server_requests_seconds_bucket"]
+      },
+      {
+        "title": "Error Rate",
+        "type": "graph",
+        "metrics": ["http_server_requests_seconds_count{status>=500}"]
+      }
+    ]
+  }
+}
+```
 
-#### Business Dashboard
-- Query Performance Graph
-- Sync Job Status
-- User Activity Graph
-- Feature Usage Graph
-- Data Source Health
+### Alerting Rules
 
-## Alerting
-
-### Alert Rules
+#### System Alerts
 ```yaml
 groups:
-  - name: datascope_alerts
+  - name: system_alerts
+    rules:
+      - alert: HighCPUUsage
+        expr: system_cpu_usage > 0.8
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: High CPU usage detected
+
+      - alert: HighMemoryUsage
+        expr: jvm_memory_used_bytes / jvm_memory_max_bytes > 0.9
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: High memory usage detected
+```
+
+#### Application Alerts
+```yaml
+groups:
+  - name: application_alerts
     rules:
       - alert: HighErrorRate
-        expr: rate(http_server_requests_seconds_count{status="5xx"}[5m]) > 0.1
+        expr: rate(http_server_requests_seconds_count{status>=500}[5m]) > 0.1
         for: 5m
         labels:
           severity: critical
         annotations:
           summary: High error rate detected
-          description: Error rate is above 10% for 5 minutes
 
       - alert: SlowResponses
-        expr: http_server_requests_seconds_sum / http_server_requests_seconds_count > 0.5
+        expr: http_server_requests_seconds_max > 5
         for: 5m
         labels:
           severity: warning
         annotations:
           summary: Slow response times detected
-          description: Average response time is above 500ms for 5 minutes
 ```
 
-### Alert Channels
-- Email Notifications
-- Slack Integration
-- PagerDuty
-- SMS Alerts
-- Teams Integration
+## Logging
 
-## Tracing
+### Log Levels
 
-### Spring Cloud Sleuth Configuration
+#### Level Usage Guidelines
+- ERROR: System errors requiring immediate attention
+- WARN: Potential issues or unexpected states
+- INFO: Important business events and state changes
+- DEBUG: Detailed information for troubleshooting
+- TRACE: Very detailed debugging information
+
+### Log Format
 ```java
-@Configuration
-public class TracingConfig {
+@Slf4j
+public class LoggingConfig {
     @Bean
-    public Tracer tracer() {
-        return new Tracer.Builder("datascope")
-            .withSampler(Sampler.ALWAYS_SAMPLE)
-            .withReporter(AsyncReporter.create(OkHttpSender.create("http://zipkin:9411/api/v2/spans")))
-            .build();
+    public LoggingEventCompositeJsonEncoder encoder() {
+        return new LoggingEventCompositeJsonEncoder(
+            timestamp,
+            level,
+            logger,
+            thread,
+            message,
+            stacktrace,
+            mdc: {
+                traceId,
+                userId,
+                requestId
+            }
+        );
     }
 }
 ```
 
-### Trace Information
-- Request ID
-- User ID
-- Data Source ID
-- Operation Type
-- Duration
-- Dependencies
+### Logging Examples
+
+#### Request Logging
+```java
+@Slf4j
+public class RequestLoggingFilter extends OncePerRequestFilter {
+    @Override
+    protected void doFilterInternal(HttpServletRequest request, 
+                                  HttpServletResponse response, 
+                                  FilterChain chain) {
+        MDC.put("requestId", UUID.randomUUID().toString());
+        log.info("Request received: {} {}", request.getMethod(), request.getRequestURI());
+        
+        try {
+            chain.doFilter(request, response);
+        } finally {
+            log.info("Response sent: {}", response.getStatus());
+            MDC.clear();
+        }
+    }
+}
+```
+
+#### Business Logic Logging
+```java
+@Slf4j
+public class QueryService {
+    public QueryResult executeQuery(Query query) {
+        log.info("Executing query: {}", query.getId());
+        
+        try {
+            QueryResult result = queryExecutor.execute(query);
+            log.info("Query completed: {}, rows: {}", 
+                query.getId(), result.getRowCount());
+            return result;
+        } catch (Exception e) {
+            log.error("Query failed: {}", query.getId(), e);
+            throw e;
+        }
+    }
+}
+```
+
+### Log Aggregation
+
+#### ELK Stack Configuration
+```yaml
+logstash:
+  input:
+    beats:
+      port: 5044
+  
+  filter:
+    json:
+      source: "message"
+    
+    grok:
+      match:
+        message: "%{TIMESTAMP_ISO8601:timestamp} %{LOGLEVEL:level} %{GREEDYDATA:message}"
+    
+    date:
+      match: ["timestamp", "ISO8601"]
+    
+  output:
+    elasticsearch:
+      hosts: ["elasticsearch:9200"]
+      index: "data-scope-%{+YYYY.MM.dd}"
+```
+
+#### Kibana Dashboards
+1. Error Analysis Dashboard
+   - Error distribution
+   - Error trends
+   - Stack trace analysis
+   - Error correlation
+
+2. Performance Dashboard
+   - Response time distribution
+   - Slow query analysis
+   - Resource usage correlation
+   - Request patterns
+
+### Log Retention
+
+#### Retention Policy
+```yaml
+elasticsearch:
+  ilm:
+    policies:
+      logs:
+        hot:
+          max_size: "50GB"
+          max_age: "30d"
+        warm:
+          min_age: "2d"
+          actions:
+            rollover:
+              max_size: "100GB"
+              max_age: "7d"
+        delete:
+          min_age: "90d"
+```
 
 ## Health Checks
 
-### Endpoints
+### Endpoint Configuration
+```yaml
+management:
+  endpoint:
+    health:
+      show-details: always
+      group:
+        datasource:
+          include: db,diskSpace
+        cache:
+          include: redis
+```
+
+### Custom Health Indicators
 ```java
 @Component
 public class DataSourceHealthIndicator implements HealthIndicator {
@@ -203,8 +300,8 @@ public class DataSourceHealthIndicator implements HealthIndicator {
         try {
             // Check data source connectivity
             return Health.up()
-                .withDetail("activeConnections", 10)
-                .withDetail("idleConnections", 5)
+                .withDetail("connections", getActiveConnections())
+                .withDetail("latency", getConnectionLatency())
                 .build();
         } catch (Exception e) {
             return Health.down()
@@ -215,113 +312,79 @@ public class DataSourceHealthIndicator implements HealthIndicator {
 }
 ```
 
-### Health Check Types
-1. Database Connectivity
-2. Redis Connectivity
-3. External Service Health
-4. Disk Space
-5. Memory Usage
+## Tracing
 
-## Audit Logging
+### Spring Cloud Sleuth Configuration
+```yaml
+spring:
+  sleuth:
+    sampler:
+      probability: 1.0
+    baggage:
+      correlation-fields: user-id,request-id
+```
 
-### Audit Events
+### Trace Context
 ```java
-@Service
-public class AuditService {
-    public void logAuditEvent(String userId, String action, String resource, String details) {
-        AuditEvent event = AuditEvent.builder()
-            .timestamp(LocalDateTime.now())
-            .userId(userId)
-            .action(action)
-            .resource(resource)
-            .details(details)
-            .build();
-        auditRepository.save(event);
+@Slf4j
+public class TraceInterceptor implements HandlerInterceptor {
+    @Override
+    public boolean preHandle(HttpServletRequest request, 
+                           HttpServletResponse response, 
+                           Object handler) {
+        String traceId = Span.current().context().traceId();
+        MDC.put("traceId", traceId);
+        log.info("Processing request with trace: {}", traceId);
+        return true;
     }
 }
 ```
 
-### Audit Information
-- Timestamp
-- User ID
-- Action
-- Resource
-- Details
-- IP Address
-- User Agent
+## Metrics Collection
 
-## Log Management
+### Custom Metrics
+```java
+@Component
+public class QueryMetrics {
+    private final Counter queryCounter;
+    private final Timer queryTimer;
+    private final Gauge activeQueries;
+    
+    public QueryMetrics(MeterRegistry registry) {
+        this.queryCounter = Counter.builder("query.executions")
+            .description("Number of query executions")
+            .register(registry);
+            
+        this.queryTimer = Timer.builder("query.duration")
+            .description("Query execution duration")
+            .register(registry);
+            
+        this.activeQueries = Gauge.builder("query.active", 
+            queryExecutor, QueryExecutor::getActiveQueries)
+            .description("Number of active queries")
+            .register(registry);
+    }
+}
+```
 
-### Log Aggregation
-- Use ELK Stack
-- Centralized logging
-- Log rotation
-- Log compression
-- Log retention
+## Performance Monitoring
 
-### Log Analysis
-- Search capabilities
-- Pattern detection
-- Anomaly detection
-- Trend analysis
-- Custom dashboards
-
-## Best Practices
-
-### Logging
-1. Use appropriate log levels
-2. Include context information
-3. Mask sensitive data
-4. Use structured logging
-5. Implement log rotation
-
-### Monitoring
-1. Monitor key metrics
-2. Set up alerting
-3. Use appropriate thresholds
-4. Implement dashboards
-5. Regular review of metrics
-
-### Tracing
-1. Sample appropriately
-2. Include relevant context
-3. Monitor trace volume
-4. Set up visualization
-5. Analyze performance
-
-### Health Checks
-1. Regular interval checks
-2. Appropriate timeouts
-3. Meaningful status
-4. Detailed information
-5. Alert integration
-
-## Tools and Technologies
-
-### Logging
-- Logback
-- ELK Stack
-- Graylog
-- Splunk
-- Papertrail
-
-### Monitoring
-- Prometheus
-- Grafana
-- Datadog
-- New Relic
-- AppDynamics
-
-### Tracing
-- Zipkin
-- Jaeger
-- OpenTelemetry
-- Sleuth
-- Brave
-
-### Alerting
-- PagerDuty
-- OpsGenie
-- VictorOps
-- Slack
-- Email
+### Response Time Monitoring
+```java
+@Aspect
+@Component
+public class PerformanceMonitor {
+    private final Timer.Builder timerBuilder;
+    
+    @Around("@annotation(Monitored)")
+    public Object monitor(ProceedingJoinPoint joinPoint) {
+        Timer.Sample sample = Timer.start();
+        try {
+            return joinPoint.proceed();
+        } finally {
+            sample.stop(timerBuilder
+                .tag("method", joinPoint.getSignature().getName())
+                .register(meterRegistry));
+        }
+    }
+}

@@ -14,26 +14,16 @@ trim_trailing_whitespace = true
 [*.{java,gradle,xml,yaml,yml}]
 indent_style = space
 indent_size = 4
-continuation_indent_size = 8
 max_line_length = 120
 
 # Markdown files
 [*.md]
 trim_trailing_whitespace = false
-max_line_length = off
-
-# JSON files
-[*.json]
-indent_style = space
-indent_size = 2
-
-# YAML files
-[*.{yml,yaml}]
 indent_style = space
 indent_size = 2
 
 # HTML files
-[*.{html,htm,css,js,ts,jsx,tsx}]
+[*.{html,htm,css,js}]
 indent_style = space
 indent_size = 2
 
@@ -59,12 +49,22 @@ end_of_line = crlf
 indent_style = space
 indent_size = 2
 
-# Maven files
-[pom.xml]
+# JSON files
+[*.json]
 indent_style = space
-indent_size = 4
+indent_size = 2
+
+# YAML files
+[*.{yml,yaml}]
+indent_style = space
+indent_size = 2
 
 # Docker files
 [{Dockerfile,docker-compose.yml}]
 indent_style = space
 indent_size = 2
+
+# Maven files
+[pom.xml]
+indent_style = space
+indent_size = 4

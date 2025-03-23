@@ -1,247 +1,308 @@
 # Error Handling Guidelines
 
 ## Overview
-This document outlines the standardized error handling approach for the DataScope system to ensure consistent error reporting and handling across all components.
+This document outlines the error handling strategy for the DataScope system, ensuring consistent error management across all layers of the application.
+
+## Error Categories
+
+### 1. System Errors
+- Infrastructure failures
+- Network issues
+- Resource exhaustion
+- Third-party service failures
+
+### 2. Business Errors
+- Validation failures
+- Business rule violations
+- Data inconsistencies
+- Authorization failures
+
+### 3. User Errors
+- Invalid input
+- Missing parameters
+- Format errors
+- Authentication failures
 
 ## Error Response Format
 
 ### Standard Error Response
 ```json
 {
-    "code": "ERROR_CODE",
-    "message": "Human readable error message",
-    "details": [
-        {
-            "field": "affected_field",
-            "code": "SPECIFIC_ERROR_CODE",
-            "message": "Detailed error message"
-        }
-    ],
-    "timestamp": "2025-03-23T14:02:35.123Z",
-    "traceId": "unique-request-trace-id"
+    "success": false,
+    "code": "string",
+    "message": "string",
+    "details": {
+        "field": "string",
+        "reason": "string"
+    },
+    "timestamp": "string",
+    "traceId": "string"
 }
 ```
 
-## Error Categories
+### Error Codes
 
-### 1. Validation Errors (400)
-```json
-{
-    "code": "VALIDATION_ERROR",
-    "message": "Invalid request parameters",
-    "details": [
-        {
-            "field": "name",
-            "code": "REQUIRED",
-            "message": "Name is required"
-        },
-        {
-            "field": "port",
-            "code": "RANGE",
-            "message": "Port must be between 1 and 65535"
-        }
-    ]
-}
-```
+#### System Error Codes (SYS-*)
+- SYS-001: Database connection error
+- SYS-002: Redis connection error
+- SYS-003: Network timeout
+- SYS-004: Memory allocation error
+- SYS-005: Disk space error
 
-### 2. Authentication Errors (401)
-```json
-{
-    "code": "AUTHENTICATION_ERROR",
-    "message": "Authentication failed",
-    "details": [
-        {
-            "code": "INVALID_TOKEN",
-            "message": "Invalid or expired token"
-        }
-    ]
-}
-```
+#### Business Error Codes (BIZ-*)
+- BIZ-001: Invalid data source configuration
+- BIZ-002: Query execution failed
+- BIZ-003: Metadata sync failed
+- BIZ-004: Data validation failed
+- BIZ-005: Business rule violation
 
-### 3. Authorization Errors (403)
-```json
-{
-    "code": "AUTHORIZATION_ERROR",
-    "message": "Access denied",
-    "details": [
-        {
-            "code": "INSUFFICIENT_PERMISSIONS",
-            "message": "User does not have required permissions"
-        }
-    ]
-}
-```
+#### Security Error Codes (SEC-*)
+- SEC-001: Authentication failed
+- SEC-002: Authorization failed
+- SEC-003: Token expired
+- SEC-004: Invalid credentials
+- SEC-005: Access denied
 
-### 4. Resource Errors (404)
-```json
-{
-    "code": "RESOURCE_ERROR",
-    "message": "Resource not found",
-    "details": [
-        {
-            "code": "NOT_FOUND",
-            "message": "Data source with ID 'xyz' not found"
-        }
-    ]
-}
-```
+#### Validation Error Codes (VAL-*)
+- VAL-001: Missing required field
+- VAL-002: Invalid format
+- VAL-003: Value out of range
+- VAL-004: Invalid enum value
+- VAL-005: Data type mismatch
 
-### 5. Conflict Errors (409)
-```json
-{
-    "code": "CONFLICT_ERROR",
-    "message": "Resource conflict",
-    "details": [
-        {
-            "code": "DUPLICATE_NAME",
-            "message": "Data source name 'test_db' already exists"
-        }
-    ]
-}
-```
+## Exception Hierarchy
 
-### 6. System Errors (500)
-```json
-{
-    "code": "SYSTEM_ERROR",
-    "message": "Internal server error",
-    "details": [
-        {
-            "code": "DATABASE_ERROR",
-            "message": "Database connection failed"
-        }
-    ]
-}
-```
-
-## Exception Handling
-
-### Global Exception Handler
 ```java
-@ControllerAdvice
-public class GlobalExceptionHandler {
+// Base Exceptions
+DataScopeException
+├── SystemException
+├── BusinessException
+└── ValidationException
 
+// System Exceptions
+SystemException
+├── DatabaseException
+├── CacheException
+├── NetworkException
+└── ResourceException
+
+// Business Exceptions
+BusinessException
+├── DataSourceException
+├── QueryException
+├── MetadataException
+└── ConfigurationException
+
+// Validation Exceptions
+ValidationException
+├── InputValidationException
+├── FormatValidationException
+└── BusinessValidationException
+```
+
+## Exception Handling Strategy
+
+### 1. Controller Layer
+```java
+@RestControllerAdvice
+public class GlobalExceptionHandler {
+    
+    @ExceptionHandler(SystemException.class)
+    public ResponseEntity<ErrorResponse> handleSystemException(SystemException ex) {
+        // Log error with full stack trace
+        // Return 500 Internal Server Error
+    }
+    
+    @ExceptionHandler(BusinessException.class)
+    public ResponseEntity<ErrorResponse> handleBusinessException(BusinessException ex) {
+        // Log error message
+        // Return 400 Bad Request
+    }
+    
     @ExceptionHandler(ValidationException.class)
     public ResponseEntity<ErrorResponse> handleValidationException(ValidationException ex) {
-        ErrorResponse error = new ErrorResponse(
-            "VALIDATION_ERROR",
-            "Validation failed",
-            ex.getDetails()
-        );
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+        // Log validation details
+        // Return 422 Unprocessable Entity
     }
-
-    @ExceptionHandler(ResourceNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleResourceNotFoundException(ResourceNotFoundException ex) {
-        ErrorResponse error = new ErrorResponse(
-            "RESOURCE_ERROR",
-            "Resource not found",
-            Collections.singletonList(new ErrorDetail("NOT_FOUND", ex.getMessage()))
-        );
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
-    }
-
-    // Additional handlers...
 }
 ```
 
-## Error Codes
+### 2. Service Layer
+```java
+@Service
+public class DataSourceService {
+    
+    public void validateConnection(DataSourceConfig config) {
+        try {
+            // Attempt connection
+        } catch (SQLException ex) {
+            throw new DatabaseException("Database connection failed", ex);
+        }
+    }
+}
+```
 
-### Validation Errors (VAL_*)
-- VAL_001: Required field missing
-- VAL_002: Invalid format
-- VAL_003: Value out of range
-- VAL_004: Invalid enum value
-- VAL_005: Pattern mismatch
-
-### Resource Errors (RES_*)
-- RES_001: Resource not found
-- RES_002: Resource already exists
-- RES_003: Resource locked
-- RES_004: Resource expired
-- RES_005: Resource disabled
-
-### System Errors (SYS_*)
-- SYS_001: Database error
-- SYS_002: Network error
-- SYS_003: External service error
-- SYS_004: Configuration error
-- SYS_005: Cache error
-
-### Security Errors (SEC_*)
-- SEC_001: Invalid credentials
-- SEC_002: Token expired
-- SEC_003: Invalid token
-- SEC_004: Access denied
-- SEC_005: Rate limit exceeded
+### 3. Repository Layer
+```java
+@Repository
+public class DataSourceRepository {
+    
+    public DataSource findById(String id) {
+        try {
+            return jdbcTemplate.queryForObject(...);
+        } catch (DataAccessException ex) {
+            throw new DatabaseException("Failed to fetch data source", ex);
+        }
+    }
+}
+```
 
 ## Error Handling Best Practices
 
-### 1. Exception Hierarchy
-```
-BaseException
-├── ValidationException
-├── ResourceException
-│   ├── ResourceNotFoundException
-│   └── ResourceConflictException
-├── SecurityException
-│   ├── AuthenticationException
-│   └── AuthorizationException
-└── SystemException
-    ├── DatabaseException
-    └── ExternalServiceException
+### 1. Exception Wrapping
+- Wrap low-level exceptions in domain-specific exceptions
+- Preserve original exception as cause
+- Add contextual information
+
+```java
+try {
+    // Low-level operation
+} catch (SQLException ex) {
+    throw new DatabaseException("Operation failed", ex)
+        .withContext("dataSource", dataSourceId)
+        .withContext("operation", "query");
+}
 ```
 
 ### 2. Logging Guidelines
 - Log full stack traces for system errors
-- Log error summaries for client errors
-- Include correlation IDs in logs
+- Log error messages for business errors
+- Include correlation ID in all log entries
 - Mask sensitive data in logs
-- Use appropriate log levels
 
-### 3. Error Recovery
-- Implement retry mechanisms for transient failures
-- Use circuit breakers for external services
-- Provide fallback mechanisms where appropriate
-- Maintain system state consistency
-- Clean up resources in finally blocks
-
-### 4. Client Handling
-- Provide clear error messages
-- Include sufficient details for debugging
-- Maintain security by not exposing internal details
-- Support multiple languages
-- Include remediation instructions where appropriate
-
-### 5. Monitoring and Alerting
-- Track error rates and patterns
-- Set up alerts for critical errors
-- Monitor error response times
-- Track error distribution by type
-- Identify error trends
-
-## Testing
-
-### Error Scenarios
-- Validate all error responses
-- Test error recovery mechanisms
-- Verify logging behavior
-- Check security implications
-- Test internationalization
-
-### Test Cases
 ```java
-@Test
-void whenValidationFails_thenReturns400() {
-    // Test code
+try {
+    // Operation
+} catch (Exception ex) {
+    log.error("Operation failed: {}, traceId: {}", 
+        ex.getMessage(), 
+        TraceContext.getCurrentTrace(),
+        ex);
 }
+```
 
-@Test
-void whenResourceNotFound_thenReturns404() {
-    // Test code
-}
+### 3. Transaction Management
+- Roll back transactions on system errors
+- Consider partial commits for batch operations
+- Log transaction status
 
-@Test
-void whenSystemError_thenReturns500() {
-    // Test code
+```java
+@Transactional
+public void processData() {
+    try {
+        // Operations
+    } catch (Exception ex) {
+        transactionManager.rollback();
+        throw new SystemException("Processing failed", ex);
+    }
 }
+```
+
+### 4. Retry Mechanism
+- Implement retry for transient failures
+- Use exponential backoff
+- Set maximum retry attempts
+
+```java
+@Retryable(
+    value = {NetworkException.class},
+    maxAttempts = 3,
+    backoff = @Backoff(delay = 1000, multiplier = 2)
+)
+public void connectDataSource() {
+    // Connection logic
+}
+```
+
+## Error Prevention
+
+### 1. Input Validation
+- Validate at API boundaries
+- Use strong typing
+- Implement comprehensive validation rules
+
+```java
+@Validated
+public class DataSourceController {
+    
+    @PostMapping
+    public ResponseEntity<DataSource> create(
+            @Valid @RequestBody DataSourceRequest request) {
+        // Processing
+    }
+}
+```
+
+### 2. Circuit Breakers
+- Implement for external services
+- Monitor failure rates
+- Provide fallback mechanisms
+
+```java
+@CircuitBreaker(
+    name = "dataSource",
+    fallbackMethod = "fallbackMethod"
+)
+public DataSource getDataSource(String id) {
+    // Normal operation
+}
+```
+
+### 3. Rate Limiting
+- Implement API rate limiting
+- Monitor resource usage
+- Prevent DoS attacks
+
+```java
+@RateLimiter(
+    name = "queryApi",
+    fallbackMethod = "rateLimitExceeded"
+)
+public QueryResult executeQuery(QueryRequest request) {
+    // Query execution
+}
+```
+
+## Monitoring and Alerting
+
+### 1. Error Metrics
+- Track error rates by type
+- Monitor error trends
+- Set up alerts for unusual patterns
+
+### 2. Health Checks
+- Implement comprehensive health checks
+- Monitor system components
+- Regular status reporting
+
+### 3. Performance Monitoring
+- Track response times
+- Monitor resource usage
+- Identify bottlenecks
+
+## Recovery Procedures
+
+### 1. Automated Recovery
+- Implement self-healing mechanisms
+- Automatic retries for transient failures
+- Failover procedures
+
+### 2. Manual Recovery
+- Document recovery procedures
+- Provide admin tools
+- Maintain backup systems
+
+### 3. Data Consistency
+- Implement consistency checks
+- Provide data repair tools
+- Maintain audit logs

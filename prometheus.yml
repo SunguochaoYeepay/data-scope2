@@ -25,76 +25,114 @@ scrape_configs:
       - targets: ["app:8080"]
     basic_auth:
       username: "prometheus"
-      password: "prometheus"
-
-  - job_name: "mysql"
-    static_configs:
-      - targets: ["mysql:9104"]
-
-  - job_name: "redis"
-    static_configs:
-      - targets: ["redis:9121"]
+      password: "secret"
 
   - job_name: "node-exporter"
     static_configs:
       - targets: ["node-exporter:9100"]
 
+  - job_name: "mysql"
+    static_configs:
+      - targets: ["mysql-exporter:9104"]
+
+  - job_name: "redis"
+    static_configs:
+      - targets: ["redis-exporter:9121"]
+
   - job_name: "cadvisor"
     static_configs:
       - targets: ["cadvisor:8080"]
 
-# Alert rules
-rules:
-  - alert: HighErrorRate
-    expr: rate(http_server_requests_seconds_count{status="5xx"}[5m]) > 0.1
-    for: 5m
-    labels:
-      severity: critical
-    annotations:
-      summary: High error rate detected
-      description: Error rate is above 10% for 5 minutes
+# Alert Rules
+groups:
+  - name: DataScope
+    rules:
+      # High Error Rate
+      - alert: HighErrorRate
+        expr: rate(http_server_requests_seconds_count{status=~"5.."}[5m]) > 0.1
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: High error rate detected
+          description: Error rate is above 10% for the last 5 minutes
 
-  - alert: HighResponseTime
-    expr: http_server_requests_seconds_sum / http_server_requests_seconds_count > 1
-    for: 5m
-    labels:
-      severity: warning
-    annotations:
-      summary: High response time detected
-      description: Average response time is above 1 second for 5 minutes
+      # High Response Time
+      - alert: SlowResponses
+        expr: http_server_requests_seconds_max > 5
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: Slow response times detected
+          description: Response times are above 5 seconds
 
-  - alert: HighCPUUsage
-    expr: process_cpu_usage > 0.8
-    for: 5m
-    labels:
-      severity: warning
-    annotations:
-      summary: High CPU usage detected
-      description: CPU usage is above 80% for 5 minutes
+      # High CPU Usage
+      - alert: HighCPUUsage
+        expr: process_cpu_usage > 0.8
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: High CPU usage detected
+          description: CPU usage is above 80%
 
-  - alert: HighMemoryUsage
-    expr: process_resident_memory_bytes / process_memory_max_bytes > 0.8
-    for: 5m
-    labels:
-      severity: warning
-    annotations:
-      summary: High memory usage detected
-      description: Memory usage is above 80% for 5 minutes
+      # High Memory Usage
+      - alert: HighMemoryUsage
+        expr: sum(jvm_memory_used_bytes) / sum(jvm_memory_max_bytes) > 0.9
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: High memory usage detected
+          description: Memory usage is above 90%
 
-  - alert: HighDiskUsage
-    expr: node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"} < 0.1
-    for: 5m
-    labels:
-      severity: warning
-    annotations:
-      summary: High disk usage detected
-      description: Disk usage is above 90% for 5 minutes
+      # Database Connection Pool Saturation
+      - alert: ConnectionPoolSaturation
+        expr: hikaricp_connections_active / hikaricp_connections_max > 0.8
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: Connection pool near capacity
+          description: Database connection pool usage is above 80%
 
-  - alert: InstanceDown
-    expr: up == 0
-    for: 5m
-    labels:
-      severity: critical
-    annotations:
-      summary: Instance down
-      description: Instance has been down for more than 5 minutes
+      # Redis Connection Issues
+      - alert: RedisConnectionIssues
+        expr: redis_up == 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: Redis connection lost
+          description: Unable to connect to Redis
+
+      # High Query Failure Rate
+      - alert: HighQueryFailureRate
+        expr: rate(query_execution_failures_total[5m]) > 0.1
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: High query failure rate
+          description: Query failure rate is above 10%
+
+      # Instance Down
+      - alert: InstanceDown
+        expr: up == 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: Instance down
+          description: "{{ $labels.instance }} has been down for more than 5 minutes"
+
+      # Disk Space Running Out
+      - alert: DiskSpaceRunningOut
+        expr: disk_free_bytes / disk_total_bytes < 0.1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: Low disk space
+          description: Disk space is below 10% free

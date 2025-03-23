@@ -1,85 +1,111 @@
 # Contributing to DataScope
 
-Thank you for your interest in contributing to DataScope! This document provides guidelines and instructions for contributing to the project.
+## Welcome!
+
+Thank you for considering contributing to DataScope! This document provides guidelines and instructions for contributing to the project.
 
 ## Code of Conduct
 
-This project adheres to the Contributor Covenant code of conduct. By participating, you are expected to uphold this code.
+By participating in this project, you agree to abide by our Code of Conduct. Please read [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) before contributing.
+
+## How Can I Contribute?
+
+### Reporting Bugs
+
+1. **Check Existing Issues** - Search the issue tracker to avoid duplicates.
+
+2. **Create a Bug Report** including:
+   - Clear title and description
+   - Steps to reproduce
+   - Expected vs actual behavior
+   - System information
+   - Screenshots if applicable
+
+3. **Use the Bug Report Template**:
+```markdown
+### Bug Description
+[Describe the bug]
+
+### Steps to Reproduce
+1. [First Step]
+2. [Second Step]
+3. [And so on...]
+
+### Expected Behavior
+[What should happen]
+
+### Actual Behavior
+[What actually happens]
+
+### System Information
+- OS: [e.g., Ubuntu 22.04]
+- Java Version: [e.g., 17.0.2]
+- DataScope Version: [e.g., 1.0.0]
+```
+
+### Suggesting Enhancements
+
+1. **Check Existing Suggestions** - Search for similar ideas.
+
+2. **Create a Feature Request** including:
+   - Use case description
+   - Expected benefits
+   - Possible implementation approach
+   - Alternative solutions considered
+
+3. **Use the Feature Request Template**:
+```markdown
+### Feature Description
+[Describe the feature]
+
+### Use Case
+[Explain when and why this would be useful]
+
+### Proposed Solution
+[Describe your suggested implementation]
+
+### Alternatives Considered
+[List other approaches you've considered]
+```
 
 ## Development Process
 
-### 1. Fork and Clone
+### Setting Up Development Environment
+
+1. **Fork and Clone**:
 ```bash
-# Fork the repository on GitHub
-git clone https://github.com/your-username/data-scope.git
+git clone https://github.com/yourusername/data-scope.git
 cd data-scope
-git remote add upstream https://github.com/original/data-scope.git
 ```
 
-### 2. Create a Branch
+2. **Install Dependencies**:
 ```bash
-git checkout develop
-git pull upstream develop
+./mvnw clean install
+```
+
+3. **Configure Development Environment**:
+```bash
+cp data-scope-app/src/main/resources/application.example.yml \
+   data-scope-app/src/main/resources/application.yml
+```
+
+### Making Changes
+
+1. **Create a Branch**:
+```bash
 git checkout -b feature/your-feature-name
 ```
 
-### 3. Development Setup
-```bash
-# Install dependencies
-mvn clean install
+2. **Code Style**:
+- Follow Java code conventions
+- Use meaningful variable names
+- Add comments for complex logic
+- Include unit tests
+- Update documentation
 
-# Run the application
-cd data-scope-main
-mvn spring-boot:run -Dspring-boot.run.profiles=dev
+3. **Commit Guidelines**:
 ```
-
-## Coding Standards
-
-### Java Code Style
-- Follow Google Java Style Guide
-- Use meaningful variable and method names
-- Write clear comments and documentation
-- Keep methods focused and concise
-- Use appropriate design patterns
-
-### Example
-```java
-/**
- * Manages data source connections and metadata.
- */
-@Service
-@Slf4j
-public class DataSourceService {
-    private final DataSourceRepository repository;
-    private final MetadataExtractor metadataExtractor;
-
-    public DataSourceService(
-            DataSourceRepository repository,
-            MetadataExtractor metadataExtractor) {
-        this.repository = repository;
-        this.metadataExtractor = metadataExtractor;
-    }
-
-    /**
-     * Creates a new data source with metadata extraction.
-     *
-     * @param command The creation command
-     * @return Created data source
-     * @throws DataSourceException if creation fails
-     */
-    @Transactional
-    public DataSourceDTO create(CreateDataSourceCommand command) {
-        log.debug("Creating data source: {}", command);
-        // Implementation
-    }
-}
-```
-
-### Commit Messages
-Follow the Conventional Commits specification:
-
-```
-<type>(<scope>): <description>
+type(scope): description
 
 [optional body]
 
@@ -90,195 +116,103 @@ Types:
 - feat: New feature
 - fix: Bug fix
 - docs: Documentation
-- style: Code style changes
-- refactor: Code refactoring
+- style: Formatting
+- refactor: Code restructuring
 - test: Adding tests
-- chore: Build process or tools
+- chore: Maintenance
 
 Example:
 ```
-feat(datasource): add metadata extraction capability
+feat(query): add natural language processing support
 
-- Implement automatic schema detection
-- Add table relationship inference
-- Include column type mapping
+Implement OpenRouter API integration for converting
+natural language to SQL queries.
 
 Closes #123
 ```
 
-## Testing Guidelines
+### Testing
 
-### Unit Tests
-```java
-@ExtendWith(MockitoExtension.class)
-class DataSourceServiceTest {
-    @Mock
-    private DataSourceRepository repository;
-    
-    @InjectMocks
-    private DataSourceService service;
-    
-    @Test
-    void shouldCreateDataSource() {
-        // Given
-        CreateDataSourceCommand command = new CreateDataSourceCommand("test");
-        
-        // When
-        DataSourceDTO result = service.create(command);
-        
-        // Then
-        assertThat(result).isNotNull();
-        verify(repository).save(any());
-    }
-}
-```
-
-### Integration Tests
-```java
-@SpringBootTest
-class DataSourceIntegrationTest {
-    @Autowired
-    private DataSourceService service;
-    
-    @Test
-    void shouldCreateAndRetrieveDataSource() {
-        // Given
-        CreateDataSourceCommand command = new CreateDataSourceCommand("test");
-        
-        // When
-        DataSourceDTO created = service.create(command);
-        DataSourceDTO retrieved = service.findById(created.getId());
-        
-        // Then
-        assertThat(retrieved)
-            .isNotNull()
-            .extracting(DataSourceDTO::getName)
-            .isEqualTo("test");
-    }
-}
-```
-
-## Pull Request Process
-
-1. Update Documentation
-- Update README.md if needed
-- Add/update API documentation
-- Include relevant examples
-
-2. Run Tests
+1. **Run Unit Tests**:
 ```bash
-# Run all tests
-mvn clean verify
-
-# Run specific test
-mvn test -Dtest=DataSourceServiceTest
+./mvnw test
 ```
 
-3. Create Pull Request
-- Use the PR template
-- Link related issues
-- Add screenshots if UI changes
-- Describe testing performed
-
-### PR Template
-```markdown
-## Description
-[Describe the changes]
-
-## Type of Change
-- [ ] Bug fix
-- [ ] New feature
-- [ ] Breaking change
-- [ ] Documentation update
-
-## How Has This Been Tested?
-[Describe test cases]
-
-## Checklist
-- [ ] Tests added/updated
-- [ ] Documentation updated
-- [ ] Code follows style guidelines
-- [ ] All tests passing
+2. **Run Integration Tests**:
+```bash
+./mvnw verify
 ```
 
-## Review Process
-
-### Code Review Guidelines
-- Check code style compliance
-- Verify test coverage
-- Review documentation updates
-- Validate performance impact
-- Check security implications
-
-### Review Checklist
-- [ ] Code follows project standards
-- [ ] Tests are comprehensive
-- [ ] Documentation is complete
-- [ ] No security vulnerabilities
-- [ ] Performance is acceptable
-
-## Development Tools
-
-### Recommended IDE Setup
-- IntelliJ IDEA or Eclipse
-- Lombok plugin
-- CheckStyle plugin
-- SonarLint plugin
-
-### Code Analysis
-```xml
-<plugin>
-    <groupId>org.sonarsource.scanner.maven</groupId>
-    <artifactId>sonar-maven-plugin</artifactId>
-    <version>${sonar.version}</version>
-</plugin>
+3. **Check Code Style**:
+```bash
+./mvnw checkstyle:check
 ```
+
+### Submitting Changes
+
+1. **Push Changes**:
+```bash
+git push origin feature/your-feature-name
+```
+
+2. **Create Pull Request**:
+- Use clear title and description
+- Reference related issues
+- Include test results
+- Add screenshots if applicable
+
+3. **Review Process**:
+- Address review comments
+- Update documentation
+- Ensure CI passes
+- Get approval from maintainers
 
 ## Documentation
 
-### API Documentation
-- Use OpenAPI annotations
-- Include example requests/responses
-- Document error responses
-- Add rate limit information
-
 ### Code Documentation
-- Add Javadoc for public APIs
+- Add JavaDoc comments
+- Document public APIs
 - Include usage examples
-- Document exceptions
 - Explain complex algorithms
 
-## Issue Reporting
+### Technical Documentation
+- Update README.md
+- Add architecture diagrams
+- Document configuration
+- Include deployment guides
 
-### Bug Reports
-Include:
-- Steps to reproduce
-- Expected behavior
-- Actual behavior
-- Environment details
-- Logs/screenshots
-
-### Feature Requests
-Include:
-- Use case description
-- Expected benefits
-- Proposed solution
-- Alternative approaches
+### User Documentation
+- Update user guides
+- Add feature descriptions
+- Include screenshots
+- Provide examples
 
 ## Community
 
-### Getting Help
-- GitHub Issues
-- Discussion Forums
-- Stack Overflow
-- Project Wiki
-
 ### Communication Channels
-- Mailing List
+- GitHub Issues
+- Discussion Forum
 - Slack Channel
-- Discord Server
-- Regular Meetings
+- Mailing List
+
+### Getting Help
+- Check documentation
+- Search existing issues
+- Ask in discussions
+- Contact maintainers
+
+## Project Structure
+
+```
+data-scope/
+├── data-scope-app/        # Application layer
+├── data-scope-domain/     # Domain layer
+├── data-scope-facade/     # API layer
+├── data-scope-infrastructure/  # Infrastructure layer
+├── docs/                  # Documentation
+└── ui/                    # UI templates
+```
 
 ## License
 
-By contributing to DataScope, you agree that your contributions will be licensed under the project's MIT license.
+By contributing to DataScope, you agree that your contributions will be licensed under the MIT License. See [LICENSE](LICENSE) for details.
