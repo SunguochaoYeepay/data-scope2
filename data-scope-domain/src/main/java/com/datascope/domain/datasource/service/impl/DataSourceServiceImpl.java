@@ -1,192 +1,173 @@
 package com.datascope.domain.datasource.service.impl;
 
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import com.datascope.domain.datasource.entity.DataSource;
+import com.datascope.domain.datasource.exception.DataSourceException;
 import com.datascope.domain.datasource.repository.DataSourceRepository;
 import com.datascope.domain.datasource.service.DataSourceService;
-import com.datascope.domain.datasource.valueobject.DataSourceStatus;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.Assert;
+
+import java.util.List;
 
 /**
- * 数据源领域服务实现类
+ * 数据源服务实现类
  */
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class DataSourceServiceImpl implements DataSourceService {
 
-    private final DataSourceRepository dataSourceRepository;
+    private final DataSourceRepository repository;
 
     @Override
     @Transactional
-    public DataSource createDataSource(DataSource dataSource) {
-        // 验证数据源配置
-        List<String> validationErrors = validateDataSource(dataSource);
-        if (!validationErrors.isEmpty()) {
-            throw new IllegalArgumentException(String.join(", ", validationErrors));
-        }
-
-        // 检查名称是否已存在
-        if (dataSourceRepository.existsByName(dataSource.getName())) {
-            throw new IllegalArgumentException("数据源名称已存在: " + dataSource.getName());
-        }
-
-        // 设置初始状态
-        dataSource.setStatus(DataSourceStatus.INACTIVE);
-        dataSource.setCreatedAt(LocalDateTime.now());
-        dataSource.setModifiedAt(LocalDateTime.now());
-
-        // 保存数据源
-        return dataSourceRepository.save(dataSource);
-    }
-
-    @Override
-    @Transactional
-    public DataSource updateDataSource(DataSource dataSource) {
-        // 验证数据源配置
-        List<String> validationErrors = validateDataSource(dataSource);
-        if (!validationErrors.isEmpty()) {
-            throw new IllegalArgumentException(String.join(", ", validationErrors));
-        }
-
-        // 检查数据源是否存在
-        DataSource existingDataSource = dataSourceRepository.findById(dataSource.getId())
-                .orElseThrow(() -> new IllegalArgumentException("数据源不存在: " + dataSource.getId()));
-
-        // 检查名称是否已被其他数据源使用
-        if (!existingDataSource.getName().equals(dataSource.getName()) &&
-                dataSourceRepository.existsByName(dataSource.getName())) {
-            throw new IllegalArgumentException("数据源名称已存在: " + dataSource.getName());
-        }
-
-        // 更新修改时间
-        dataSource.setModifiedAt(LocalDateTime.now());
+    public DataSource create(DataSource entity, String operator) {
+        validateDataSource(entity);
         
-        // 保存更新
-        return dataSourceRepository.save(dataSource);
+        if (repository.existsByName(entity.getName())) {
+            throw DataSourceException.nameExists(entity.getName());
+        }
+
+        entity.init(operator);
+        return repository.save(entity);
     }
 
     @Override
     @Transactional
-    public void deleteDataSource(String id) {
-        // 检查数据源是否存在
-        if (!dataSourceRepository.findById(id).isPresent()) {
-            throw new IllegalArgumentException("数据源不存在: " + id);
+    public DataSource update(DataSource entity, String operator) {
+        Assert.notNull(entity.getId(), "数据源ID不能为空");
+        validateDataSource(entity);
+
+        DataSource existing = repository.findById(entity.getId())
+                .orElseThrow(() -> DataSourceException.notFound(entity.getId()));
+
+        if (!existing.getName().equals(entity.getName()) 
+                && repository.existsByName(entity.getName())) {
+            throw DataSourceException.nameExists(entity.getName());
         }
 
-        // 删除数据源
-        dataSourceRepository.deleteById(id);
+        entity.update(operator);
+        return repository.save(entity);
     }
 
     @Override
-    public Optional<DataSource> getDataSource(String id) {
-        return dataSourceRepository.findById(id);
+    @Transactional(readOnly = true)
+    public DataSource getById(String id) {
+        return repository.findById(id)
+                .orElseThrow(() -> DataSourceException.notFound(id));
     }
 
     @Override
-    public List<DataSource> getAllDataSources() {
-        return dataSourceRepository.findAll();
+    @Transactional(readOnly = true)
+    public DataSource getByName(String name) {
+        DataSource dataSource = repository.findByName(name);
+        if (dataSource == null) {
+            throw DataSourceException.notFound("name=" + name);
+        }
+        return dataSource;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<DataSource> getAll() {
+        return repository.findAll();
+    }
+
+    @Override
+    @Transactional
+    public void delete(String id, String operator) {
+        repository.deleteById(id);
+    }
+
+    @Override
+    @Transactional
+    public DataSource activate(String id, String operator) {
+        DataSource entity = getById(id);
+        entity.activate(operator);
+        return repository.save(entity);
+    }
+
+    @Override
+    @Transactional
+    public DataSource deactivate(String id, String operator) {
+        DataSource entity = getById(id);
+        entity.deactivate(operator);
+        return repository.save(entity);
     }
 
     @Override
     public boolean testConnection(String id) {
-        DataSource dataSource = dataSourceRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("数据源不存在: " + id));
-        
-        boolean success = dataSource.testConnection();
-        
-        // 更新连接状态
-        if (success) {
-            dataSource.updateStatus(DataSourceStatus.ACTIVE);
-        } else {
-            dataSource.updateStatus(DataSourceStatus.ERROR);
-        }
-        dataSourceRepository.save(dataSource);
-        
-        return success;
-    }
-
-    @Override
-    @Transactional
-    public boolean syncMetadata(String id) {
-        DataSource dataSource = dataSourceRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("数据源不存在: " + id));
-
+        DataSource entity = getById(id);
         try {
-            // 设置同步状态
-            dataSource.updateStatus(DataSourceStatus.SYNCING);
-            dataSourceRepository.save(dataSource);
-
-            // TODO: 实现元数据同步逻辑
-
-            // 更新同步状态
-            dataSource.updateStatus(DataSourceStatus.ACTIVE);
-            dataSourceRepository.save(dataSource);
-            
+            // TODO: 实现数据源连接测试逻辑
             return true;
         } catch (Exception e) {
-            log.error("同步元数据失败: " + id, e);
-            dataSource.updateStatus(DataSourceStatus.ERROR);
-            dataSourceRepository.save(dataSource);
+            log.error("测试数据源连接失败: {}", id, e);
             return false;
         }
     }
 
     @Override
-    public List<DataSource> getNeedSyncDataSources(int syncIntervalMinutes) {
-        return dataSourceRepository.findNeedSync(syncIntervalMinutes);
-    }
-
-    @Override
     @Transactional
-    public DataSource updateDataSourceStatus(String id, DataSourceStatus status) {
-        DataSource dataSource = dataSourceRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("数据源不存在: " + id));
-        
-        dataSource.updateStatus(status);
-        return dataSourceRepository.save(dataSource);
+    public DataSource syncMetadata(String id, String operator) {
+        DataSource entity = getById(id);
+        try {
+            // TODO: 实现元数据同步逻辑
+            entity.updateSyncStatus(DataSource.SyncStatus.SUCCESS, "同步成功");
+            return repository.save(entity);
+        } catch (Exception e) {
+            log.error("同步数据源元数据失败: {}", id, e);
+            entity.updateSyncStatus(DataSource.SyncStatus.FAILED, e.getMessage());
+            return repository.save(entity);
+        }
     }
 
     @Override
-    public List<String> validateDataSource(DataSource dataSource) {
-        List<String> errors = new ArrayList<>();
+    @Transactional(readOnly = true)
+    public List<DataSource> getByType(DataSource.DataSourceType type) {
+        return repository.findByType(type);
+    }
 
-        // 验证必填字段
-        if (StringUtils.isBlank(dataSource.getName())) {
-            errors.add("数据源名称不能为空");
-        }
-        if (dataSource.getType() == null) {
-            errors.add("数据源类型不能为空");
-        }
-        if (StringUtils.isBlank(dataSource.getHost())) {
-            errors.add("数据库主机不能为空");
-        }
-        if (dataSource.getPort() == null || dataSource.getPort() <= 0) {
-            errors.add("数据库端口无效");
-        }
-        if (StringUtils.isBlank(dataSource.getDatabaseName())) {
-            errors.add("数据库名称不能为空");
-        }
-        if (StringUtils.isBlank(dataSource.getUsername())) {
-            errors.add("数据库用户名不能为空");
-        }
-        if (StringUtils.isBlank(dataSource.getPasswordEncrypted())) {
-            errors.add("数据库密码不能为空");
-        }
-        if (StringUtils.isBlank(dataSource.getPasswordSalt())) {
-            errors.add("密码盐值不能为空");
-        }
+    @Override
+    @Transactional(readOnly = true)
+    public List<DataSource> getByStatus(DataSource.DataSourceStatus status) {
+        return repository.findByStatus(status);
+    }
 
-        return errors;
+    @Override
+    @Transactional(readOnly = true)
+    public boolean checkNameExists(String name) {
+        return repository.existsByName(name);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<DataSource> searchByName(String nameLike) {
+        return repository.findByNameLike(nameLike);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<DataSource> getByTypeAndStatus(DataSource.DataSourceType type, DataSource.DataSourceStatus status) {
+        return repository.findByTypeAndStatus(type, status);
+    }
+
+    /**
+     * 验证数据源信息
+     *
+     * @param entity 数据源实体
+     */
+    private void validateDataSource(DataSource entity) {
+        Assert.notNull(entity.getType(), "数据源类型不能为空");
+        Assert.hasText(entity.getName(), "数据源名称不能为空");
+        Assert.hasText(entity.getHost(), "主机地址不能为空");
+        Assert.notNull(entity.getPort(), "端口号不能为空");
+        Assert.hasText(entity.getDatabase(), "数据库名称不能为空");
+        Assert.hasText(entity.getUsername(), "用户名不能为空");
+        Assert.hasText(entity.getPassword(), "密码不能为空");
+        Assert.hasText(entity.getSalt(), "密码盐值不能为空");
     }
 }

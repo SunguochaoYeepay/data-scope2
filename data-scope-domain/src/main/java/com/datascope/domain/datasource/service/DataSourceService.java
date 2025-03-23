@@ -1,98 +1,136 @@
 package com.datascope.domain.datasource.service;
 
-import java.util.List;
-import java.util.Optional;
-
 import com.datascope.domain.datasource.entity.DataSource;
-import com.datascope.domain.datasource.valueobject.DataSourceStatus;
+
+import java.util.List;
 
 /**
- * 数据源领域服务接口
+ * 数据源服务接口
  */
 public interface DataSourceService {
-    
+
     /**
      * 创建数据源
      *
-     * @param dataSource 数据源实体
-     * @return 创建后的数据源实体
-     * @throws IllegalArgumentException 如果数据源名称已存在
+     * @param entity   数据源实体
+     * @param operator 操作人
+     * @return 创建后的数据源
      */
-    DataSource createDataSource(DataSource dataSource);
-    
+    DataSource create(DataSource entity, String operator);
+
     /**
      * 更新数据源
      *
-     * @param dataSource 数据源实体
-     * @return 更新后的数据源实体
-     * @throws IllegalArgumentException 如果数据源不存在
+     * @param entity   数据源实体
+     * @param operator 操作人
+     * @return 更新后的数据源
      */
-    DataSource updateDataSource(DataSource dataSource);
-    
+    DataSource update(DataSource entity, String operator);
+
     /**
-     * 删除数据源
-     *
-     * @param id 数据源ID
-     * @throws IllegalArgumentException 如果数据源不存在
-     */
-    void deleteDataSource(String id);
-    
-    /**
-     * 获取数据源
+     * 根据ID获取数据源
      *
      * @param id 数据源ID
      * @return 数据源实体
      */
-    Optional<DataSource> getDataSource(String id);
-    
+    DataSource getById(String id);
+
+    /**
+     * 根据名称获取数据源
+     *
+     * @param name 数据源名称
+     * @return 数据源实体
+     */
+    DataSource getByName(String name);
+
     /**
      * 获取所有数据源
      *
-     * @return 数据源列表
+     * @return 数据源实体列表
      */
-    List<DataSource> getAllDataSources();
-    
+    List<DataSource> getAll();
+
+    /**
+     * 根据类型获取数据源列表
+     *
+     * @param type 数据源类型
+     * @return 数据源实体列表
+     */
+    List<DataSource> getByType(DataSource.DataSourceType type);
+
+    /**
+     * 根据状态获取数据源列表
+     *
+     * @param status 数据源状态
+     * @return 数据源实体列表
+     */
+    List<DataSource> getByStatus(DataSource.DataSourceStatus status);
+
+    /**
+     * 删除数据源
+     *
+     * @param id       数据源ID
+     * @param operator 操作人
+     */
+    void delete(String id, String operator);
+
+    /**
+     * 激活数据源
+     *
+     * @param id       数据源ID
+     * @param operator 操作人
+     * @return 更新后的数据源
+     */
+    DataSource activate(String id, String operator);
+
+    /**
+     * 停用数据源
+     *
+     * @param id       数据源ID
+     * @param operator 操作人
+     * @return 更新后的数据源
+     */
+    DataSource deactivate(String id, String operator);
+
     /**
      * 测试数据源连接
      *
      * @param id 数据源ID
-     * @return 连接是否成功
-     * @throws IllegalArgumentException 如果数据源不存在
+     * @return 是否连接成功
      */
     boolean testConnection(String id);
-    
+
     /**
      * 同步数据源元数据
      *
-     * @param id 数据源ID
-     * @return 同步是否成功
-     * @throws IllegalArgumentException 如果数据源不存在
+     * @param id       数据源ID
+     * @param operator 操作人
+     * @return 更新后的数据源
      */
-    boolean syncMetadata(String id);
-    
+    DataSource syncMetadata(String id, String operator);
+
     /**
-     * 获取需要同步的数据源列表
+     * 检查数据源名称是否存在
      *
-     * @param syncIntervalMinutes 同步间隔（分钟）
-     * @return 需要同步的数据源列表
+     * @param name 数据源名称
+     * @return 是否存在
      */
-    List<DataSource> getNeedSyncDataSources(int syncIntervalMinutes);
-    
+    boolean checkNameExists(String name);
+
     /**
-     * 更新数据源状态
+     * 根据名称模糊查询数据源列表
      *
-     * @param id 数据源ID
-     * @param status 新状态
-     * @return 更新后的数据源实体
-     * @throws IllegalArgumentException 如果数据源不存在
+     * @param nameLike 数据源名称（模糊匹配）
+     * @return 数据源实体列表
      */
-    DataSource updateDataSourceStatus(String id, DataSourceStatus status);
-    
+    List<DataSource> searchByName(String nameLike);
+
     /**
-     * 验证数据源配置
+     * 根据类型和状态查询数据源列表
      *
-     * @param dataSource 数据源实体
-     * @return 验证结果消息列表
+     * @param type   数据源类型
+     * @param status 数据源状态
+     * @return 数据源实体列表
      */
-    List<String> validateDataSource(DataSource dataSource);
+    List<DataSource> getByTypeAndStatus(DataSource.DataSourceType type, DataSource.DataSourceStatus status);
 }

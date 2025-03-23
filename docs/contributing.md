@@ -1,280 +1,256 @@
-# DataScope - Contribution Guidelines
+# DataScope 贡献指南
 
-## Overview
+## 开发流程
 
-Thank you for your interest in contributing to the DataScope project! This document provides guidelines and instructions for contributing to the project. By following these guidelines, you can help ensure that your contributions are effectively integrated into the project.
-
-## Code of Conduct
-
-All contributors are expected to adhere to the project's Code of Conduct. We are committed to providing a welcoming and inclusive environment for all contributors regardless of background or identity.
-
-Key principles:
-- Be respectful and inclusive
-- Exercise empathy and kindness
-- Provide and gracefully accept constructive feedback
-- Focus on what is best for the community
-- Show courtesy and respect in all communications
-
-## Getting Started
-
-### Prerequisites
-
-Before you begin contributing, ensure you have:
-
-1. A GitHub account
-2. Git installed on your local machine
-3. JDK 17 or higher installed
-4. Maven 3.8+ installed
-5. MySQL 8.0+ installed (for local development)
-6. Redis 6.0+ installed (for local development)
-
-### Setting Up the Development Environment
-
-1. Fork the repository on GitHub
-2. Clone your fork locally:
-   ```bash
-   git clone https://github.com/your-username/data-scope.git
-   cd data-scope
-   ```
-3. Add the original repository as an upstream remote:
-   ```bash
-   git remote add upstream https://github.com/original-org/data-scope.git
-   ```
-4. Create a database for local development:
-   ```sql
-   CREATE DATABASE datascope CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-   CREATE USER 'datascope'@'localhost' IDENTIFIED BY 'your_password';
-   GRANT ALL PRIVILEGES ON datascope.* TO 'datascope'@'localhost';
-   FLUSH PRIVILEGES;
-   ```
-5. Configure your local application properties in `main/src/main/resources/application-dev.yml`
-6. Build the project:
-   ```bash
-   mvn clean install
-   ```
-
-## Development Workflow
-
-### Branching Strategy
-
-We follow a feature branch workflow:
-
-1. Ensure your main branch is up to date:
-   ```bash
-   git checkout main
-   git pull upstream main
-   ```
-2. Create a new branch for your feature or bugfix:
-   ```bash
-   git checkout -b feature/your-feature-name
-   ```
-   or
-   ```bash
-   git checkout -b fix/issue-description
-   ```
-3. Make your changes on this branch
-4. Regularly commit your changes with clear, descriptive commit messages
-
-### Commit Message Guidelines
-
-Good commit messages help with project maintenance and understanding changes. Please follow these guidelines:
-
-- Use the imperative mood ("Add feature" not "Added feature")
-- First line should be 50 characters or less
-- Start with a capital letter
-- Do not end with a period
-- Separate subject from body with a blank line
-- Use the body to explain what and why, not how
-
-Example:
-```
-Add relationship inference engine
-
-Implement the relationship inference engine that automatically detects
-relationships between tables based on naming conventions and data patterns.
-This helps users discover connections in their data without manual configuration.
-
-Resolves: #123
+### 分支管理
+```text
+main        # 主分支，稳定版本
+develop     # 开发分支，最新开发版本
+feature/*   # 功能分支，如 feature/add-mysql-support
+bugfix/*    # 问题修复分支
+release/*   # 发布分支，如 release/v1.0.0
+hotfix/*    # 紧急修复分支
 ```
 
-### Pull Request Process
+### 开发流程
+1. 从develop分支创建功能分支
+2. 在功能分支上开发
+3. 提交Pull Request到develop分支
+4. 代码评审
+5. 合并到develop分支
+6. 定期从develop分支合并到main分支发布
 
-1. Update your branch with the latest changes from main:
-   ```bash
-   git checkout main
-   git pull upstream main
-   git checkout your-branch-name
-   git rebase main
-   ```
-2. Resolve any conflicts that arise during the rebase
-3. Push your branch to your fork:
-   ```bash
-   git push origin your-branch-name
-   ```
-4. Create a Pull Request (PR) from your branch to the main repository's main branch
-5. Fill in the PR template with all required information
-6. Request a review from appropriate team members
-7. Address any feedback or requested changes
-8. Once approved, your PR will be merged by a maintainer
+## 提交规范
 
-## Coding Standards
+### 提交信息格式
+```text
+<type>(<scope>): <subject>
 
-### Java Code Style
+<body>
 
-- Follow standard Java naming conventions
-- Use 4 spaces for indentation (not tabs)
-- Maximum line length of 120 characters
-- Use meaningful names for classes, methods, and variables
-- Add Javadoc comments for all public classes and methods
-- Follow the principle of least surprise
-- Keep methods small and focused on a single responsibility
-- Avoid unnecessary comments (code should be self-explanatory)
+<footer>
+```
 
-### Domain-Driven Design Principles
+### 类型说明
+```text
+feat:     新功能
+fix:      修复问题
+docs:     文档更新
+style:    代码格式（不影响代码运行的变动）
+refactor: 重构（既不是新增功能，也不是修改bug的代码变动）
+test:     增加测试
+chore:    构建过程或辅助工具的变动
+```
 
-- Place code in the appropriate module based on DDD layers:
-  - Domain: Core business logic and entities
-  - Application: Orchestration of domain operations
-  - Infrastructure: Technical implementations
-  - Facade: API controllers and DTOs
-- Use value objects for concepts with no identity
-- Implement rich domain models with behavior
-- Use repository interfaces in the domain layer
-- Keep the domain layer free of infrastructure concerns
+### 示例
+```text
+feat(datasource): 添加MySQL数据源支持
 
-### Testing Standards
+- 实现MySQL连接配置
+- 添加MySQL元数据提取
+- 支持MySQL查询执行
 
-- Write unit tests for all business logic
-- Use integration tests for repository implementations
-- Name tests clearly to indicate what they're testing
-- Follow the Arrange-Act-Assert pattern
-- Keep tests independent of each other
-- Mock external dependencies
-- Aim for high code coverage, but prioritize test quality over quantity
+Closes #123
+```
 
-## Documentation
+## 代码规范
 
-### Code Documentation
+### Java代码规范
+```java
+// 1. 类名使用大驼峰命名
+public class DataSourceService {
+    // 2. 常量使用大写字母，单词间用下划线分隔
+    private static final String DEFAULT_HOST = "localhost";
+    
+    // 3. 变量使用小驼峰命名
+    private String dataSourceName;
+    
+    // 4. 方法使用小驼峰命名
+    public void connectToDatabase() {
+        // 5. 代码块使用4个空格缩进
+        if (isConnected) {
+            return;
+        }
+    }
+}
+```
 
-- Add Javadoc comments to all public classes and methods
-- Document non-obvious behavior
-- Update existing documentation when changing code
-- Use `@param`, `@return`, and `@throws` tags appropriately
+### 注释规范
+```java
+/**
+ * 类级别注释
+ * 
+ * @author 作者名
+ */
+public class Example {
+    /**
+     * 方法级别注释
+     * 
+     * @param param 参数说明
+     * @return 返回值说明
+     * @throws Exception 异常说明
+     */
+    public String method(String param) {
+        // 单行注释
+        return param;
+    }
+}
+```
 
-### Project Documentation
+## Pull Request流程
 
-When adding new features or making significant changes, update the relevant documentation:
+### PR模板
+```markdown
+## 描述
+简要描述你的改动
 
-- Update README.md if necessary
-- Add or update documentation in the docs directory
-- Update API documentation if changing or adding endpoints
-- Add examples for new features
+## 类型
+- [ ] 新功能
+- [ ] Bug修复
+- [ ] 性能优化
+- [ ] 代码重构
+- [ ] 文档更新
+- [ ] 其他
 
-## Review Process
+## 关联Issue
+Fixes #123
 
-### Code Review Guidelines
+## 测试
+- [ ] 单元测试
+- [ ] 集成测试
+- [ ] 性能测试
 
-When reviewing code, focus on:
+## 检查清单
+- [ ] 代码符合规范
+- [ ] 添加了必要的测试
+- [ ] 更新了相关文档
+- [ ] 本地测试通过
+```
 
-1. **Correctness**: Does the code work as intended?
-2. **Design**: Is the code well-designed and appropriate for the system?
-3. **Complexity**: Could the code be made simpler?
-4. **Tests**: Are there appropriate tests, and do they cover the changes?
-5. **Naming**: Are names clear and consistent?
-6. **Comments**: Are comments clear and useful?
-7. **Style**: Does the code follow our style guidelines?
-8. **Documentation**: Is the documentation updated?
+### 评审流程
+1. 提交PR
+2. 等待CI检查
+3. 代码评审
+4. 解决评审意见
+5. 合并代码
 
-### Responding to Reviews
+## 测试要求
 
-- Respond to all comments
-- Be open to feedback and suggestions
-- Explain your reasoning if you disagree with a suggestion
-- Make requested changes or explain why they shouldn't be made
-- Thank reviewers for their time and feedback
+### 单元测试
+```java
+@Test
+void shouldCreateDataSource() {
+    // Given
+    DataSource dataSource = createTestDataSource();
+    
+    // When
+    DataSource result = service.create(dataSource);
+    
+    // Then
+    assertNotNull(result);
+    assertEquals(dataSource.getName(), result.getName());
+}
+```
 
-## Issue Reporting
+### 集成测试
+```java
+@SpringBootTest
+class DataSourceIntegrationTest {
+    @Test
+    void shouldConnectToDatabase() {
+        // Given
+        DataSource dataSource = createTestDataSource();
+        
+        // When
+        boolean connected = service.testConnection(dataSource);
+        
+        // Then
+        assertTrue(connected);
+    }
+}
+```
 
-### Bug Reports
+## 文档要求
 
-When reporting a bug, include:
+### 代码文档
+- 类级别注释
+- 公共方法注释
+- 复杂逻辑说明
+- 配置说明
 
-1. A clear, descriptive title
-2. Steps to reproduce the issue
-3. Expected behavior
-4. Actual behavior
-5. Screenshots or logs if applicable
-6. Environment information (OS, Java version, etc.)
-7. Any additional context
+### 技术文档
+- 架构设计
+- API文档
+- 部署文档
+- 运维文档
 
-### Feature Requests
+## 问题反馈
 
-When requesting a feature, include:
+### Issue模板
+```markdown
+## 问题描述
+清晰描述你遇到的问题
 
-1. A clear, descriptive title
-2. A detailed description of the proposed feature
-3. The problem the feature would solve
-4. Any alternatives you've considered
-5. Any additional context
+## 复现步骤
+1. 第一步
+2. 第二步
+3. 问题出现
 
-## Release Process
+## 期望行为
+描述期望的正确行为
 
-### Version Numbering
+## 实际行为
+描述实际的错误行为
 
-We follow semantic versioning (MAJOR.MINOR.PATCH):
+## 环境信息
+- 操作系统：
+- Java版本：
+- 数据库版本：
+- 项目版本：
 
-- MAJOR: Incompatible API changes
-- MINOR: Backwards-compatible functionality additions
-- PATCH: Backwards-compatible bug fixes
+## 其他信息
+补充其他相关信息
+```
 
-### Release Checklist
+### 问题跟踪
+1. 创建Issue
+2. 指派负责人
+3. 问题分析
+4. 提交修复
+5. 验证关闭
 
-Before a release:
+## 发布流程
 
-1. Ensure all tests pass
-2. Update version numbers
-3. Update CHANGELOG.md
-4. Create release notes
-5. Tag the release in Git
-6. Build and publish artifacts
+### 版本号规则
+```text
+v{major}.{minor}.{patch}
+例如：v1.0.0, v1.1.0, v1.0.1
 
-## Continuous Integration
+major: 重大更新
+minor: 功能更新
+patch: 问题修复
+```
 
-We use CI/CD pipelines to automate testing and deployment:
+### 发布步骤
+1. 创建发布分支
+2. 更新版本号
+3. 更新文档
+4. 执行测试
+5. 生成发布包
+6. 发布公告
 
-- All commits trigger a build and test run
-- Pull requests must pass all tests before merging
-- Code quality checks are run automatically
-- Security scans are performed on dependencies
+## 社区规范
 
-## License and Legal
+### 行为准则
+1. 尊重他人
+2. 积极贡献
+3. 遵守规范
+4. 及时响应
+5. 乐于分享
 
-### Contributor License Agreement
-
-By contributing to this project, you agree that your contributions will be licensed under the project's license.
-
-### Third-Party Code
-
-When including third-party code:
-
-1. Ensure it has a compatible license
-2. Document the source and license in your PR
-3. Include any required attribution notices
-4. Update the project's dependencies list
-
-## Getting Help
-
-If you need help with contributing:
-
-- Check the project documentation
-- Ask questions in the project's discussion forum
-- Reach out to project maintainers
-- Join the project's communication channels
-
-## Acknowledgements
-
-We appreciate all contributions to the DataScope project, whether they're bug reports, feature requests, documentation improvements, or code contributions. Thank you for helping make this project better!
-
----
-
-These guidelines are adapted from best practices in open-source software development and are designed to make the contribution process smooth and effective for everyone involved.
+### 交流方式
+- GitHub Issues
+- Pull Requests
+- 技术讨论组
+- 邮件列表
+- 在线会议

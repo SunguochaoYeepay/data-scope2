@@ -1,7 +1,10 @@
 server:
   port: 8080
   servlet:
-    context-path: /api
+    context-path: /
+  tomcat:
+    max-threads: 200
+    min-spare-threads: 10
 
 spring:
   application:
@@ -11,62 +14,67 @@ spring:
     url: jdbc:mysql://localhost:3306/data_scope?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai
     username: root
     password: root
+    hikari:
+      minimum-idle: 5
+      maximum-pool-size: 20
+      idle-timeout: 300000
+      connection-timeout: 20000
+      connection-test-query: SELECT 1
   data:
     redis:
-      host: localhost
-      port: 6379
-      password:
-      database: 0
+      host: ${app.redis.host}
+      port: ${app.redis.port}
+      database: ${app.redis.database}
+      password: ${app.redis.password}
+      timeout: ${app.redis.timeout}
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: GMT+8
+    default-property-inclusion: NON_NULL
 
 mybatis:
-  mapper-locations: classpath*:mapper/**/*.xml
+  mapper-locations: classpath:mapper/*.xml
+  type-aliases-package: com.datascope.domain.*.entity
   configuration:
     map-underscore-to-camel-case: true
-
-springdoc:
-  api-docs:
-    enabled: true
-    path: /v3/api-docs
-  swagger-ui:
-    enabled: true
-    path: /swagger-ui.html
+    default-fetch-size: 100
+    default-statement-timeout: 30
+    log-impl: org.apache.ibatis.logging.slf4j.Slf4jImpl
 
 logging:
   level:
     root: INFO
     com.datascope: DEBUG
+    org.springframework: INFO
+    org.mybatis: INFO
+  file:
+    name: logs/data-scope.log
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} - %msg%n"
 
-# Application specific configurations
-data-scope:
-  # Query rate limit per user (requests per minute)
-  query-rate-limit: 60
-  # Query timeout in seconds
-  query-timeout: 30
-  # Maximum download records
-  max-download-records: 50000
-  # Default page size
-  default-page-size: 20
-  # Maximum page size
-  max-page-size: 100
-  # Cache configurations
-  cache:
-    metadata:
-      # Metadata cache time to live in minutes
-      ttl: 60
-    query:
-      # Query result cache time to live in minutes
-      ttl: 5
-  # Security configurations
-  security:
-    # AES encryption key for database passwords
-    aes-key: your-aes-key-here
-    # Salt for password hashing
-    password-salt: your-salt-here
-  # LLM configurations
-  llm:
-    # OpenRouter API configurations
-    openrouter:
-      api-key: your-api-key-here
-      model: mistral-7b-instruct
-      max-tokens: 1000
-      temperature: 0.7
+app:
+  redis:
+    host: localhost
+    port: 6379
+    database: 0
+    password:
+    timeout: 5000
+  rate-limit:
+    enabled: true
+    default-rate: 10
+    default-burst: 20
+    key-prefix: rate_limit
+    time-window: 1
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: always
+  metrics:
+    tags:
+      application: ${spring.application.name}

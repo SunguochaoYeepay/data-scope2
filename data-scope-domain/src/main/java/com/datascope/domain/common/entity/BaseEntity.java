@@ -1,69 +1,71 @@
 package com.datascope.domain.common.entity;
 
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
+
 import java.time.LocalDateTime;
 
-import lombok.Data;
-
 /**
- * Base entity class with common fields
- * 
- * @author dreambt
+ * 基础实体类，包含所有实体共有的属性
  */
-@Data
+@Getter
+@Setter
+@ToString
 public abstract class BaseEntity {
+
     /**
-     * Primary key ID (UUID)
+     * 主键ID，采用UUID
      */
     private String id;
 
     /**
-     * Optimistic lock version
+     * 乐观锁版本号
      */
-    private Integer nonce;
+    private Long nonce;
 
     /**
-     * Creation time
+     * 创建时间
      */
     private LocalDateTime createdAt;
 
     /**
-     * Creator
+     * 创建人
      */
     private String createdBy;
 
     /**
-     * Last modification time
+     * 最后修改时间
      */
     private LocalDateTime modifiedAt;
 
     /**
-     * Last modifier
+     * 最后修改人
      */
     private String modifiedBy;
 
     /**
-     * Pre-persist hook
+     * 初始化基础字段
+     *
+     * @param operator 操作人
      */
-    public void prePersist() {
-        if (this.createdAt == null) {
-            this.createdAt = LocalDateTime.now();
-        }
-        if (this.modifiedAt == null) {
-            this.modifiedAt = LocalDateTime.now();
-        }
-        if (this.nonce == null) {
-            this.nonce = 0;
-        }
+    public void init(String operator) {
+        LocalDateTime now = LocalDateTime.now();
+        this.nonce = 0L;
+        this.createdAt = now;
+        this.createdBy = operator;
+        this.modifiedAt = now;
+        this.modifiedBy = operator;
     }
 
     /**
-     * Pre-update hook
+     * 更新基础字段
+     *
+     * @param operator 操作人
      */
-    public void preUpdate() {
+    public void update(String operator) {
+        this.nonce = this.nonce + 1;
         this.modifiedAt = LocalDateTime.now();
-        if (this.nonce == null) {
-            this.nonce = 0;
-        }
-        this.nonce++;
+        this.modifiedBy = operator;
     }
 }

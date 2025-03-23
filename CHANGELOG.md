@@ -1,169 +1,159 @@
-# Changelog
+# DataScope 更新日志
 
-All notable changes to DataScope will be documented in this file.
+所有重要的更改都会记录在此文件中。
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+格式基于 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.0.0/)，
+并且本项目遵循 [语义化版本](https://semver.org/lang/zh-CN/)。
 
-## [Unreleased]
+## [未发布]
 
-### Added
-- Initial project setup
-- Basic data source management
-- Query execution capabilities
-- Metadata extraction
-- Basic UI components
+### 新增
+- 初始项目结构
+- DDD分层架构设计
+- 数据源管理基础功能
+- 查询管理基础功能
+- 低代码集成协议
 
-### Changed
-- None
+### 变更
+- 无
 
-### Deprecated
-- None
+### 修复
+- 无
 
-### Removed
-- None
-
-### Fixed
-- None
-
-### Security
-- Initial security configuration
-- Password encryption implementation
-- Basic rate limiting
+### 移除
+- 无
 
 ## [1.0.0] - 2025-03-23
 
-### Added
-- Data source management
-  - MySQL support
-  - DB2 support
-  - Connection pooling
-  - Health monitoring
-  - Metadata extraction
+### 新增
+- 数据源管理
+  * MySQL数据源支持
+  * DB2数据源支持
+  * 数据源连接测试
+  * 元数据自动提取
+  * 增量同步机制
 
-- Query management
-  - SQL query execution
-  - Query history
-  - Parameter support
-  - Result pagination
-  - Query validation
+- 查询管理
+  * SQL查询支持
+  * 自然语言查询
+  * 查询历史记录
+  * 查询收藏功能
+  * 查询结果导出
 
-- User interface
-  - Data source configuration
-  - Query editor
-  - Results display
-  - Error handling
-  - Loading states
+- 智能推荐
+  * 表关系推断
+  * 显示属性推荐
+  * 查询条件优化
+  * 用户偏好学习
 
-- Security features
-  - Password encryption
-  - Rate limiting
-  - Input validation
-  - Access control
+- 低代码集成
+  * JSON格式协议
+  * 统一查询API
+  * 界面配置支持
+  * 多种展示形式
 
-- Integration capabilities
-  - REST API
-  - JSON configuration
-  - Display templates
-  - Component mapping
+### 安全性
+- 密码加密存储
+- SQL注入防护
+- 请求频率限制
+- 查询超时控制
+- 数据导出限制
 
-### Changed
-- None (initial release)
+### 性能优化
+- 查询缓存机制
+- 连接池优化
+- 批量处理优化
+- 异步处理支持
 
-### Deprecated
-- None
+### 监控和日志
+- 健康检查接口
+- 性能指标监控
+- 操作日志记录
+- 异常监控告警
 
-### Removed
-- None
+## [0.9.0] - 2025-03-15
 
-### Fixed
-- None
+### 新增
+- 项目基础架构
+- 核心领域模型
+- 基础设施层
+- 测试框架
+- 文档体系
 
-### Security
-- Implemented AES encryption for passwords
-- Added rate limiting for API endpoints
-- Configured input validation
-- Set up basic access control
+### 技术栈
+- Spring Boot 3.x
+- MyBatis
+- Redis
+- MySQL
+- Maven
 
-## Release Naming Convention
+### 文档
+- 架构设计文档
+- API接口文档
+- 数据库设计
+- 部署文档
+- 开发指南
 
-Each release version number is composed as follows:
-- Major version: Significant feature additions or breaking changes
-- Minor version: New features and functionality in a backward compatible manner
-- Patch version: Bug fixes and minor improvements
+## [0.1.0] - 2025-03-01
 
-Example: 1.0.0
-- 1: Major version
-- 0: Minor version
-- 0: Patch version
+### 新增
+- 项目初始化
+- 基础框架搭建
+- 开发规范制定
+- CI/CD配置
+- 基础文档
 
-## Types of Changes
+## 版本规范
 
-- `Added` for new features
-- `Changed` for changes in existing functionality
-- `Deprecated` for soon-to-be removed features
-- `Removed` for now removed features
-- `Fixed` for any bug fixes
-- `Security` for vulnerability fixes
-
-## How to Update the Changelog
-
-1. Add changes to the `[Unreleased]` section during development
-2. Create a new version section when releasing
-3. Follow the established format
-4. Keep entries clear and concise
-5. Include PR/Issue references where applicable
-
-Example entry:
-```markdown
-### Added
-- New feature X (#123)
-- Support for Y (#456)
+### 版本号格式
+```
+v{major}.{minor}.{patch}
 ```
 
-## Version History Format
+### 版本说明
+- major：重大更新，可能包含不兼容的API变更
+- minor：功能更新，向后兼容的功能性变更
+- patch：问题修复，向后兼容的问题修复
 
-```markdown
-## [version] - YYYY-MM-DD
+### 发布周期
+- 主版本：根据重大功能发布
+- 次版本：每月发布
+- 修订版本：根据问题修复情况随时发布
 
-### Added
-- New features
+## 贡献指南
 
-### Changed
-- Changes in existing functionality
+### 提交规范
+```
+<type>(<scope>): <subject>
 
-### Deprecated
-- Soon-to-be removed features
+<body>
 
-### Removed
-- Removed features
-
-### Fixed
-- Bug fixes
-
-### Security
-- Vulnerability fixes
+<footer>
 ```
 
-## Maintaining the Changelog
+### 类型说明
+- feat：新功能
+- fix：修复问题
+- docs：文档更新
+- style：代码格式
+- refactor：重构
+- test：测试相关
+- chore：构建相关
 
-1. Update for every significant change
-2. Keep entries user-focused
-3. Group similar changes
-4. Include migration notes
-5. Reference relevant issues/PRs
+## 问题反馈
 
-## Release Process
+如果你在使用过程中发现任何问题，请通过以下方式反馈：
 
-1. Update version in `pom.xml`
-2. Move `[Unreleased]` changes to new version section
-3. Update version references
-4. Create release tag
-5. Deploy release
-6. Update documentation
+1. 提交 Issue
+2. 发送邮件
+3. 技术社区讨论
 
-## Links
+## 联系方式
 
-- [Project Repository](https://github.com/your-org/data-scope)
-- [Issue Tracker](https://github.com/your-org/data-scope/issues)
-- [Release Notes](https://github.com/your-org/data-scope/releases)
+- 作者：dreambt
+- 邮箱：your.email@example.com
+- GitHub：https://github.com/dreambt/data-scope
+
+## 许可证
+
+本项目采用 Apache License 2.0 许可证。详见 [LICENSE](LICENSE) 文件。

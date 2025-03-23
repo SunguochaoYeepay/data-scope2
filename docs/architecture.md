@@ -1,194 +1,313 @@
-# DataScope Technical Architecture
+# Architecture Design
 
 ## Overview
-DataScope is a comprehensive data management and query system built using a modular, DDD-based architecture. The system enables seamless integration of multiple data sources, intelligent data discovery, and low-code platform integration.
+DataScope is designed using Domain-Driven Design (DDD) principles with a layered architecture to ensure separation of concerns, maintainability, and extensibility.
 
 ## Architecture Layers
 
-### Application Layer (app)
-- Orchestrates use cases by coordinating domain objects and infrastructure services
-- Implements application services and command/query handlers
-- Manages transactions and security aspects
-- Handles data transformation between domain and external DTOs
+### 1. Facade Layer (data-scope-facade)
+- Defines external APIs and DTOs
+- Handles API versioning
+- Manages request/response transformations
+- Implements API documentation
+- Provides interface contracts
 
-### Domain Layer (domain)
-- Contains core business logic and domain models
-- Defines interfaces for repository and domain services
-- Implements domain events and event handlers
-- Contains value objects and domain entities
+Components:
+- REST Controllers
+- API DTOs
+- API Documentation
+- Request/Response Models
+- API Validators
 
-### Interface Layer (facade)
-- Provides REST API endpoints
-- Handles request/response transformation
-- Implements API versioning
-- Manages API rate limiting and security
+### 2. Application Layer (data-scope-app)
+- Orchestrates use cases
+- Manages transactions
+- Coordinates domain objects
+- Implements business workflows
+- Handles cross-cutting concerns
 
-### Infrastructure Layer (infrastructure)
-- Implements repository interfaces
-- Provides data source connection management
-- Handles caching and external service integration
-- Implements cross-cutting concerns
+Components:
+- Application Services
+- Command Handlers
+- Query Handlers
+- Event Handlers
+- Assemblers/Mappers
+
+### 3. Domain Layer (data-scope-domain)
+- Contains business logic
+- Defines domain models
+- Implements business rules
+- Manages domain events
+- Defines repository interfaces
+
+Components:
+- Domain Models
+- Value Objects
+- Domain Services
+- Repository Interfaces
+- Domain Events
+
+### 4. Infrastructure Layer (data-scope-infrastructure)
+- Implements technical concerns
+- Provides persistence
+- Manages external integrations
+- Handles caching
+- Implements repositories
+
+Components:
+- Repository Implementations
+- Database Access
+- Cache Management
+- External Services
+- Technical Services
 
 ## Key Components
 
 ### Data Source Management
-- DataSourceManager: Manages data source connections and pooling
-- MetadataExtractor: Extracts and updates metadata from data sources
-- SchemaManager: Manages database schema information
-- ConnectionPool: Handles connection pooling for each data source
+```
+┌─────────────────┐
+│    Facade       │
+│  DataSourceAPI  │
+└───────┬─────────┘
+        │
+┌───────┴─────────┐
+│  Application    │
+│DataSourceService│
+└───────┬─────────┘
+        │
+┌───────┴─────────┐
+│    Domain       │
+│   DataSource    │
+└───────┬─────────┘
+        │
+┌───────┴─────────┐
+│ Infrastructure  │
+│DataSourceRepo   │
+└─────────────────┘
+```
 
-### Query Engine
-- QueryBuilder: Constructs SQL queries from user inputs
-- QueryExecutor: Executes queries against data sources
-- QueryOptimizer: Optimizes query performance
-- ResultSetMapper: Maps query results to DTOs
+### Metadata Management
+```
+┌─────────────────┐
+│    Facade       │
+│  MetadataAPI    │
+└───────┬─────────┘
+        │
+┌───────┴─────────┐
+│  Application    │
+│MetadataService  │
+└───────┬─────────┘
+        │
+┌───────┴─────────┐
+│    Domain       │
+│    Metadata     │
+└───────┬─────────┘
+        │
+┌───────┴─────────┐
+│ Infrastructure  │
+│  MetadataRepo   │
+└─────────────────┘
+```
 
-### Natural Language Processing
-- NLPProcessor: Processes natural language queries
-- QueryTranslator: Translates NL to SQL
-- IntentAnalyzer: Analyzes user query intent
-- ContextManager: Manages query context
-
-### Low Code Integration
-- ConfigurationManager: Manages display configurations
-- APIGenerator: Generates REST APIs for queries
-- UIComponentMapper: Maps data types to UI components
-- TemplateEngine: Generates UI templates
+### Query Management
+```
+┌─────────────────┐
+│    Facade       │
+│   QueryAPI      │
+└───────┬─────────┘
+        │
+┌───────┴─────────┐
+│  Application    │
+│  QueryService   │
+└───────┬─────────┘
+        │
+┌───────┴─────────┐
+│    Domain       │
+│     Query       │
+└───────┬─────────┘
+        │
+┌───────┴─────────┐
+│ Infrastructure  │
+│   QueryRepo     │
+└─────────────────┘
+```
 
 ## Cross-Cutting Concerns
 
 ### Security
-- Password encryption using AES with salting
-- API authentication and authorization
-- Data access control
+- Authentication via external system
+- Role-based authorization
+- Data encryption
 - Audit logging
+- Rate limiting
 
-### Caching
-- Redis for distributed caching
-- Local cache for frequently accessed metadata
-- Query result caching
-- Configuration caching
+### Performance
+- Connection pooling
+- Query optimization
+- Result caching
+- Pagination
+- Timeout management
 
 ### Monitoring
-- Query performance monitoring
-- System resource monitoring
-- User activity tracking
-- Error logging and alerting
+- Health checks
+- Metrics collection
+- Performance monitoring
+- Error tracking
+- Usage analytics
 
-### Rate Limiting
-- API rate limiting
-- Query execution limits
-- Download size limits
-- Concurrent query limits
+### Error Handling
+- Global exception handling
+- Error standardization
+- Retry mechanisms
+- Circuit breakers
+- Fallback strategies
 
 ## Technical Stack
 
 ### Core Framework
-- Java 17+
-- Spring Boot 3.x
+- Java 17
+- Spring Boot 3.2
+- Spring Cloud
 - MyBatis
-- Maven
 
-### Data Storage
-- MySQL for system data
-- Redis for caching
-- Support for MySQL and DB2 as data sources
+### Database
+- MySQL 8.2
+- DB2 11.5
+- Redis (Caching)
+- HikariCP (Connection Pool)
 
 ### API Documentation
-- OpenAPI (Swagger)
-- API versioning
-- Interactive API documentation
+- OpenAPI/Swagger
+- SpringDoc
 
 ### Development Tools
-- Lombok for boilerplate reduction
-- MapStruct for object mapping
-- SLF4J for logging
-- JUnit for testing
+- Maven
+- Lombok
+- MapStruct
+- JUnit 5
+- Mockito
+
+## Design Patterns
+
+### Domain Layer
+- Aggregate Roots
+- Entities
+- Value Objects
+- Domain Events
+- Repositories
+- Domain Services
+
+### Application Layer
+- Command Pattern
+- Query Pattern
+- Observer Pattern
+- Strategy Pattern
+- Factory Pattern
+
+### Infrastructure Layer
+- Repository Pattern
+- Adapter Pattern
+- Decorator Pattern
+- Proxy Pattern
+- Builder Pattern
+
+## Extension Points
+
+### Data Source Types
+- Abstract factory for data source connections
+- Plugin system for new database types
+- Custom connection parameters
+- Type-specific query builders
+
+### Query Processing
+- Custom query transformers
+- Result processors
+- Data formatters
+- Export handlers
+
+### Display Configuration
+- Custom display components
+- Layout templates
+- Theme support
+- Widget framework
 
 ## Deployment Architecture
 
 ### Components
-- Application Server (Tomcat)
-- Redis Cache Server
-- MySQL Database Server
-- Load Balancer (optional)
+```
+┌─────────────────┐
+│   Web Server    │
+│    (Nginx)      │
+└───────┬─────────┘
+        │
+┌───────┴─────────┐
+│  Application    │
+│    Server       │
+└───────┬─────────┘
+        │
+┌───────┴─────────┐
+│    Redis        │
+│    Cache        │
+└─────────────────┘
+```
 
-### Scalability
+### Scaling Strategy
 - Horizontal scaling of application servers
-- Redis cluster for cache scaling
-- Database read replicas
-- Connection pool optimization
-
-### High Availability
-- Multiple application instances
-- Redis sentinel/cluster
-- Database failover
-- Load balancer failover
+- Redis cluster for caching
+- Connection pool per data source
+- Load balancing
+- Session management
 
 ## Security Architecture
 
-### Authentication
-- JWT-based authentication
-- Token management
-- Session handling
-- SSO integration capability
-
-### Authorization
-- Role-based access control
-- Resource-level permissions
-- Data source access control
-- API access control
-
-### Data Security
+### Data Protection
 - Password encryption
 - Data masking
 - Secure communication
-- Audit logging
+- Access control
+- Audit trails
 
-## Integration Architecture
+### API Security
+- Authentication
+- Authorization
+- Rate limiting
+- Input validation
+- Output sanitization
 
-### Low Code Platform
-- REST API integration
-- JSON-based configuration
-- UI component mapping
-- Event synchronization
+## Monitoring Architecture
 
-### External Systems
-- Database connectivity
-- Cache synchronization
-- Event notification
-- Monitoring integration
+### Health Monitoring
+- Application health
+- Database connections
+- Cache status
+- External services
+- Resource usage
 
-## Performance Considerations
-
-### Query Optimization
-- Query execution planning
-- Result set pagination
-- Cache utilization
-- Connection pooling
-
-### Resource Management
-- Thread pool management
-- Connection pool sizing
-- Cache memory management
-- Temporary storage cleanup
-
-### Monitoring and Alerting
-- Performance metrics collection
-- Resource utilization monitoring
-- Error rate tracking
-- SLA monitoring
+### Performance Monitoring
+- Response times
+- Query execution
+- Cache hit rates
+- Error rates
+- Resource utilization
 
 ## Future Extensions
 
 ### Multi-tenancy
 - Tenant isolation
-- Resource allocation
-- Configuration management
-- Data separation
+- Resource quotas
+- Custom configurations
+- Data segregation
 
 ### AI Integration
-- Enhanced NLP processing
-- Query optimization
-- Relationship discovery
+- Query suggestions
+- Schema analysis
+- Relationship inference
+- Usage optimization
 - Anomaly detection
+
+### Advanced Analytics
+- Query patterns
+- Usage trends
+- Performance analysis
+- Cost optimization
+- Security analysis

@@ -1,18 +1,20 @@
 package com.datascope.domain.datasource.enums;
 
 /**
- * 数据源状态
+ * 数据源状态枚举
+ * 
+ * @author dreambt
  */
 public enum DataSourceStatus {
     /**
-     * 活跃状态
-     */
-    ACTIVE,
-
-    /**
-     * 非活跃状态
+     * 未激活
      */
     INACTIVE,
+
+    /**
+     * 活跃
+     */
+    ACTIVE,
 
     /**
      * 同步中
@@ -20,7 +22,12 @@ public enum DataSourceStatus {
     SYNCING,
 
     /**
-     * 错误状态
+     * 错误
      */
-    ERROR
+    ERROR,
+
+    /**
+     * 已禁用
+     */
+    DISABLED
 }

@@ -1,136 +1,202 @@
 # DataScope
 
-DataScope is a comprehensive data management and query system that enables seamless integration of multiple database systems, intelligent data discovery, and low-code application development capabilities.
+DataScope is a comprehensive data management and query system that enables seamless integration of various database systems and provides intelligent data discovery capabilities through a low-code platform integration.
 
 ## Features
 
-- **Data Source Management**
-  - Support for MySQL and DB2 databases
-  - Automated metadata extraction and synchronization
-  - Secure credential management with encryption
-  - Connection health monitoring
+### Data Source Management
+- Support for MySQL and DB2 databases
+- Automated metadata extraction and synchronization
+- Secure credential management
+- Connection pooling and monitoring
+- Health checks and diagnostics
 
-- **Smart Data Discovery**
-  - Intuitive schema and table browsing
-  - Natural language query support
-  - AI-powered relationship inference
-  - Query history and favorites
+### Metadata Management
+- Comprehensive schema discovery
+- Automated relationship inference
+- Table and column documentation
+- Index and constraint tracking
+- Change history tracking
 
-- **Low-Code Integration**
-  - JSON-based configuration
-  - Flexible display templates
-  - Data masking capabilities
-  - API version management
+### Query Management
+- SQL query editor with syntax highlighting
+- Natural language query interface
+- Visual query builder
+- Query versioning
+- Execution history
 
-## Technology Stack
+### Low Code Integration
+- JSON-based configuration protocol
+- Flexible UI component generation
+- Query parameter management
+- Result display customization
+- Data export capabilities
 
-- Java 17+
-- Spring Boot 3.1
-- MyBatis
-- MySQL 5.7+
-- Redis
-- Maven
+## Getting Started
+
+### Prerequisites
+- Java 17 or higher
+- Maven 3.8 or higher
+- MySQL 8.2 or higher
+- Redis 6.0 or higher
+
+### Installation
+
+1. Clone the repository
+```bash
+git clone https://github.com/yourusername/data-scope.git
+cd data-scope
+```
+
+2. Build the project
+```bash
+./mvnw clean install
+```
+
+3. Configure application properties
+```bash
+cp data-scope-app/src/main/resources/application.example.yml data-scope-app/src/main/resources/application.yml
+```
+
+4. Start the application
+```bash
+./mvnw spring-boot:run -pl data-scope-app
+```
+
+### Docker Deployment
+
+1. Build Docker image
+```bash
+docker build -t data-scope .
+```
+
+2. Run with Docker Compose
+```bash
+docker-compose up -d
+```
 
 ## Project Structure
 
 ```
 data-scope/
-├── data-scope-app/          # Application layer
-├── data-scope-domain/       # Domain layer
-├── data-scope-facade/       # Interface layer
-├── data-scope-infrastructure/# Infrastructure layer
-└── data-scope-main/        # Main application
+├── data-scope-app/        # Application layer
+├── data-scope-domain/     # Domain layer
+├── data-scope-facade/     # API layer
+├── data-scope-infrastructure/  # Infrastructure layer
+├── docs/                  # Documentation
+└── ui/                    # UI templates
 ```
 
-## Getting Started
+## Documentation
 
-### Prerequisites
-
-- JDK 17 or higher
-- Maven 3.8+
-- MySQL 5.7+
-- Redis 6+
-
-### Configuration
-
-1. Clone the repository:
-```bash
-git clone https://github.com/your-org/data-scope.git
-cd data-scope
-```
-
-2. Configure database connection in `application-dev.yml`:
-```yaml
-spring:
-  datasource:
-    url: jdbc:mysql://localhost:3306/data_scope
-    username: your_username
-    password: your_password
-```
-
-3. Configure Redis connection:
-```yaml
-spring:
-  redis:
-    host: localhost
-    port: 6379
-```
-
-### Building
-
-```bash
-mvn clean install
-```
-
-### Running
-
-```bash
-cd data-scope-main
-mvn spring-boot:run -Dspring-boot.run.profiles=dev
-```
-
-Access the application at: http://localhost:8080/api
-
-Swagger UI: http://localhost:8080/api/swagger-ui/index.html
+- [Architecture Design](docs/architecture.md)
+- [API Documentation](docs/api_versioning.md)
+- [Database Schema](docs/database_schema.md)
+- [User Stories](docs/user_stories.md)
+- [Low Code Protocol](docs/low_code_protocol.md)
 
 ## Development
 
+### Build
+```bash
+./mvnw clean install
+```
+
+### Test
+```bash
+./mvnw test
+```
+
 ### Code Style
+```bash
+./mvnw checkstyle:check
+```
 
-- Follow standard Java code conventions
-- Use Lombok for reducing boilerplate
-- Follow DDD layered architecture
-- Write unit tests for business logic
+## Configuration
 
-### Database Guidelines
+### Application Properties
+```yaml
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/datascope
+    username: root
+    password: secret
 
-- Table names use `tbl_` prefix
-- Use UUID for primary keys
-- Include audit fields (created_at, modified_at, etc.)
-- Use meaningful index names
+  redis:
+    host: localhost
+    port: 6379
 
-### API Guidelines
+server:
+  port: 8080
+```
 
-- RESTful API design
-- Proper HTTP methods and status codes
-- Comprehensive API documentation
-- Version management
+### Logging
+```yaml
+logging:
+  level:
+    root: INFO
+    com.example.datascope: DEBUG
+```
 
-## Security
+## API Examples
 
-- Passwords are salted and encrypted
-- API rate limiting
-- Data masking for sensitive information
-- Query timeout protection
+### Add Data Source
+```bash
+curl -X POST http://localhost:8080/api/v1/datasources \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Production DB",
+    "type": "MYSQL",
+    "host": "localhost",
+    "port": 3306,
+    "database": "production",
+    "username": "user",
+    "password": "password"
+  }'
+```
+
+### Execute Query
+```bash
+curl -X POST http://localhost:8080/api/v1/queries/execute \
+  -H "Content-Type: application/json" \
+  -d '{
+    "queryId": "123",
+    "parameters": {
+      "startDate": "2025-01-01",
+      "region": "North"
+    }
+  }'
+```
+
+## Monitoring
+
+### Metrics
+- Application metrics available at `/actuator/prometheus`
+- Health check at `/actuator/health`
+- Database connection status
+- Query execution statistics
+
+### Grafana Dashboards
+- System metrics dashboard
+- Query performance dashboard
+- Data source monitoring
+- User activity tracking
 
 ## Contributing
 
-1. Fork the repository
-2. Create a feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a Pull Request
+Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduct and the process for submitting pull requests.
+
+## Security
+
+For security issues, please read [SECURITY.md](SECURITY.md) and report vulnerabilities as described there.
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Acknowledgments
+
+- Spring Boot team for the excellent framework
+- MyBatis team for the ORM framework
+- OpenAI for natural language processing capabilities
+- All contributors who have helped with code and documentation

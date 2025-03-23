@@ -3,76 +3,74 @@ package com.datascope.domain.common.service;
 import java.util.List;
 import java.util.Optional;
 
-import org.springframework.transaction.annotation.Transactional;
-
 /**
- * Base service interface
+ * 基础服务接口
  * 
  * @author dreambt
- * @param <T> Entity type
- * @param <ID> ID type
  */
 public interface BaseService<T, ID> {
     /**
-     * Create entity
+     * 创建实体
      *
-     * @param entity Entity to create
-     * @return Created entity
+     * @param entity 实体对象
+     * @return 创建后的实体
      */
-    @Transactional
     T create(T entity);
 
     /**
-     * Update entity
+     * 更新实体
      *
-     * @param entity Entity to update
-     * @return Updated entity
+     * @param entity 实体对象
+     * @return 更新后的实体
      */
-    @Transactional
     T update(T entity);
 
     /**
-     * Get entity by ID
+     * 根据ID获取实体
      *
-     * @param id Entity ID
-     * @return Entity if found
+     * @param id 实体ID
+     * @return 实体对象
      */
     Optional<T> getById(ID id);
 
     /**
-     * Get all entities
+     * 获取所有实体
      *
-     * @return List of entities
+     * @return 实体列表
      */
     List<T> getAll();
 
     /**
-     * Delete entity by ID
+     * 根据ID删除实体
      *
-     * @param id Entity ID
+     * @param id 实体ID
      */
-    @Transactional
     void deleteById(ID id);
 
     /**
-     * Check if entity exists by ID
+     * 检查ID是否存在
      *
-     * @param id Entity ID
-     * @return true if exists
+     * @param id 实体ID
+     * @return 是否存在
      */
     boolean exists(ID id);
 
     /**
-     * Count all entities
+     * 统计实体总数
      *
-     * @return Count of entities
+     * @return 实体总数
      */
     long count();
 
     /**
-     * Validate entity
+     * 删除所有实体
+     */
+    void deleteAll();
+
+    /**
+     * 验证实体
      *
-     * @param entity Entity to validate
+     * @param entity 实体对象
      */
     void validate(T entity);
 }
