@@ -1,107 +1,95 @@
 package com.datascope.domain.query.util;
 
-import java.util.Map;
-import java.util.regex.Pattern;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.commons.lang3.StringUtils;
 
 import com.datascope.domain.query.enums.MaskType;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
- * 数据掩码工具类
+ * Data masking utility
+ * 
+ * @author dreambt
  */
 public class DataMasker {
-
-    private static final Logger log = LoggerFactory.getLogger(DataMasker.class);
-    private static final ObjectMapper MAPPER = new ObjectMapper();
+    private static final char MASK_CHAR = '*';
 
     /**
-     * 掩码处理
+     * Mask data according to mask type and configuration
      *
-     * @param value    原始值
-     * @param type     掩码类型
-     * @param config   掩码配置
-     * @return 掩码后的值
+     * @param data Original data
+     * @param maskType Mask type
+     * @param maskConfig Mask configuration
+     * @return Masked data
      */
-    public static String mask(String value, MaskType type, String config) {
-        if (value == null || value.isEmpty()) {
-            return value;
+    public static String mask(String data, MaskType maskType, String maskConfig) {
+        if (StringUtils.isBlank(data) || maskType == null || maskType == MaskType.NONE) {
+            return data;
+        }
+
+        switch (maskType) {
+            case FULL:
+                return StringUtils.repeat(MASK_CHAR, data.length());
+            case LEFT:
+                return maskLeft(data);
+            case RIGHT:
+                return maskRight(data);
+            case MIDDLE:
+                return maskMiddle(data);
+            case CUSTOM:
+                return maskCustom(data, maskConfig);
+            default:
+                return data;
+        }
+    }
+
+    private static String maskLeft(String data) {
+        int length = data.length();
+        int maskLength = length / 2;
+        return StringUtils.repeat(MASK_CHAR, maskLength) + data.substring(maskLength);
+    }
+
+    private static String maskRight(String data) {
+        int length = data.length();
+        int maskLength = length / 2;
+        return data.substring(0, length - maskLength) + StringUtils.repeat(MASK_CHAR, maskLength);
+    }
+
+    private static String maskMiddle(String data) {
+        int length = data.length();
+        int preserveLength = length / 3;
+        if (preserveLength == 0) {
+            return StringUtils.repeat(MASK_CHAR, length);
+        }
+        String prefix = data.substring(0, preserveLength);
+        String suffix = data.substring(length - preserveLength);
+        return prefix + StringUtils.repeat(MASK_CHAR, length - 2 * preserveLength) + suffix;
+    }
+
+    private static String maskCustom(String data, String maskConfig) {
+        if (StringUtils.isBlank(maskConfig)) {
+            return data;
+        }
+
+        // Format: start,length
+        String[] parts = maskConfig.split(",");
+        if (parts.length != 2) {
+            return data;
         }
 
         try {
-            switch (type) {
-                case NONE:
-                    return value;
-                case MOBILE:
-                    return maskMobile(value);
-                case ID_CARD:
-                    return maskIdCard(value);
-                case BANK_CARD:
-                    return maskBankCard(value);
-                case EMAIL:
-                    return maskEmail(value);
-                case NAME:
-                    return maskName(value);
-                case CUSTOM:
-                    return maskCustom(value, config);
-                default:
-                    return value;
+            int start = Integer.parseInt(parts[0]);
+            int maskLength = Integer.parseInt(parts[1]);
+            int dataLength = data.length();
+
+            if (start < 0 || maskLength <= 0 || start >= dataLength) {
+                return data;
             }
-        } catch (Exception e) {
-            log.error("掩码处理失败: " + value, e);
-            return value;
-        }
-    }
 
-    private static String maskMobile(String mobile) {
-        if (!Pattern.matches("^\\d{11}$", mobile)) {
-            return mobile;
-        }
-        return mobile.substring(0, 3) + "****" + mobile.substring(7);
-    }
-
-    private static String maskIdCard(String idCard) {
-        if (!Pattern.matches("^\\d{17}[0-9X]$", idCard)) {
-            return idCard;
-        }
-        return idCard.substring(0, 6) + "********" + idCard.substring(14);
-    }
-
-    private static String maskBankCard(String bankCard) {
-        if (!Pattern.matches("^\\d{16,19}$", bankCard)) {
-            return bankCard;
-        }
-        return "**** **** **** " + bankCard.substring(bankCard.length() - 4);
-    }
-
-    private static String maskEmail(String email) {
-        int atIndex = email.indexOf('@');
-        if (atIndex <= 1) {
-            return email;
-        }
-        String name = email.substring(0, atIndex);
-        String domain = email.substring(atIndex);
-        return name.charAt(0) + "****" + domain;
-    }
-
-    private static String maskName(String name) {
-        if (name == null || name.length() < 2) {
-            return name;
-        }
-        return name.charAt(0) + "*".repeat(name.length() - 1);
-    }
-
-    private static String maskCustom(String value, String config) {
-        try {
-            Map<String, Object> maskConfig = MAPPER.readValue(config, Map.class);
-            String pattern = (String) maskConfig.get("pattern");
-            String replacement = (String) maskConfig.get("replacement");
-            return value.replaceAll(pattern, replacement);
-        } catch (Exception e) {
-            log.error("自定义掩码处理失败: " + value, e);
-            return value;
+            int end = Math.min(start + maskLength, dataLength);
+            return data.substring(0, start) + 
+                   StringUtils.repeat(MASK_CHAR, end - start) + 
+                   data.substring(end);
+        } catch (NumberFormatException e) {
+            return data;
         }
     }
 }

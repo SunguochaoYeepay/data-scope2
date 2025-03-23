@@ -5,97 +5,126 @@ import java.util.List;
 import com.datascope.facade.query.dto.UserDisplayConfigDTO;
 
 /**
- * 用户显示配置Facade接口
+ * User display configuration facade interface
+ * 
+ * @author dreambt
  */
 public interface UserDisplayConfigFacade {
+    /**
+     * Create configuration
+     *
+     * @param dto Configuration DTO
+     * @return Created configuration
+     */
+    UserDisplayConfigDTO create(UserDisplayConfigDTO dto);
 
     /**
-     * 保存配置
+     * Update configuration
      *
-     * @param dto 配置DTO
-     * @return 配置DTO
+     * @param dto Configuration DTO
+     * @return Updated configuration
      */
-    UserDisplayConfigDTO saveConfig(UserDisplayConfigDTO dto);
+    UserDisplayConfigDTO update(UserDisplayConfigDTO dto);
 
     /**
-     * 批量保存配置
+     * Get configuration by ID
      *
-     * @param dtos 配置DTO列表
-     * @return 配置DTO列表
+     * @param id Configuration ID
+     * @return Configuration if found
      */
-    List<UserDisplayConfigDTO> saveConfigs(List<UserDisplayConfigDTO> dtos);
+    UserDisplayConfigDTO getById(String id);
 
     /**
-     * 获取表的配置
+     * Get all configurations
      *
-     * @param userId       用户ID
-     * @param dataSourceId 数据源ID
-     * @param tableName    表名
-     * @return 配置DTO列表
+     * @return List of configurations
      */
-    List<UserDisplayConfigDTO> getTableConfigs(String userId, String dataSourceId, String tableName);
+    List<UserDisplayConfigDTO> getAll();
 
     /**
-     * 获取数据源的配置
+     * Delete configuration by ID
      *
-     * @param userId       用户ID
-     * @param dataSourceId 数据源ID
-     * @return 配置DTO列表
+     * @param id Configuration ID
      */
-    List<UserDisplayConfigDTO> getDataSourceConfigs(String userId, String dataSourceId);
+    void deleteById(String id);
 
     /**
-     * 删除配置
+     * Find configurations by user ID
      *
-     * @param id 配置ID
+     * @param userId User ID
+     * @return List of configurations
      */
-    void deleteConfig(String id);
+    List<UserDisplayConfigDTO> findByUserId(String userId);
 
     /**
-     * 删除表的配置
+     * Find configurations by user ID and data source ID
      *
-     * @param userId       用户ID
-     * @param dataSourceId 数据源ID
-     * @param tableName    表名
+     * @param userId User ID
+     * @param dataSourceId Data source ID
+     * @return List of configurations
      */
-    void deleteTableConfigs(String userId, String dataSourceId, String tableName);
+    List<UserDisplayConfigDTO> findByUserIdAndDataSourceId(String userId, String dataSourceId);
 
     /**
-     * 记录配置使用
+     * Find configurations by user ID, data source ID and table name
      *
-     * @param id 配置ID
+     * @param userId User ID
+     * @param dataSourceId Data source ID
+     * @param tableName Table name
+     * @return List of configurations
      */
-    void recordConfigUsage(String id);
+    List<UserDisplayConfigDTO> findByUserIdAndDataSourceIdAndTableName(
+            String userId, String dataSourceId, String tableName);
 
     /**
-     * 获取最常用的配置
+     * Find configurations by user ID, data source ID, table name and column name
      *
-     * @param userId       用户ID
-     * @param dataSourceId 数据源ID
-     * @param limit        限制数量
-     * @return 配置DTO列表
+     * @param userId User ID
+     * @param dataSourceId Data source ID
+     * @param tableName Table name
+     * @param columnName Column name
+     * @return List of configurations
      */
-    List<UserDisplayConfigDTO> getMostUsedConfigs(String userId, String dataSourceId, int limit);
+    List<UserDisplayConfigDTO> findByUserIdAndDataSourceIdAndTableNameAndColumnName(
+            String userId, String dataSourceId, String tableName, String columnName);
 
     /**
-     * 获取推荐配置
+     * Delete configurations by user ID
      *
-     * @param userId       用户ID
-     * @param dataSourceId 数据源ID
-     * @param tableName    表名
-     * @return 配置DTO列表
+     * @param userId User ID
      */
-    List<UserDisplayConfigDTO> recommendConfigs(String userId, String dataSourceId, String tableName);
+    void deleteByUserId(String userId);
 
     /**
-     * 从其他用户复制配置
+     * Delete configurations by user ID and data source ID
      *
-     * @param fromUserId   源用户ID
-     * @param toUserId     目标用户ID
-     * @param dataSourceId 数据源ID
-     * @param tableName    表名
-     * @return 配置DTO列表
+     * @param userId User ID
+     * @param dataSourceId Data source ID
      */
-    List<UserDisplayConfigDTO> copyConfigsFromUser(String fromUserId, String toUserId,
-                                                 String dataSourceId, String tableName);
+    void deleteByUserIdAndDataSourceId(String userId, String dataSourceId);
+
+    /**
+     * Delete configurations by user ID, data source ID and table name
+     *
+     * @param userId User ID
+     * @param dataSourceId Data source ID
+     * @param tableName Table name
+     */
+    void deleteByUserIdAndDataSourceIdAndTableName(
+            String userId, String dataSourceId, String tableName);
+
+    /**
+     * Copy configurations from one user to another
+     *
+     * @param fromUserId Source user ID
+     * @param toUserId Target user ID
+     */
+    void copyConfigurations(String fromUserId, String toUserId);
+
+    /**
+     * Update usage statistics
+     *
+     * @param id Configuration ID
+     */
+    void updateUsage(String id);
 }

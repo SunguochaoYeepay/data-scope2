@@ -1,106 +1,118 @@
 package com.datascope.domain.query.entity;
 
+import java.time.LocalDateTime;
+
 import com.datascope.domain.common.entity.BaseEntity;
 import com.datascope.domain.query.enums.ColumnAlign;
 import com.datascope.domain.query.enums.ColumnFixed;
 import com.datascope.domain.query.enums.MaskType;
+
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
 /**
- * 用户显示配置实体
+ * User display configuration entity
+ * 
+ * @author dreambt
  */
-@Data
+@Getter
+@Setter
+@ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
 public class UserDisplayConfig extends BaseEntity {
-
     /**
-     * 用户ID
+     * User ID
      */
     private String userId;
 
     /**
-     * 数据源ID
+     * Data source ID
      */
     private String dataSourceId;
 
     /**
-     * 表名
+     * Table name
      */
     private String tableName;
 
     /**
-     * 列名
+     * Column name
      */
     private String columnName;
 
     /**
-     * 显示名称
+     * Display name
      */
     private String displayName;
 
     /**
-     * 列宽度
+     * Column width
      */
     private Integer width;
 
     /**
-     * 列对齐方式
+     * Column alignment
      */
     private ColumnAlign align;
 
     /**
-     * 列固定位置
+     * Column fixed position
      */
     private ColumnFixed fixed;
 
     /**
-     * 是否可见
+     * Whether the column is visible
      */
     private Boolean visible;
 
     /**
-     * 显示顺序
+     * Column order number
      */
-    private Integer displayOrder;
+    private Integer orderNum;
 
     /**
-     * 是否为查询条件
+     * Whether the column is sortable
      */
-    private Boolean isQueryCondition;
+    private Boolean sortable;
 
     /**
-     * 查询条件是否必填
+     * Whether the column is searchable
      */
-    private Boolean isRequired;
+    private Boolean searchable;
 
     /**
-     * 查询条件默认值
+     * Whether the column is required
      */
-    private String defaultValue;
+    private Boolean required;
 
     /**
-     * 是否为高级查询条件
-     */
-    private Boolean isAdvancedCondition;
-
-    /**
-     * 数据掩码类型
+     * Column mask type
      */
     private MaskType maskType;
 
     /**
-     * 掩码配置(JSON)
+     * Column mask configuration
      */
     private String maskConfig;
 
     /**
-     * 使用次数
+     * Usage count
      */
-    private Long usageCount;
+    private Long usageCount = 0L;
 
     /**
-     * 最后使用时间
+     * Last used time
      */
-    private Long lastUsedAt;
+    private LocalDateTime lastUsedAt;
+
+    /**
+     * Update usage statistics
+     */
+    public void updateUsage() {
+        this.usageCount++;
+        this.lastUsedAt = LocalDateTime.now();
+    }
 }

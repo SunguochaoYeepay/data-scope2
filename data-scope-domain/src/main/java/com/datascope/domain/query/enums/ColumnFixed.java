@@ -1,21 +1,23 @@
 package com.datascope.domain.query.enums;
 
 /**
- * 列固定位置
+ * Column fixed position enum
+ * 
+ * @author dreambt
  */
 public enum ColumnFixed {
     /**
-     * 不固定
+     * Not fixed
      */
     NONE,
 
     /**
-     * 固定在左侧
+     * Fixed to left
      */
     LEFT,
 
     /**
-     * 固定在右侧
+     * Fixed to right
      */
     RIGHT
 }

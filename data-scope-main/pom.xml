@@ -3,7 +3,7 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    
+
     <parent>
         <groupId>com.datascope</groupId>
         <artifactId>data-scope</artifactId>
@@ -11,23 +11,19 @@
     </parent>
 
     <artifactId>data-scope-main</artifactId>
-    <packaging>jar</packaging>
-    <name>DataScope Main Application</name>
 
     <dependencies>
-        <!-- Internal -->
+        <!-- Internal Dependencies -->
         <dependency>
             <groupId>com.datascope</groupId>
             <artifactId>data-scope-app</artifactId>
-            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>com.datascope</groupId>
             <artifactId>data-scope-infrastructure</artifactId>
-            <version>${project.version}</version>
         </dependency>
 
-        <!-- Spring -->
+        <!-- Spring Boot -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
@@ -38,15 +34,21 @@
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-devtools</artifactId>
-            <scope>runtime</scope>
-            <optional>true</optional>
+            <artifactId>spring-boot-starter-validation</artifactId>
         </dependency>
 
-        <!-- API Doc -->
+        <!-- OpenAPI -->
         <dependency>
             <groupId>org.springdoc</groupId>
             <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+            <version>2.3.0</version>
+        </dependency>
+
+        <!-- Test -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 

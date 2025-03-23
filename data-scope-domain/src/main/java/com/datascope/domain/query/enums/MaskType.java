@@ -1,47 +1,38 @@
 package com.datascope.domain.query.enums;
 
 /**
- * 数据掩码类型
+ * Data masking type enum
+ * 
+ * @author dreambt
  */
 public enum MaskType {
     /**
-     * 无掩码
+     * No masking
      */
     NONE,
 
     /**
-     * 手机号掩码
-     * 示例: 138****1234
+     * Full masking (e.g., ****)
      */
-    MOBILE,
+    FULL,
 
     /**
-     * 身份证号掩码
-     * 示例: 110101********1234
+     * Left masking (e.g., ***4567)
      */
-    ID_CARD,
+    LEFT,
 
     /**
-     * 银行卡号掩码
-     * 示例: **** **** **** 1234
+     * Right masking (e.g., 1234***)
      */
-    BANK_CARD,
+    RIGHT,
 
     /**
-     * 邮箱掩码
-     * 示例: a****@example.com
+     * Middle masking (e.g., 12***67)
      */
-    EMAIL,
+    MIDDLE,
 
     /**
-     * 姓名掩码
-     * 示例: 张*
-     */
-    NAME,
-
-    /**
-     * 自定义掩码
-     * 需要配置掩码规则
+     * Custom masking pattern
      */
     CUSTOM
 }

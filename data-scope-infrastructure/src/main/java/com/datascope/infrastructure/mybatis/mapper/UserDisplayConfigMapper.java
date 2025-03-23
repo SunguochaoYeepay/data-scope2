@@ -8,93 +8,134 @@ import org.apache.ibatis.annotations.Param;
 import com.datascope.domain.query.entity.UserDisplayConfig;
 
 /**
- * 用户显示配置Mapper
+ * User display configuration MyBatis mapper
+ * 
+ * @author dreambt
  */
 @Mapper
 public interface UserDisplayConfigMapper {
-
     /**
-     * 插入配置
+     * Insert configuration
      *
-     * @param config 配置
+     * @param entity Configuration to insert
      */
-    void insert(UserDisplayConfig config);
+    void insert(UserDisplayConfig entity);
 
     /**
-     * 更新配置
+     * Update configuration
      *
-     * @param config 配置
+     * @param entity Configuration to update
      */
-    void update(UserDisplayConfig config);
+    void update(UserDisplayConfig entity);
 
     /**
-     * 根据ID删除配置
+     * Find configuration by ID
      *
-     * @param id 配置ID
+     * @param id Configuration ID
+     * @return Configuration if found
+     */
+    UserDisplayConfig findById(@Param("id") String id);
+
+    /**
+     * Find all configurations
+     *
+     * @return List of configurations
+     */
+    List<UserDisplayConfig> findAll();
+
+    /**
+     * Delete configuration by ID
+     *
+     * @param id Configuration ID
      */
     void deleteById(@Param("id") String id);
 
     /**
-     * 删除表的配置
+     * Check if configuration exists by ID
      *
-     * @param userId       用户ID
-     * @param dataSourceId 数据源ID
-     * @param tableName    表名
+     * @param id Configuration ID
+     * @return true if exists
      */
-    void deleteByTableName(@Param("userId") String userId,
-                          @Param("dataSourceId") String dataSourceId,
-                          @Param("tableName") String tableName);
+    boolean existsById(@Param("id") String id);
 
     /**
-     * 更新使用信息
+     * Count all configurations
      *
-     * @param id 配置ID
+     * @return Count of configurations
      */
-    void updateUsage(@Param("id") String id);
+    long count();
 
     /**
-     * 获取表的配置
+     * Find configurations by user ID
      *
-     * @param userId       用户ID
-     * @param dataSourceId 数据源ID
-     * @param tableName    表名
-     * @return 配置列表
+     * @param userId User ID
+     * @return List of configurations
      */
-    List<UserDisplayConfig> findByTableName(@Param("userId") String userId,
-                                          @Param("dataSourceId") String dataSourceId,
-                                          @Param("tableName") String tableName);
+    List<UserDisplayConfig> findByUserId(@Param("userId") String userId);
 
     /**
-     * 获取数据源的配置
+     * Find configurations by user ID and data source ID
      *
-     * @param userId       用户ID
-     * @param dataSourceId 数据源ID
-     * @return 配置列表
+     * @param userId User ID
+     * @param dataSourceId Data source ID
+     * @return List of configurations
      */
-    List<UserDisplayConfig> findByDataSourceId(@Param("userId") String userId,
-                                             @Param("dataSourceId") String dataSourceId);
+    List<UserDisplayConfig> findByUserIdAndDataSourceId(
+            @Param("userId") String userId, @Param("dataSourceId") String dataSourceId);
 
     /**
-     * 获取最常用的配置
+     * Find configurations by user ID, data source ID and table name
      *
-     * @param userId       用户ID
-     * @param dataSourceId 数据源ID
-     * @param limit        限制数量
-     * @return 配置列表
+     * @param userId User ID
+     * @param dataSourceId Data source ID
+     * @param tableName Table name
+     * @return List of configurations
      */
-    List<UserDisplayConfig> findMostUsed(@Param("userId") String userId,
-                                        @Param("dataSourceId") String dataSourceId,
-                                        @Param("limit") int limit);
+    List<UserDisplayConfig> findByUserIdAndDataSourceIdAndTableName(
+            @Param("userId") String userId, 
+            @Param("dataSourceId") String dataSourceId, 
+            @Param("tableName") String tableName);
 
     /**
-     * 获取推荐配置
+     * Find configurations by user ID, data source ID, table name and column name
      *
-     * @param userId       用户ID
-     * @param dataSourceId 数据源ID
-     * @param tableName    表名
-     * @return 配置列表
+     * @param userId User ID
+     * @param dataSourceId Data source ID
+     * @param tableName Table name
+     * @param columnName Column name
+     * @return List of configurations
      */
-    List<UserDisplayConfig> findRecommended(@Param("userId") String userId,
-                                          @Param("dataSourceId") String dataSourceId,
-                                          @Param("tableName") String tableName);
+    List<UserDisplayConfig> findByUserIdAndDataSourceIdAndTableNameAndColumnName(
+            @Param("userId") String userId,
+            @Param("dataSourceId") String dataSourceId,
+            @Param("tableName") String tableName,
+            @Param("columnName") String columnName);
+
+    /**
+     * Delete configurations by user ID
+     *
+     * @param userId User ID
+     */
+    void deleteByUserId(@Param("userId") String userId);
+
+    /**
+     * Delete configurations by user ID and data source ID
+     *
+     * @param userId User ID
+     * @param dataSourceId Data source ID
+     */
+    void deleteByUserIdAndDataSourceId(
+            @Param("userId") String userId, @Param("dataSourceId") String dataSourceId);
+
+    /**
+     * Delete configurations by user ID, data source ID and table name
+     *
+     * @param userId User ID
+     * @param dataSourceId Data source ID
+     * @param tableName Table name
+     */
+    void deleteByUserIdAndDataSourceIdAndTableName(
+            @Param("userId") String userId,
+            @Param("dataSourceId") String dataSourceId,
+            @Param("tableName") String tableName);
 }

@@ -2,100 +2,92 @@ package com.datascope.domain.query.service;
 
 import java.util.List;
 
+import com.datascope.domain.common.service.BaseService;
 import com.datascope.domain.query.entity.UserDisplayConfig;
 
 /**
- * 用户显示配置服务接口
+ * User display configuration service interface
+ * 
+ * @author dreambt
  */
-public interface UserDisplayConfigService {
+public interface UserDisplayConfigService extends BaseService<UserDisplayConfig, String> {
+    /**
+     * Find configurations by user ID
+     *
+     * @param userId User ID
+     * @return List of configurations
+     */
+    List<UserDisplayConfig> findByUserId(String userId);
 
     /**
-     * 保存配置
+     * Find configurations by user ID and data source ID
      *
-     * @param config 配置
-     * @return 配置
+     * @param userId User ID
+     * @param dataSourceId Data source ID
+     * @return List of configurations
      */
-    UserDisplayConfig saveConfig(UserDisplayConfig config);
+    List<UserDisplayConfig> findByUserIdAndDataSourceId(String userId, String dataSourceId);
 
     /**
-     * 批量保存配置
+     * Find configurations by user ID, data source ID and table name
      *
-     * @param configs 配置列表
-     * @return 配置列表
+     * @param userId User ID
+     * @param dataSourceId Data source ID
+     * @param tableName Table name
+     * @return List of configurations
      */
-    List<UserDisplayConfig> saveConfigs(List<UserDisplayConfig> configs);
+    List<UserDisplayConfig> findByUserIdAndDataSourceIdAndTableName(
+            String userId, String dataSourceId, String tableName);
 
     /**
-     * 获取表的配置
+     * Find configurations by user ID, data source ID, table name and column name
      *
-     * @param userId       用户ID
-     * @param dataSourceId 数据源ID
-     * @param tableName    表名
-     * @return 配置列表
+     * @param userId User ID
+     * @param dataSourceId Data source ID
+     * @param tableName Table name
+     * @param columnName Column name
+     * @return List of configurations
      */
-    List<UserDisplayConfig> getTableConfigs(String userId, String dataSourceId, String tableName);
+    List<UserDisplayConfig> findByUserIdAndDataSourceIdAndTableNameAndColumnName(
+            String userId, String dataSourceId, String tableName, String columnName);
 
     /**
-     * 获取数据源的配置
+     * Delete configurations by user ID
      *
-     * @param userId       用户ID
-     * @param dataSourceId 数据源ID
-     * @return 配置列表
+     * @param userId User ID
      */
-    List<UserDisplayConfig> getDataSourceConfigs(String userId, String dataSourceId);
+    void deleteByUserId(String userId);
 
     /**
-     * 删除配置
+     * Delete configurations by user ID and data source ID
      *
-     * @param id 配置ID
+     * @param userId User ID
+     * @param dataSourceId Data source ID
      */
-    void deleteConfig(String id);
+    void deleteByUserIdAndDataSourceId(String userId, String dataSourceId);
 
     /**
-     * 删除表的配置
+     * Delete configurations by user ID, data source ID and table name
      *
-     * @param userId       用户ID
-     * @param dataSourceId 数据源ID
-     * @param tableName    表名
+     * @param userId User ID
+     * @param dataSourceId Data source ID
+     * @param tableName Table name
      */
-    void deleteTableConfigs(String userId, String dataSourceId, String tableName);
+    void deleteByUserIdAndDataSourceIdAndTableName(
+            String userId, String dataSourceId, String tableName);
 
     /**
-     * 记录配置使用
+     * Copy configurations from one user to another
      *
-     * @param id 配置ID
+     * @param fromUserId Source user ID
+     * @param toUserId Target user ID
      */
-    void recordConfigUsage(String id);
+    void copyConfigurations(String fromUserId, String toUserId);
 
     /**
-     * 获取最常用的配置
+     * Update usage statistics
      *
-     * @param userId       用户ID
-     * @param dataSourceId 数据源ID
-     * @param limit        限制数量
-     * @return 配置列表
+     * @param id Configuration ID
      */
-    List<UserDisplayConfig> getMostUsedConfigs(String userId, String dataSourceId, int limit);
-
-    /**
-     * 获取推荐配置
-     *
-     * @param userId       用户ID
-     * @param dataSourceId 数据源ID
-     * @param tableName    表名
-     * @return 配置列表
-     */
-    List<UserDisplayConfig> recommendConfigs(String userId, String dataSourceId, String tableName);
-
-    /**
-     * 从其他用户复制配置
-     *
-     * @param fromUserId   源用户ID
-     * @param toUserId     目标用户ID
-     * @param dataSourceId 数据源ID
-     * @param tableName    表名
-     * @return 配置列表
-     */
-    List<UserDisplayConfig> copyConfigsFromUser(String fromUserId, String toUserId,
-                                              String dataSourceId, String tableName);
+    void updateUsage(String id);
 }

@@ -1,21 +1,23 @@
 package com.datascope.domain.query.enums;
 
 /**
- * 列对齐方式
+ * Column alignment enum
+ * 
+ * @author dreambt
  */
 public enum ColumnAlign {
     /**
-     * 左对齐
+     * Left alignment
      */
     LEFT,
 
     /**
-     * 居中对齐
+     * Center alignment
      */
     CENTER,
 
     /**
-     * 右对齐
+     * Right alignment
      */
     RIGHT
 }

@@ -1,88 +1,72 @@
-spring:
-  application:
-    name: data-scope
-  profiles:
-    active: dev
-  datasource:
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    type: com.zaxxer.hikari.HikariDataSource
-    hikari:
-      minimum-idle: 5
-      maximum-pool-size: 20
-      idle-timeout: 30000
-      pool-name: DataScopeHikariCP
-      max-lifetime: 1800000
-      connection-timeout: 30000
-      connection-test-query: SELECT 1
-  redis:
-    host: localhost
-    port: 6379
-    database: 0
-    timeout: 10000
-    lettuce:
-      pool:
-        max-active: 8
-        max-wait: -1
-        max-idle: 8
-        min-idle: 0
-
 server:
   port: 8080
   servlet:
     context-path: /api
-  tomcat:
-    max-threads: 200
-    min-spare-threads: 10
+
+spring:
+  application:
+    name: data-scope
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/data_scope?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai
+    username: root
+    password: root
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      password:
+      database: 0
 
 mybatis:
   mapper-locations: classpath*:mapper/**/*.xml
-  type-aliases-package: com.datascope.domain.entity
   configuration:
     map-underscore-to-camel-case: true
-    default-fetch-size: 100
-    default-statement-timeout: 30
 
 springdoc:
   api-docs:
     enabled: true
     path: /v3/api-docs
   swagger-ui:
-    path: /swagger-ui.html
     enabled: true
-  packages-to-scan: com.datascope.app.controller
-
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health,info,metrics
-  endpoint:
-    health:
-      show-details: always
+    path: /swagger-ui.html
 
 logging:
   level:
     root: INFO
     com.datascope: DEBUG
-    org.springframework: INFO
-    org.mybatis: INFO
-  file:
-    name: logs/data-scope.log
-  pattern:
-    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
-    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
 
-app:
-  datasource:
-    max-connections: 100
-    query-timeout-seconds: 30
-    max-download-records: 50000
+# Application specific configurations
+data-scope:
+  # Query rate limit per user (requests per minute)
+  query-rate-limit: 60
+  # Query timeout in seconds
+  query-timeout: 30
+  # Maximum download records
+  max-download-records: 50000
+  # Default page size
+  default-page-size: 20
+  # Maximum page size
+  max-page-size: 100
+  # Cache configurations
+  cache:
+    metadata:
+      # Metadata cache time to live in minutes
+      ttl: 60
+    query:
+      # Query result cache time to live in minutes
+      ttl: 5
+  # Security configurations
   security:
-    aes-key: ${AES_KEY:your-aes-key-here}
-    salt: ${SALT:your-salt-here}
-  openrouter:
-    api-key: ${OPENROUTER_API_KEY:your-api-key-here}
-    model: mistralai/mistral-7b-instruct
-    max-tokens: 1000
-  rate-limit:
-    max-requests-per-second: 10
+    # AES encryption key for database passwords
+    aes-key: your-aes-key-here
+    # Salt for password hashing
+    password-salt: your-salt-here
+  # LLM configurations
+  llm:
+    # OpenRouter API configurations
+    openrouter:
+      api-key: your-api-key-here
+      model: mistral-7b-instruct
+      max-tokens: 1000
+      temperature: 0.7

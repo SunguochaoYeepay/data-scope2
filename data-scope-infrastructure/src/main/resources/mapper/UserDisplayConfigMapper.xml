@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.datascope.infrastructure.mybatis.mapper.UserDisplayConfigMapper">
-
     <resultMap id="BaseResultMap" type="com.datascope.domain.query.entity.UserDisplayConfig">
         <id column="id" property="id"/>
         <result column="user_id" property="userId"/>
@@ -13,11 +12,10 @@
         <result column="align" property="align"/>
         <result column="fixed" property="fixed"/>
         <result column="visible" property="visible"/>
-        <result column="display_order" property="displayOrder"/>
-        <result column="is_query_condition" property="isQueryCondition"/>
-        <result column="is_required" property="isRequired"/>
-        <result column="default_value" property="defaultValue"/>
-        <result column="is_advanced_condition" property="isAdvancedCondition"/>
+        <result column="order_num" property="orderNum"/>
+        <result column="sortable" property="sortable"/>
+        <result column="searchable" property="searchable"/>
+        <result column="required" property="required"/>
         <result column="mask_type" property="maskType"/>
         <result column="mask_config" property="maskConfig"/>
         <result column="usage_count" property="usageCount"/>
@@ -31,9 +29,8 @@
 
     <sql id="Base_Column_List">
         id, user_id, data_source_id, table_name, column_name, display_name, width, align, fixed,
-        visible, display_order, is_query_condition, is_required, default_value, is_advanced_condition,
-        mask_type, mask_config, usage_count, last_used_at, nonce, created_at, created_by,
-        modified_at, modified_by
+        visible, order_num, sortable, searchable, required, mask_type, mask_config, usage_count,
+        last_used_at, nonce, created_at, created_by, modified_at, modified_by
     </sql>
 
     <insert id="insert" parameterType="com.datascope.domain.query.entity.UserDisplayConfig">
@@ -41,10 +38,9 @@
             <include refid="Base_Column_List"/>
         ) VALUES (
             #{id}, #{userId}, #{dataSourceId}, #{tableName}, #{columnName}, #{displayName},
-            #{width}, #{align}, #{fixed}, #{visible}, #{displayOrder}, #{isQueryCondition},
-            #{isRequired}, #{defaultValue}, #{isAdvancedCondition}, #{maskType}, #{maskConfig},
-            #{usageCount}, #{lastUsedAt}, #{nonce}, #{createdAt}, #{createdBy}, #{modifiedAt},
-            #{modifiedBy}
+            #{width}, #{align}, #{fixed}, #{visible}, #{orderNum}, #{sortable}, #{searchable},
+            #{required}, #{maskType}, #{maskConfig}, #{usageCount}, #{lastUsedAt}, #{nonce},
+            #{createdAt}, #{createdBy}, #{modifiedAt}, #{modifiedBy}
         )
     </insert>
 
@@ -59,74 +55,85 @@
             align = #{align},
             fixed = #{fixed},
             visible = #{visible},
-            display_order = #{displayOrder},
-            is_query_condition = #{isQueryCondition},
-            is_required = #{isRequired},
-            default_value = #{defaultValue},
-            is_advanced_condition = #{isAdvancedCondition},
+            order_num = #{orderNum},
+            sortable = #{sortable},
+            searchable = #{searchable},
+            required = #{required},
             mask_type = #{maskType},
             mask_config = #{maskConfig},
             usage_count = #{usageCount},
             last_used_at = #{lastUsedAt},
-            nonce = nonce + 1,
+            nonce = #{nonce},
             modified_at = #{modifiedAt},
             modified_by = #{modifiedBy}
-        WHERE id = #{id} AND nonce = #{nonce}
+        WHERE id = #{id}
     </update>
+
+    <select id="findById" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM tbl_user_display_config
+        WHERE id = #{id}
+    </select>
+
+    <select id="findAll" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM tbl_user_display_config
+    </select>
 
     <delete id="deleteById">
         DELETE FROM tbl_user_display_config WHERE id = #{id}
     </delete>
 
-    <delete id="deleteByTableName">
-        DELETE FROM tbl_user_display_config
+    <select id="existsById" resultType="boolean">
+        SELECT COUNT(*) FROM tbl_user_display_config WHERE id = #{id}
+    </select>
+
+    <select id="count" resultType="long">
+        SELECT COUNT(*) FROM tbl_user_display_config
+    </select>
+
+    <select id="findByUserId" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM tbl_user_display_config
         WHERE user_id = #{userId}
-        AND data_source_id = #{dataSourceId}
-        AND table_name = #{tableName}
+    </select>
+
+    <select id="findByUserIdAndDataSourceId" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM tbl_user_display_config
+        WHERE user_id = #{userId} AND data_source_id = #{dataSourceId}
+    </select>
+
+    <select id="findByUserIdAndDataSourceIdAndTableName" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM tbl_user_display_config
+        WHERE user_id = #{userId}
+          AND data_source_id = #{dataSourceId}
+          AND table_name = #{tableName}
+    </select>
+
+    <select id="findByUserIdAndDataSourceIdAndTableNameAndColumnName" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM tbl_user_display_config
+        WHERE user_id = #{userId}
+          AND data_source_id = #{dataSourceId}
+          AND table_name = #{tableName}
+          AND column_name = #{columnName}
+    </select>
+
+    <delete id="deleteByUserId">
+        DELETE FROM tbl_user_display_config WHERE user_id = #{userId}
     </delete>
 
-    <update id="updateUsage">
-        UPDATE tbl_user_display_config
-        SET usage_count = usage_count + 1,
-            last_used_at = UNIX_TIMESTAMP() * 1000,
-            nonce = nonce + 1
-        WHERE id = #{id}
-    </update>
+    <delete id="deleteByUserIdAndDataSourceId">
+        DELETE FROM tbl_user_display_config
+        WHERE user_id = #{userId} AND data_source_id = #{dataSourceId}
+    </delete>
 
-    <select id="findByTableName" resultMap="BaseResultMap">
-        SELECT <include refid="Base_Column_List"/>
-        FROM tbl_user_display_config
+    <delete id="deleteByUserIdAndDataSourceIdAndTableName">
+        DELETE FROM tbl_user_display_config
         WHERE user_id = #{userId}
-        AND data_source_id = #{dataSourceId}
-        AND table_name = #{tableName}
-        ORDER BY display_order
-    </select>
-
-    <select id="findByDataSourceId" resultMap="BaseResultMap">
-        SELECT <include refid="Base_Column_List"/>
-        FROM tbl_user_display_config
-        WHERE user_id = #{userId}
-        AND data_source_id = #{dataSourceId}
-        ORDER BY table_name, display_order
-    </select>
-
-    <select id="findMostUsed" resultMap="BaseResultMap">
-        SELECT <include refid="Base_Column_List"/>
-        FROM tbl_user_display_config
-        WHERE user_id = #{userId}
-        AND data_source_id = #{dataSourceId}
-        ORDER BY usage_count DESC, last_used_at DESC
-        LIMIT #{limit}
-    </select>
-
-    <select id="findRecommended" resultMap="BaseResultMap">
-        SELECT <include refid="Base_Column_List"/>
-        FROM tbl_user_display_config
-        WHERE data_source_id = #{dataSourceId}
-        AND table_name = #{tableName}
-        AND user_id != #{userId}
-        ORDER BY usage_count DESC
-        LIMIT 10
-    </select>
-
+          AND data_source_id = #{dataSourceId}
+          AND table_name = #{tableName}
+    </delete>
 </mapper>

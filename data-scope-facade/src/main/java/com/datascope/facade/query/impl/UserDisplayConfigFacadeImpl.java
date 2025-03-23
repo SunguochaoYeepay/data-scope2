@@ -1,85 +1,109 @@
 package com.datascope.facade.query.impl;
 
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+
 import com.datascope.domain.query.entity.UserDisplayConfig;
 import com.datascope.domain.query.service.UserDisplayConfigService;
 import com.datascope.facade.query.UserDisplayConfigFacade;
 import com.datascope.facade.query.dto.UserDisplayConfigDTO;
 import com.datascope.facade.query.mapper.UserDisplayConfigFacadeMapper;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
 
-import java.util.List;
+import lombok.RequiredArgsConstructor;
 
 /**
- * 用户显示配置Facade实现
+ * User display configuration facade implementation
+ * 
+ * @author dreambt
  */
-@Slf4j
 @Service
 @RequiredArgsConstructor
 public class UserDisplayConfigFacadeImpl implements UserDisplayConfigFacade {
-
     private final UserDisplayConfigService service;
     private final UserDisplayConfigFacadeMapper mapper;
 
     @Override
-    public UserDisplayConfigDTO saveConfig(UserDisplayConfigDTO dto) {
+    public UserDisplayConfigDTO create(UserDisplayConfigDTO dto) {
         UserDisplayConfig entity = mapper.toEntity(dto);
-        entity = service.saveConfig(entity);
+        entity = service.create(entity);
         return mapper.toDTO(entity);
     }
 
     @Override
-    public List<UserDisplayConfigDTO> saveConfigs(List<UserDisplayConfigDTO> dtos) {
-        List<UserDisplayConfig> entities = mapper.toEntities(dtos);
-        entities = service.saveConfigs(entities);
-        return mapper.toDTOs(entities);
+    public UserDisplayConfigDTO update(UserDisplayConfigDTO dto) {
+        UserDisplayConfig entity = service.getById(dto.getId())
+                .orElseThrow(() -> new IllegalArgumentException("Entity not found"));
+        mapper.updateEntity(dto, entity);
+        entity = service.update(entity);
+        return mapper.toDTO(entity);
     }
 
     @Override
-    public List<UserDisplayConfigDTO> getTableConfigs(String userId, String dataSourceId, String tableName) {
-        List<UserDisplayConfig> entities = service.getTableConfigs(userId, dataSourceId, tableName);
-        return mapper.toDTOs(entities);
+    public UserDisplayConfigDTO getById(String id) {
+        return service.getById(id)
+                .map(mapper::toDTO)
+                .orElse(null);
     }
 
     @Override
-    public List<UserDisplayConfigDTO> getDataSourceConfigs(String userId, String dataSourceId) {
-        List<UserDisplayConfig> entities = service.getDataSourceConfigs(userId, dataSourceId);
-        return mapper.toDTOs(entities);
+    public List<UserDisplayConfigDTO> getAll() {
+        return mapper.toDTOList(service.getAll());
     }
 
     @Override
-    public void deleteConfig(String id) {
-        service.deleteConfig(id);
+    public void deleteById(String id) {
+        service.deleteById(id);
     }
 
     @Override
-    public void deleteTableConfigs(String userId, String dataSourceId, String tableName) {
-        service.deleteTableConfigs(userId, dataSourceId, tableName);
+    public List<UserDisplayConfigDTO> findByUserId(String userId) {
+        return mapper.toDTOList(service.findByUserId(userId));
     }
 
     @Override
-    public void recordConfigUsage(String id) {
-        service.recordConfigUsage(id);
+    public List<UserDisplayConfigDTO> findByUserIdAndDataSourceId(String userId, String dataSourceId) {
+        return mapper.toDTOList(service.findByUserIdAndDataSourceId(userId, dataSourceId));
     }
 
     @Override
-    public List<UserDisplayConfigDTO> getMostUsedConfigs(String userId, String dataSourceId, int limit) {
-        List<UserDisplayConfig> entities = service.getMostUsedConfigs(userId, dataSourceId, limit);
-        return mapper.toDTOs(entities);
+    public List<UserDisplayConfigDTO> findByUserIdAndDataSourceIdAndTableName(
+            String userId, String dataSourceId, String tableName) {
+        return mapper.toDTOList(
+                service.findByUserIdAndDataSourceIdAndTableName(userId, dataSourceId, tableName));
     }
 
     @Override
-    public List<UserDisplayConfigDTO> recommendConfigs(String userId, String dataSourceId, String tableName) {
-        List<UserDisplayConfig> entities = service.recommendConfigs(userId, dataSourceId, tableName);
-        return mapper.toDTOs(entities);
+    public List<UserDisplayConfigDTO> findByUserIdAndDataSourceIdAndTableNameAndColumnName(
+            String userId, String dataSourceId, String tableName, String columnName) {
+        return mapper.toDTOList(
+                service.findByUserIdAndDataSourceIdAndTableNameAndColumnName(
+                        userId, dataSourceId, tableName, columnName));
     }
 
     @Override
-    public List<UserDisplayConfigDTO> copyConfigsFromUser(String fromUserId, String toUserId,
-                                                        String dataSourceId, String tableName) {
-        List<UserDisplayConfig> entities = service.copyConfigsFromUser(fromUserId, toUserId,
-                dataSourceId, tableName);
-        return mapper.toDTOs(entities);
+    public void deleteByUserId(String userId) {
+        service.deleteByUserId(userId);
+    }
+
+    @Override
+    public void deleteByUserIdAndDataSourceId(String userId, String dataSourceId) {
+        service.deleteByUserIdAndDataSourceId(userId, dataSourceId);
+    }
+
+    @Override
+    public void deleteByUserIdAndDataSourceIdAndTableName(
+            String userId, String dataSourceId, String tableName) {
+        service.deleteByUserIdAndDataSourceIdAndTableName(userId, dataSourceId, tableName);
+    }
+
+    @Override
+    public void copyConfigurations(String fromUserId, String toUserId) {
+        service.copyConfigurations(fromUserId, toUserId);
+    }
+
+    @Override
+    public void updateUsage(String id) {
+        service.updateUsage(id);
     }
 }

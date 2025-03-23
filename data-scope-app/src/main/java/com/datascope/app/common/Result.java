@@ -3,120 +3,82 @@ package com.datascope.app.common;
 import lombok.Data;
 
 /**
- * 统一API响应结果
- *
- * @param <T> 数据类型
+ * Standard API response wrapper
+ * 
+ * @author dreambt
  */
 @Data
 public class Result<T> {
-
     /**
-     * 响应码
+     * Response code
      */
-    private int code;
+    private String code;
 
     /**
-     * 响应消息
+     * Response message
      */
     private String message;
 
     /**
-     * 响应数据
+     * Response data
      */
     private T data;
 
-    /**
-     * 成功响应
-     *
-     * @param <T> 数据类型
-     * @return 成功响应结果
-     */
-    public static <T> Result<T> success() {
-        return success(null);
+    private Result() {
+    }
+
+    private Result(String code, String message, T data) {
+        this.code = code;
+        this.message = message;
+        this.data = data;
     }
 
     /**
-     * 成功响应
+     * Create success response with data
      *
-     * @param data 响应数据
-     * @param <T> 数据类型
-     * @return 成功响应结果
+     * @param data Response data
+     * @return Success response
      */
     public static <T> Result<T> success(T data) {
-        Result<T> result = new Result<>();
-        result.setCode(200);
-        result.setMessage("success");
-        result.setData(data);
-        return result;
+        return new Result<>("200", "Success", data);
     }
 
     /**
-     * 失败响应
+     * Create success response without data
      *
-     * @param code 错误码
-     * @param message 错误消息
-     * @param <T> 数据类型
-     * @return 失败响应结果
+     * @return Success response
      */
-    public static <T> Result<T> error(int code, String message) {
-        Result<T> result = new Result<>();
-        result.setCode(code);
-        result.setMessage(message);
-        return result;
+    public static <T> Result<T> success() {
+        return new Result<>("200", "Success", null);
     }
 
     /**
-     * 参数错误响应
+     * Create error response
      *
-     * @param message 错误消息
-     * @param <T> 数据类型
-     * @return 参数错误响应结果
+     * @param code Error code
+     * @param message Error message
+     * @return Error response
      */
-    public static <T> Result<T> badRequest(String message) {
-        return error(400, message);
+    public static <T> Result<T> error(String code, String message) {
+        return new Result<>(code, message, null);
     }
 
     /**
-     * 未授权响应
+     * Create error response with default code
      *
-     * @param message 错误消息
-     * @param <T> 数据类型
-     * @return 未授权响应结果
+     * @param message Error message
+     * @return Error response
      */
-    public static <T> Result<T> unauthorized(String message) {
-        return error(401, message);
+    public static <T> Result<T> error(String message) {
+        return error("500", message);
     }
 
     /**
-     * 禁止访问响应
+     * Check if response is successful
      *
-     * @param message 错误消息
-     * @param <T> 数据类型
-     * @return 禁止访问响应结果
+     * @return True if successful
      */
-    public static <T> Result<T> forbidden(String message) {
-        return error(403, message);
-    }
-
-    /**
-     * 资源不存在响应
-     *
-     * @param message 错误消息
-     * @param <T> 数据类型
-     * @return 资源不存在响应结果
-     */
-    public static <T> Result<T> notFound(String message) {
-        return error(404, message);
-    }
-
-    /**
-     * 服务器错误响应
-     *
-     * @param message 错误消息
-     * @param <T> 数据类型
-     * @return 服务器错误响应结果
-     */
-    public static <T> Result<T> serverError(String message) {
-        return error(500, message);
+    public boolean isSuccess() {
+        return "200".equals(code);
     }
 }

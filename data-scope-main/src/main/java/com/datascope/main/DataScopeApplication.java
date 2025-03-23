@@ -2,23 +2,16 @@ package com.datascope.main;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.scheduling.annotation.EnableAsync;
-import org.springframework.scheduling.annotation.EnableScheduling;
-import org.springframework.transaction.annotation.EnableTransactionManagement;
+import org.springframework.context.annotation.ComponentScan;
 
 /**
- * DataScope Application Main Entry
+ * DataScope Application Main Class
  * 
  * @author dreambt
  */
 @SpringBootApplication
-@EnableAsync
-@EnableScheduling
-@EnableTransactionManagement
-@EnableConfigurationProperties
+@ComponentScan(basePackages = "com.datascope")
 public class DataScopeApplication {
-
     public static void main(String[] args) {
         SpringApplication.run(DataScopeApplication.class, args);
     }

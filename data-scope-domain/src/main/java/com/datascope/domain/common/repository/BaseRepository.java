@@ -4,11 +4,11 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * Base repository interface with common CRUD operations
- *
+ * Base repository interface
+ * 
+ * @author dreambt
  * @param <T> Entity type
  * @param <ID> ID type
- * @author dreambt
  */
 public interface BaseRepository<T, ID> {
     /**
@@ -20,35 +20,19 @@ public interface BaseRepository<T, ID> {
     T save(T entity);
 
     /**
-     * Save multiple entities
-     *
-     * @param entities Entities to save
-     * @return Saved entities
-     */
-    List<T> saveAll(List<T> entities);
-
-    /**
      * Find entity by ID
      *
      * @param id Entity ID
-     * @return Found entity
+     * @return Entity if found
      */
     Optional<T> findById(ID id);
 
     /**
      * Find all entities
      *
-     * @return All entities
+     * @return List of entities
      */
     List<T> findAll();
-
-    /**
-     * Find entities by IDs
-     *
-     * @param ids Entity IDs
-     * @return Found entities
-     */
-    List<T> findAllById(Iterable<ID> ids);
 
     /**
      * Delete entity by ID
@@ -58,31 +42,22 @@ public interface BaseRepository<T, ID> {
     void deleteById(ID id);
 
     /**
-     * Delete entity
+     * Check if entity exists by ID
      *
-     * @param entity Entity to delete
+     * @param id Entity ID
+     * @return true if exists
      */
-    void delete(T entity);
+    boolean existsById(ID id);
 
     /**
-     * Delete multiple entities
+     * Count all entities
      *
-     * @param entities Entities to delete
-     */
-    void deleteAll(Iterable<T> entities);
-
-    /**
-     * Count total entities
-     *
-     * @return Total count
+     * @return Count of entities
      */
     long count();
 
     /**
-     * Check if entity exists
-     *
-     * @param id Entity ID
-     * @return True if exists
+     * Delete all entities
      */
-    boolean existsById(ID id);
+    void deleteAll();
 }

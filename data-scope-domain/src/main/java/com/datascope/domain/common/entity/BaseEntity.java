@@ -1,68 +1,69 @@
 package com.datascope.domain.common.entity;
 
-import lombok.Data;
-
 import java.time.LocalDateTime;
 
+import lombok.Data;
+
 /**
- * Base entity class with common audit fields
+ * Base entity class with common fields
  * 
  * @author dreambt
  */
 @Data
 public abstract class BaseEntity {
     /**
-     * 主键ID
+     * Primary key ID (UUID)
      */
     private String id;
 
     /**
-     * 乐观锁版本号
+     * Optimistic lock version
      */
     private Integer nonce;
 
     /**
-     * 创建时间
+     * Creation time
      */
     private LocalDateTime createdAt;
 
     /**
-     * 创建人
+     * Creator
      */
     private String createdBy;
 
     /**
-     * 最后修改时间
+     * Last modification time
      */
     private LocalDateTime modifiedAt;
 
     /**
-     * 最后修改人
+     * Last modifier
      */
     private String modifiedBy;
 
     /**
-     * 初始化审计字段
+     * Pre-persist hook
      */
-    public void initAuditFields(String operator) {
-        LocalDateTime now = LocalDateTime.now();
+    public void prePersist() {
         if (this.createdAt == null) {
-            this.createdAt = now;
-            this.createdBy = operator;
+            this.createdAt = LocalDateTime.now();
         }
-        this.modifiedAt = now;
-        this.modifiedBy = operator;
+        if (this.modifiedAt == null) {
+            this.modifiedAt = LocalDateTime.now();
+        }
         if (this.nonce == null) {
             this.nonce = 0;
         }
     }
 
     /**
-     * 更新审计字段
+     * Pre-update hook
      */
-    public void updateAuditFields(String operator) {
+    public void preUpdate() {
         this.modifiedAt = LocalDateTime.now();
-        this.modifiedBy = operator;
+        if (this.nonce == null) {
+            this.nonce = 0;
+        }
         this.nonce++;
     }
 }

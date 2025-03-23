@@ -1,6 +1,7 @@
 package com.datascope.infrastructure.repository;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.stereotype.Repository;
 
@@ -11,40 +12,33 @@ import com.datascope.infrastructure.mybatis.mapper.UserDisplayConfigMapper;
 import lombok.RequiredArgsConstructor;
 
 /**
- * 用户显示配置仓储实现
+ * User display configuration repository implementation
+ * 
+ * @author dreambt
  */
 @Repository
 @RequiredArgsConstructor
 public class UserDisplayConfigRepositoryImpl implements UserDisplayConfigRepository {
-
     private final UserDisplayConfigMapper mapper;
 
     @Override
-    public UserDisplayConfig save(UserDisplayConfig config) {
-        if (config.getId() == null) {
-            mapper.insert(config);
+    public UserDisplayConfig save(UserDisplayConfig entity) {
+        if (entity.getId() == null) {
+            mapper.insert(entity);
         } else {
-            mapper.update(config);
+            mapper.update(entity);
         }
-        return config;
+        return entity;
     }
 
     @Override
-    public List<UserDisplayConfig> saveAll(List<UserDisplayConfig> configs) {
-        for (UserDisplayConfig config : configs) {
-            save(config);
-        }
-        return configs;
+    public Optional<UserDisplayConfig> findById(String id) {
+        return Optional.ofNullable(mapper.findById(id));
     }
 
     @Override
-    public List<UserDisplayConfig> findByTableName(String userId, String dataSourceId, String tableName) {
-        return mapper.findByTableName(userId, dataSourceId, tableName);
-    }
-
-    @Override
-    public List<UserDisplayConfig> findByDataSourceId(String userId, String dataSourceId) {
-        return mapper.findByDataSourceId(userId, dataSourceId);
+    public List<UserDisplayConfig> findAll() {
+        return mapper.findAll();
     }
 
     @Override
@@ -53,35 +47,80 @@ public class UserDisplayConfigRepositoryImpl implements UserDisplayConfigReposit
     }
 
     @Override
-    public void deleteByTableName(String userId, String dataSourceId, String tableName) {
-        mapper.deleteByTableName(userId, dataSourceId, tableName);
+    public boolean existsById(String id) {
+        return mapper.existsById(id);
     }
 
     @Override
-    public void updateUsage(String id) {
-        mapper.updateUsage(id);
+    public long count() {
+        return mapper.count();
     }
 
     @Override
-    public List<UserDisplayConfig> findMostUsed(String userId, String dataSourceId, int limit) {
-        return mapper.findMostUsed(userId, dataSourceId, limit);
+    public void deleteAll() {
+        mapper.deleteAll();
     }
 
     @Override
-    public List<UserDisplayConfig> findRecommended(String userId, String dataSourceId, String tableName) {
-        return mapper.findRecommended(userId, dataSourceId, tableName);
+    public List<UserDisplayConfig> findByUserId(String userId) {
+        return mapper.findByUserId(userId);
     }
 
     @Override
-    public List<UserDisplayConfig> copyFromUser(String fromUserId, String toUserId, String dataSourceId, String tableName) {
-        List<UserDisplayConfig> configs = mapper.findByTableName(fromUserId, dataSourceId, tableName);
+    public List<UserDisplayConfig> findByUserIdAndDataSourceId(String userId, String dataSourceId) {
+        return mapper.findByUserIdAndDataSourceId(userId, dataSourceId);
+    }
+
+    @Override
+    public List<UserDisplayConfig> findByUserIdAndDataSourceIdAndTableName(
+            String userId, String dataSourceId, String tableName) {
+        return mapper.findByUserIdAndDataSourceIdAndTableName(userId, dataSourceId, tableName);
+    }
+
+    @Override
+    public List<UserDisplayConfig> findByUserIdAndDataSourceIdAndTableNameAndColumnName(
+            String userId, String dataSourceId, String tableName, String columnName) {
+        return mapper.findByUserIdAndDataSourceIdAndTableNameAndColumnName(
+                userId, dataSourceId, tableName, columnName);
+    }
+
+    @Override
+    public void deleteByUserId(String userId) {
+        mapper.deleteByUserId(userId);
+    }
+
+    @Override
+    public void deleteByUserIdAndDataSourceId(String userId, String dataSourceId) {
+        mapper.deleteByUserIdAndDataSourceId(userId, dataSourceId);
+    }
+
+    @Override
+    public void deleteByUserIdAndDataSourceIdAndTableName(
+            String userId, String dataSourceId, String tableName) {
+        mapper.deleteByUserIdAndDataSourceIdAndTableName(userId, dataSourceId, tableName);
+    }
+
+    @Override
+    public void copyConfigurations(String fromUserId, String toUserId) {
+        List<UserDisplayConfig> configs = findByUserId(fromUserId);
         for (UserDisplayConfig config : configs) {
-            config.setId(null);
-            config.setUserId(toUserId);
-            config.setUsageCount(0L);
-            config.setLastUsedAt(null);
-            save(config);
+            UserDisplayConfig newConfig = new UserDisplayConfig();
+            newConfig.setUserId(toUserId);
+            newConfig.setDataSourceId(config.getDataSourceId());
+            newConfig.setTableName(config.getTableName());
+            newConfig.setColumnName(config.getColumnName());
+            newConfig.setDisplayName(config.getDisplayName());
+            newConfig.setWidth(config.getWidth());
+            newConfig.setAlign(config.getAlign());
+            newConfig.setFixed(config.getFixed());
+            newConfig.setVisible(config.getVisible());
+            newConfig.setOrderNum(config.getOrderNum());
+            newConfig.setSortable(config.getSortable());
+            newConfig.setSearchable(config.getSearchable());
+            newConfig.setRequired(config.getRequired());
+            newConfig.setMaskType(config.getMaskType());
+            newConfig.setMaskConfig(config.getMaskConfig());
+            save(newConfig);
         }
-        return configs;
     }
 }

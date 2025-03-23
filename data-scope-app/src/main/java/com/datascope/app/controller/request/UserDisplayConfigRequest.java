@@ -3,73 +3,125 @@ package com.datascope.app.controller.request;
 import com.datascope.domain.query.enums.ColumnAlign;
 import com.datascope.domain.query.enums.ColumnFixed;
 import com.datascope.domain.query.enums.MaskType;
-import io.swagger.v3.oas.annotations.media.Schema;
+import com.datascope.facade.query.dto.UserDisplayConfigDTO;
+
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 /**
- * 用户显示配置请求
+ * User display configuration request
+ * 
+ * @author dreambt
  */
 @Data
-@Schema(description = "用户显示配置请求")
 public class UserDisplayConfigRequest {
-
-    @Schema(description = "配置ID")
-    private String id;
-
+    /**
+     * 用户ID
+     */
     @NotBlank(message = "用户ID不能为空")
-    @Schema(description = "用户ID", required = true)
     private String userId;
 
+    /**
+     * 数据源ID
+     */
     @NotBlank(message = "数据源ID不能为空")
-    @Schema(description = "数据源ID", required = true)
     private String dataSourceId;
 
+    /**
+     * 表名
+     */
     @NotBlank(message = "表名不能为空")
-    @Schema(description = "表名", required = true)
     private String tableName;
 
+    /**
+     * 列名
+     */
     @NotBlank(message = "列名不能为空")
-    @Schema(description = "列名", required = true)
     private String columnName;
 
-    @Schema(description = "显示名称")
+    /**
+     * 显示名称
+     */
+    @NotBlank(message = "显示名称不能为空")
     private String displayName;
 
-    @Schema(description = "列宽度")
+    /**
+     * 列宽度
+     */
+    @NotNull(message = "列宽度不能为空")
     private Integer width;
 
-    @Schema(description = "列对齐方式")
+    /**
+     * 列对齐方式
+     */
+    @NotNull(message = "列对齐方式不能为空")
     private ColumnAlign align;
 
-    @Schema(description = "列固定位置")
+    /**
+     * 列固定方式
+     */
     private ColumnFixed fixed;
 
-    @NotNull(message = "是否可见不能为空")
-    @Schema(description = "是否可见", required = true)
+    /**
+     * 是否显示
+     */
+    @NotNull(message = "是否显示不能为空")
     private Boolean visible;
 
-    @NotNull(message = "显示顺序不能为空")
-    @Schema(description = "显示顺序", required = true)
-    private Integer displayOrder;
+    /**
+     * 排序号
+     */
+    @NotNull(message = "排序号不能为空")
+    private Integer orderNum;
 
-    @NotNull(message = "是否为查询条件不能为空")
-    @Schema(description = "是否为查询条件", required = true)
-    private Boolean isQueryCondition;
+    /**
+     * 是否可排序
+     */
+    private Boolean sortable;
 
-    @Schema(description = "查询条件是否必填")
-    private Boolean isRequired;
+    /**
+     * 是否可搜索
+     */
+    private Boolean searchable;
 
-    @Schema(description = "查询条件默认值")
-    private String defaultValue;
+    /**
+     * 是否必填
+     */
+    private Boolean required;
 
-    @Schema(description = "是否为高级查询条件")
-    private Boolean isAdvancedCondition;
-
-    @Schema(description = "数据掩码类型")
+    /**
+     * 掩码类型
+     */
     private MaskType maskType;
 
-    @Schema(description = "掩码配置(JSON)")
+    /**
+     * 掩码配置
+     */
     private String maskConfig;
+
+    /**
+     * Convert to DTO
+     *
+     * @return DTO object
+     */
+    public UserDisplayConfigDTO toDTO() {
+        UserDisplayConfigDTO dto = new UserDisplayConfigDTO();
+        dto.setUserId(userId);
+        dto.setDataSourceId(dataSourceId);
+        dto.setTableName(tableName);
+        dto.setColumnName(columnName);
+        dto.setDisplayName(displayName);
+        dto.setWidth(width);
+        dto.setAlign(align);
+        dto.setFixed(fixed);
+        dto.setVisible(visible);
+        dto.setOrderNum(orderNum);
+        dto.setSortable(sortable);
+        dto.setSearchable(searchable);
+        dto.setRequired(required);
+        dto.setMaskType(maskType);
+        dto.setMaskConfig(maskConfig);
+        return dto;
+    }
 }
