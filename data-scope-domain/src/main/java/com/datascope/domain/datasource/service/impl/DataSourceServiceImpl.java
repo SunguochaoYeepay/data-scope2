@@ -151,11 +151,11 @@ public class DataSourceServiceImpl implements DataSourceService {
         DataSource entity = getById(id);
         try {
             // TODO: 实现元数据同步逻辑
-            entity.updateSyncStatus(SyncStatus.SUCCESS, "同步成功");
+            entity.updateSyncStatus(SyncStatus.SUCCESS, "同步成功", operator);
             return repository.save(entity);
         } catch (Exception e) {
             log.error("同步数据源元数据失败: {}", id, e);
-            entity.updateSyncStatus(SyncStatus.FAILED, e.getMessage());
+            entity.updateSyncStatus(SyncStatus.FAILED, e.getMessage(), operator);
             return repository.save(entity);
         }
     }

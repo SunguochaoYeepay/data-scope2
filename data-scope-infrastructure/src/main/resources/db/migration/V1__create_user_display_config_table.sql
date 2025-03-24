@@ -1,4 +1,4 @@
-CREATE TABLE user_display_config
+CREATE TABLE tbl_user_display_config
 (
     id             VARCHAR(36)  NOT NULL,
     user_id        VARCHAR(36)  NOT NULL,
@@ -26,7 +26,7 @@ CREATE TABLE user_display_config
 );
 
 -- Create indexes
-CREATE INDEX idx_user_display_config_user_id ON user_display_config (user_id);
-CREATE INDEX idx_user_display_config_data_source ON user_display_config (user_id, data_source_id);
-CREATE INDEX idx_user_display_config_table ON user_display_config (user_id, data_source_id, table_name);
-CREATE INDEX idx_user_display_config_column ON user_display_config (user_id, data_source_id, table_name, column_name);
+CREATE INDEX idx_user_display_config_user_id ON tbl_user_display_config (user_id);
+CREATE INDEX idx_user_display_config_data_source ON tbl_user_display_config (user_id, data_source_id);
+CREATE INDEX idx_user_display_config_table ON tbl_user_display_config (user_id, data_source_id, table_name);
+CREATE INDEX idx_user_display_config_column ON tbl_user_display_config (user_id, data_source_id, table_name, column_name);

@@ -31,7 +31,7 @@
 
     <!-- 插入配置 -->
     <insert id="insert" parameterType="com.datascope.domain.query.entity.UserDisplayConfig">
-        INSERT INTO user_display_config (id, user_id, data_source_id, table_name, column_name, display_name,
+        INSERT INTO tbl_user_display_config (id, user_id, data_source_id, table_name, column_name, display_name,
                                          width, fixed_position, align_type, visible, display_order, searchable,
                                          required,
                                          mask_type, mask_config, sortable, sort_type, usage_count, last_used_at,
@@ -46,7 +46,7 @@
 
     <!-- 更新配置 -->
     <update id="update" parameterType="com.datascope.domain.query.entity.UserDisplayConfig">
-        UPDATE user_display_config
+        UPDATE tbl_user_display_config
         SET user_id        = #{userId},
             data_source_id = #{dataSourceId},
             table_name = #{tableName},
@@ -73,28 +73,28 @@
     <!-- 根据ID查询配置 -->
     <select id="selectById" resultMap="BaseResultMap">
         SELECT *
-        FROM user_display_config
+        FROM tbl_user_display_config
         WHERE id = #{id}
     </select>
 
     <!-- 根据用户ID查询配置 -->
     <select id="selectByUserId" resultMap="BaseResultMap">
         SELECT *
-        FROM user_display_config
+        FROM tbl_user_display_config
         WHERE user_id = #{userId}
     </select>
 
     <!-- 根据用户ID和数据源ID查询配置 -->
     <select id="selectByUserIdAndDataSourceId" resultMap="BaseResultMap">
         SELECT *
-        FROM user_display_config
+        FROM tbl_user_display_config
         WHERE user_id = #{userId} AND data_source_id = #{dataSourceId}
     </select>
 
     <!-- 根据用户ID、数据源ID和表名查询配置 -->
     <select id="selectByUserIdAndDataSourceIdAndTableName" resultMap="BaseResultMap">
         SELECT *
-        FROM user_display_config
+        FROM tbl_user_display_config
         WHERE user_id = #{userId}
           AND data_source_id = #{dataSourceId}
           AND table_name = #{tableName}
@@ -103,7 +103,7 @@
     <!-- 根据用户ID、数据源ID、表名和列名查询配置 -->
     <select id="selectByUserIdAndDataSourceIdAndTableNameAndColumnName" resultMap="BaseResultMap">
         SELECT *
-        FROM user_display_config
+        FROM tbl_user_display_config
         WHERE user_id = #{userId}
           AND data_source_id = #{dataSourceId}
           AND table_name = #{tableName}
@@ -113,21 +113,21 @@
     <!-- 根据ID删除配置 -->
     <delete id="deleteById">
         DELETE
-        FROM user_display_config
+        FROM tbl_user_display_config
         WHERE id = #{id}
     </delete>
 
     <!-- 根据用户ID删除配置 -->
     <delete id="deleteByUserId">
         DELETE
-        FROM user_display_config
+        FROM tbl_user_display_config
         WHERE user_id = #{userId}
     </delete>
 
     <!-- 根据用户ID和数据源ID删除配置 -->
     <delete id="deleteByUserIdAndDataSourceId">
         DELETE
-        FROM user_display_config
+        FROM tbl_user_display_config
         WHERE user_id = #{userId}
           AND data_source_id = #{dataSourceId}
     </delete>
@@ -135,7 +135,7 @@
     <!-- 根据用户ID、数据源ID和表名删除配置 -->
     <delete id="deleteByUserIdAndDataSourceIdAndTableName">
         DELETE
-        FROM user_display_config
+        FROM tbl_user_display_config
         WHERE user_id = #{userId}
           AND data_source_id = #{dataSourceId}
           AND table_name = #{tableName}
@@ -143,7 +143,7 @@
 
     <!-- 批量插入配置 -->
     <insert id="batchInsert" parameterType="java.util.List">
-        INSERT INTO user_display_config (
+        INSERT INTO tbl_user_display_config (
         id, user_id, data_source_id, table_name, column_name, display_name,
         width, fixed_position, align_type, visible, display_order, searchable, required,
         mask_type, mask_config, sortable, sort_type, usage_count, last_used_at,
