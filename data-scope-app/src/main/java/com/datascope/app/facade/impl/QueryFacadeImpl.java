@@ -20,9 +20,9 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class QueryFacadeImpl implements QueryFacade {
 
-    private final QueryExecutionService service;
+    private final QueryExecutionService queryExecutionService;
     private final QueryService queryService;
-    private final QueryConverter mapper;
+    private final QueryConverter queryConverter;
     private final SqlExecutionEngine sqlExecutionEngine;
 
     @Override
@@ -37,12 +37,12 @@ public class QueryFacadeImpl implements QueryFacade {
 
     @Override
     public QueryDTO getById(String id) {
-        return service.getById(id).map(mapper::toDTO).orElse(null);
+        return queryExecutionService.getById(id).map(queryConverter::toDTO).orElse(null);
     }
 
     @Override
     public List<QueryDTO> getAll() {
-        return service.getRecentByUserId("user", 10).stream().map(mapper::toDTO).toList();
+        return queryExecutionService.getRecentByUserId("user", 10).stream().map(queryConverter::toDTO).toList();
     }
 
     @Override

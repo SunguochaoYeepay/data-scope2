@@ -137,7 +137,7 @@ public class QueryExecutionServiceImpl implements QueryExecutionService {
         );
 
         // 保存执行记录
-        execution = queryExecutionRepository.save(execution);
+        queryExecutionRepository.save(execution);
 
         // 确保执行记录不为null
         if (execution == null) {

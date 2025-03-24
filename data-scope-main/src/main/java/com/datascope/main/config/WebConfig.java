@@ -1,50 +1,39 @@
 package com.datascope.main.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import lombok.RequiredArgsConstructor;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.converter.HttpMessageConverter;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import org.springframework.web.filter.CorsFilter;
+import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
+import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
-
-import java.util.List;
 
 /**
  * Web配置类
  */
 @Configuration
-@RequiredArgsConstructor
 public class WebConfig implements WebMvcConfigurer {
 
+    /**
+     * 配置静态资源处理
+     */
     @Override
-    public void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
-        converters.add(new MappingJackson2HttpMessageConverter(objectMapper()));
+    public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        // 静态资源映射
+        registry.addResourceHandler("/**")
+            .addResourceLocations("classpath:/static/");
+
+        // Swagger UI资源映射
+        registry.addResourceHandler("/swagger-ui/**")
+            .addResourceLocations("classpath:/META-INF/resources/webjars/springfox-swagger-ui/");
     }
 
-    @Bean
-    public ObjectMapper objectMapper() {
-        ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.registerModule(new JavaTimeModule());
-        return objectMapper;
-    }
+    /**
+     * 配置视图控制器
+     */
+    @Override
+    public void addViewControllers(ViewControllerRegistry registry) {
+        // 将根路径重定向到index.html
+        registry.addViewController("/").setViewName("forward:/index.html");
 
-    @Bean
-    public CorsFilter corsFilter() {
-        CorsConfiguration config = new CorsConfiguration();
-        config.setAllowCredentials(true);
-        config.addAllowedOriginPattern("*");
-        config.addAllowedHeader("*");
-        config.addAllowedMethod("*");
-        config.setMaxAge(3600L);
-
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", config);
-
-        return new CorsFilter(source);
+        // 将/api路径重定向到API文档
+        registry.addViewController("/api").setViewName("forward:/swagger-ui/index.html");
     }
 }

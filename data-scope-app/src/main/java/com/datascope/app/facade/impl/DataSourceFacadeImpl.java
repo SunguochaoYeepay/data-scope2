@@ -8,7 +8,8 @@ import com.datascope.facade.datasource.dto.DataSourceDTO;
 import com.datascope.facade.datasource.dto.TestConnectionRequest;
 import com.datascope.facade.datasource.enums.DataSourceStatus;
 import com.datascope.facade.datasource.enums.DataSourceType;
-import lombok.RequiredArgsConstructor;
+import lombok.Setter;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -17,60 +18,62 @@ import java.util.List;
  * 数据源门面实现类
  */
 @Service
-@RequiredArgsConstructor
 public class DataSourceFacadeImpl implements DataSourceFacade {
 
-    private final DataSourceService service;
-    private final DataSourceConverter mapper;
+    @Setter(onMethod_ = @Autowired)
+    private DataSourceService dataSourceService;
+
+    @Setter(onMethod_ = @Autowired)
+    private DataSourceConverter dataSourceConverter;
 
     @Override
     public DataSourceDTO create(DataSourceDTO dto, String operator) {
-        DataSource entity = mapper.toEntity(dto);
-        entity = service.create(entity, operator);
-        return mapper.toDTO(entity);
+        DataSource entity = dataSourceConverter.toEntity(dto);
+        entity = dataSourceService.create(entity, operator);
+        return dataSourceConverter.toDTO(entity);
     }
 
     @Override
     public DataSourceDTO update(DataSourceDTO dto, String operator) {
-        DataSource entity = service.getById(dto.getId());
-        mapper.updateEntity(dto, entity);
-        entity = service.update(entity, operator);
-        return mapper.toDTO(entity);
+        DataSource entity = dataSourceService.getById(dto.getId());
+        dataSourceConverter.updateEntity(dto, entity);
+        entity = dataSourceService.update(entity, operator);
+        return dataSourceConverter.toDTO(entity);
     }
 
     @Override
     public DataSourceDTO getById(String id) {
-        return mapper.toDTO(service.getById(id));
+        return dataSourceConverter.toDTO(dataSourceService.getById(id));
     }
 
     @Override
     public DataSourceDTO getByName(String name) {
-        return mapper.toDTO(service.getByName(name));
+        return dataSourceConverter.toDTO(dataSourceService.getByName(name));
     }
 
     @Override
     public List<DataSourceDTO> getAll() {
-        return mapper.toDTOList(service.getAll());
+        return dataSourceConverter.toDTOList(dataSourceService.getAll());
     }
 
     @Override
     public void delete(String id, String operator) {
-        service.delete(id, operator);
+        dataSourceService.delete(id, operator);
     }
 
     @Override
     public DataSourceDTO activate(String id, String operator) {
-        return mapper.toDTO(service.activate(id, operator));
+        return dataSourceConverter.toDTO(dataSourceService.activate(id, operator));
     }
 
     @Override
     public DataSourceDTO deactivate(String id, String operator) {
-        return mapper.toDTO(service.deactivate(id, operator));
+        return dataSourceConverter.toDTO(dataSourceService.deactivate(id, operator));
     }
 
     @Override
     public boolean testConnection(String id) {
-        return service.testConnection(id);
+        return dataSourceService.testConnection(id);
     }
 
     @Override
@@ -85,37 +88,37 @@ public class DataSourceFacadeImpl implements DataSourceFacade {
         connectionInfo.setUsername(request.getUsername());
         connectionInfo.setPassword(request.getPassword());
 
-        return service.testConnection(connectionInfo);
+        return dataSourceService.testConnection(connectionInfo);
     }
 
     @Override
     public DataSourceDTO syncMetadata(String id, String operator) {
-        return mapper.toDTO(service.syncMetadata(id, operator));
+        return dataSourceConverter.toDTO(dataSourceService.syncMetadata(id, operator));
     }
 
     @Override
     public boolean checkNameExists(String name) {
-        return service.checkNameExists(name);
+        return dataSourceService.checkNameExists(name);
     }
 
     @Override
     public List<DataSourceDTO> searchByName(String nameLike) {
-        return mapper.toDTOList(service.searchByName(nameLike));
+        return dataSourceConverter.toDTOList(dataSourceService.searchByName(nameLike));
     }
 
     @Override
     public List<DataSourceDTO> getByType(DataSourceType type) {
-        return mapper.toDTOList(service.getByType(convertType(type)));
+        return dataSourceConverter.toDTOList(dataSourceService.getByType(convertType(type)));
     }
 
     @Override
     public List<DataSourceDTO> getByStatus(DataSourceStatus status) {
-        return mapper.toDTOList(service.getByStatus(convertStatus(status)));
+        return dataSourceConverter.toDTOList(dataSourceService.getByStatus(convertStatus(status)));
     }
 
     @Override
     public List<DataSourceDTO> getByTypeAndStatus(DataSourceType type, DataSourceStatus status) {
-        return mapper.toDTOList(service.getByTypeAndStatus(convertType(type), convertStatus(status)));
+        return dataSourceConverter.toDTOList(dataSourceService.getByTypeAndStatus(convertType(type), convertStatus(status)));
     }
 
     /**

@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+  <title>User Preferences - DataScope</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100">
+<!-- Navigation -->
+<nav class="bg-white shadow-lg">
+  <div class="max-w-7xl mx-auto px-4">
+    <div class="flex justify-between h-16">
+      <div class="flex">
+        <div class="flex-shrink-0 flex items-center">
+          <img alt="DataScope" class="h-8 w-auto" src="/images/logo.png">
+        </div>
+        <div class="hidden sm:ml-6 sm:flex sm:space-x-8">
+          <a class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
+             href="#">
+            Data Sources
+          </a>
+          <a class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
+             href="#">
+            Queries
+          </a>
+          <a class="border-indigo-500 text-gray-900 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
+             href="#">
+            Settings
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- Main Content -->
+<main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+  <!-- Header -->
+  <div class="md:flex md:items-center md:justify-between mb-6">
+    <div class="flex-1 min-w-0">
+      <h2 class="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate">
+        User Preferences
+      </h2>
+    </div>
+    <div class="mt-4 flex md:mt-0 md:ml-4 space-x-3">
+      <button class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              type="button">
+        <i class="fas fa-undo mr-2"></i>
+        Reset to Default
+      </button>
+      <button class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              type="button">
+        <i class="fas fa-save mr-2"></i>
+        Save Changes
+      </button>
+    </div>
+  </div>
+
+  <div class="bg-white shadow rounded-lg">
+    <div class="p-6 space-y-6">
+      <!-- Display Settings -->
+      <div>
+        <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Display Settings</h3>
+        <div class="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
+          <div class="sm:col-span-3">
+            <label class="block text-sm font-medium text-gray-700">
+              Theme
+            </label>
+            <select
+              class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
+              <option>Light</option>
+              <option>Dark</option>
+              <option>System Default</option>
+            </select>
+          </div>
+
+          <div class="sm:col-span-3">
+            <label class="block text-sm font-medium text-gray-700">
+              Default Page Size
+            </label>
+            <select
+              class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
+              <option>10</option>
+              <option>20</option>
+              <option>50</option>
+              <option>100</option>
+            </select>
+          </div>
+
+          <div class="sm:col-span-3">
+            <label class="block text-sm font-medium text-gray-700">
+              Date Format
+            </label>
+            <select
+              class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
+              <option>YYYY-MM-DD</option>
+              <option>MM/DD/YYYY</option>
+              <option>DD/MM/YYYY</option>
+            </select>
+          </div>
+
+          <div class="sm:col-span-3">
+            <label class="block text-sm font-medium text-gray-700">
+              Time Format
+            </label>
+            <select
+              class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
+              <option>24-hour</option>
+              <option>12-hour</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Query Settings -->
+      <div class="pt-6">
+        <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Query Settings</h3>
+        <div class="space-y-4">
+          <div class="flex items-start">
+            <div class="flex items-center h-5">
+              <input class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded" type="checkbox">
+            </div>
+            <div class="ml-3 text-sm">
+              <label class="font-medium text-gray-700">Auto-save Queries</label>
+              <p class="text-gray-500">Automatically save queries when executed</p>
+            </div>
+          </div>
+
+          <div class="flex items-start">
+            <div class="flex items-center h-5">
+              <input class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded" type="checkbox">
+            </div>
+            <div class="ml-3 text-sm">
+              <label class="font-medium text-gray-700">Show Query History</label>
+              <p class="text-gray-500">Display query history in the editor</p>
+            </div>
+          </div>
+
+          <div class="flex items-start">
+            <div class="flex items-center h-5">
+              <input class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded" type="checkbox">
+            </div>
+            <div class="ml-3 text-sm">
+              <label class="font-medium text-gray-700">Enable Query Suggestions</label>
+              <p class="text-gray-500">Show AI-powered query suggestions</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Export Settings -->
+      <div class="pt-6">
+        <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Export Settings</h3>
+        <div class="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
+          <div class="sm:col-span-3">
+            <label class="block text-sm font-medium text-gray-700">
+              Default Export Format
+            </label>
+            <select
+              class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
+              <option>CSV</option>
+              <option>Excel</option>
+              <option>JSON</option>
+            </select>
+          </div>
+
+          <div class="sm:col-span-3">
+            <label class="block text-sm font-medium text-gray-700">
+              CSV Delimiter
+            </label>
+            <select
+              class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
+              <option>,</option>
+              <option>;</option>
+              <option>|</option>
+              <option>Tab</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Notification Settings -->
+      <div class="pt-6">
+        <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Notification Settings</h3>
+        <div class="space-y-4">
+          <div class="flex items-start">
+            <div class="flex items-center h-5">
+              <input class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded" type="checkbox">
+            </div>
+            <div class="ml-3 text-sm">
+              <label class="font-medium text-gray-700">Query Completion</label>
+              <p class="text-gray-500">Notify when long-running queries complete</p>
+            </div>
+          </div>
+
+          <div class="flex items-start">
+            <div class="flex items-center h-5">
+              <input class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded" type="checkbox">
+            </div>
+            <div class="ml-3 text-sm">
+              <label class="font-medium text-gray-700">Data Source Updates</label>
+              <p class="text-gray-500">Notify when data sources are updated</p>
+            </div>
+          </div>
+
+          <div class="flex items-start">
+            <div class="flex items-center h-5">
+              <input class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded" type="checkbox">
+            </div>
+            <div class="ml-3 text-sm">
+              <label class="font-medium text-gray-700">System Notifications</label>
+              <p class="text-gray-500">Receive system maintenance and update notifications</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+</body>
+</html>

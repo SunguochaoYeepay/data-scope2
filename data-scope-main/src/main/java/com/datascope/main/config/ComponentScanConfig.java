@@ -8,11 +8,9 @@ import org.springframework.context.annotation.Configuration;
  */
 @Configuration
 @ComponentScan(basePackages = {
-    "com.datascope.domain",
-    "com.datascope.infrastructure.repository",
-    "com.datascope.infrastructure.service",
-    "com.datascope.infrastructure.adapter",
-    "com.datascope.infrastructure.external"
+    "com.datascope.domain.*",
+    "com.datascope.app.*",
+    "com.datascope.infrastructure.*"
 })
 public class ComponentScanConfig {
     // 配置类，无需额外方法
