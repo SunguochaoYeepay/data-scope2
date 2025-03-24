@@ -2,7 +2,7 @@ package com.datascope.app.facade.impl;
 
 import com.datascope.app.mapper.QueryMapper;
 import com.datascope.domain.query.model.QueryResult;
-import com.datascope.domain.query.service.QueryService;
+import com.datascope.domain.query.service.QueryExecutionService;
 import com.datascope.domain.query.service.SqlExecutionEngine;
 import com.datascope.facade.query.QueryFacade;
 import com.datascope.facade.query.dto.QueryDTO;
@@ -19,7 +19,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class QueryFacadeImpl implements QueryFacade {
 
-    private final QueryService service;
+    private final QueryExecutionService service;
     private final QueryMapper mapper;
     private final SqlExecutionEngine sqlExecutionEngine;
 

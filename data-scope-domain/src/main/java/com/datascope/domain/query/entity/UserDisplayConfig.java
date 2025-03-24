@@ -42,6 +42,7 @@ public class UserDisplayConfig {
 
     public UserDisplayConfig copy() {
         UserDisplayConfig copy = new UserDisplayConfig();
+        copy.userId = this.userId;
         copy.dataSourceId = this.dataSourceId;
         copy.tableName = this.tableName;
         copy.columnName = this.columnName;
@@ -56,7 +57,11 @@ public class UserDisplayConfig {
         copy.required = this.required;
         copy.maskType = this.maskType;
         copy.maskConfig = this.maskConfig;
-        copy.usageCount = 0;
+        copy.usageCount = this.usageCount;
+        copy.createdBy = this.createdBy;
+        copy.createdTime = this.createdTime;
+        copy.updatedBy = this.updatedBy;
+        copy.updatedTime = this.updatedTime;
         return copy;
     }
 

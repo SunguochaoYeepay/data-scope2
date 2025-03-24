@@ -82,7 +82,7 @@ public class UserDisplayConfigRepositoryImpl implements UserDisplayConfigReposit
         List<UserDisplayConfig> sourceConfigs = findByUserId(fromUserId);
         for (UserDisplayConfig config : sourceConfigs) {
             UserDisplayConfig newConfig = config.copy();
-            newConfig.setId(UUID.randomUUID().toString());
+            newConfig.setId(null);
             newConfig.setUserId(toUserId);
             newConfig.setUsageCount(0);
             newConfig.setLastUsedAt(null);

@@ -27,7 +27,7 @@ public class DataScopeApplication {
     }
 
     @Bean
-    public SqlExecutionEngine sqlExecutionEngine() {
-        return new SqlExecutionEngineImpl();
+    public QueryExecutionService sqlExecutionEngine() {
+        return new QueryExecutionServiceImpl(null);
     }
 }
