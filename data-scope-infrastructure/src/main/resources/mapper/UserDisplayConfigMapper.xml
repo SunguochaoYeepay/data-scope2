@@ -22,7 +22,7 @@
         <result column="sortable" property="sortable"/>
         <result column="sort_type" property="sortType"/>
         <result column="usage_count" property="usageCount"/>
-        <result column="last_used_at" property="lastUsedAt"/>
+        <result column="last_used_time" property="lastUsedTime"/>
         <result column="created_by" property="createdBy"/>
         <result column="created_time" property="createdTime"/>
         <result column="updated_by" property="updatedBy"/>
@@ -34,12 +34,12 @@
         INSERT INTO tbl_user_display_config (id, user_id, data_source_id, table_name, column_name, display_name,
                                          width, fixed_position, align_type, visible, display_order, searchable,
                                          required,
-                                         mask_type, mask_config, sortable, sort_type, usage_count, last_used_at,
+                                             mask_type, mask_config, sortable, sort_type, usage_count, last_used_time,
                                          created_by, created_time, updated_by, updated_time
         ) VALUES (
             #{id}, #{userId}, #{dataSourceId}, #{tableName}, #{columnName}, #{displayName},
             #{width}, #{fixed}, #{align}, #{visible}, #{order}, #{searchable}, #{required},
-            #{maskType}, #{maskConfig}, #{sortable}, #{sortType}, #{usageCount}, #{lastUsedAt},
+            #{maskType}, #{maskConfig}, #{sortable}, #{sortType}, #{usageCount}, #{lastUsedTime},
             #{createdBy}, #{createdTime}, #{updatedBy}, #{updatedTime}
         )
     </insert>
@@ -64,7 +64,7 @@
             sortable       = #{sortable},
             sort_type      = #{sortType},
             usage_count = #{usageCount},
-            last_used_at = #{lastUsedAt},
+            last_used_time = #{lastUsedTime},
             updated_by     = #{updatedBy},
             updated_time = #{updatedTime}
         WHERE id = #{id}
@@ -146,7 +146,7 @@
         INSERT INTO tbl_user_display_config (
         id, user_id, data_source_id, table_name, column_name, display_name,
         width, fixed_position, align_type, visible, display_order, searchable, required,
-        mask_type, mask_config, sortable, sort_type, usage_count, last_used_at,
+        mask_type, mask_config, sortable, sort_type, usage_count, last_used_time,
         created_by, created_time, updated_by, updated_time
         ) VALUES
         <foreach collection="configs" item="item" separator=",">
@@ -155,7 +155,7 @@
             #{item.columnName}, #{item.displayName}, #{item.width}, #{item.fixed},
             #{item.align}, #{item.visible}, #{item.order}, #{item.searchable},
             #{item.required}, #{item.maskType}, #{item.maskConfig}, #{item.sortable},
-            #{item.sortType}, #{item.usageCount}, #{item.lastUsedAt}, #{item.createdBy},
+            #{item.sortType}, #{item.usageCount}, #{item.lastUsedTime}, #{item.createdBy},
             #{item.createdTime}, #{item.updatedBy}, #{item.updatedTime}
             )
         </foreach>

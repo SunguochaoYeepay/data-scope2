@@ -34,7 +34,7 @@ public class UserDisplayConfig {
     private Boolean sortable;
     private String sortType;
     private Integer usageCount;
-    private LocalDateTime lastUsedAt;
+    private LocalDateTime lastUsedTime;
     private String createdBy;
     private LocalDateTime createdTime;
     private String updatedBy;

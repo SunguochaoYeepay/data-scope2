@@ -7,7 +7,7 @@ import org.mapstruct.factory.Mappers;
  * 枚举类型转换器
  * 用于Domain模块和Facade模块之间的枚举类型转换
  */
-@Mapper
+@Mapper(componentModel = "spring")
 public interface EnumConverter {
 
     EnumConverter INSTANCE = Mappers.getMapper(EnumConverter.class);

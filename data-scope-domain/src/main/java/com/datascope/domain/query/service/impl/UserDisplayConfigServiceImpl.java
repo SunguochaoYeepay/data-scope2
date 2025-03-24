@@ -99,7 +99,7 @@ public class UserDisplayConfigServiceImpl implements UserDisplayConfigService {
             config.setId(null);
             config.setUserId(toUserId);
             config.setUsageCount(0);
-            config.setLastUsedAt(null);
+            config.setLastUsedTime(null);
             repository.save(newConfig);
         }
     }
@@ -131,7 +131,7 @@ public class UserDisplayConfigServiceImpl implements UserDisplayConfigService {
     public void updateUsageStatistics(List<UserDisplayConfig> configs) {
         configs.forEach(config -> {
             config.setUsageCount(config.getUsageCount() + 1);
-            config.setLastUsedAt(LocalDateTime.now());
+            config.setLastUsedTime(LocalDateTime.now());
             repository.save(config);
         });
     }
@@ -142,7 +142,7 @@ public class UserDisplayConfigServiceImpl implements UserDisplayConfigService {
         repository.findById(id).ifPresent(config -> {
             config = config.copy();
             config.setUsageCount(config.getUsageCount() + 1);
-            config.setLastUsedAt(LocalDateTime.now());
+            config.setLastUsedTime(LocalDateTime.now());
             repository.save(config);
         });
     }

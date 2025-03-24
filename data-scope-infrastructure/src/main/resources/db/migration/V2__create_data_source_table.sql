@@ -10,14 +10,14 @@ CREATE TABLE tbl_data_source
     password_encrypted VARCHAR(255) NOT NULL,
     salt             VARCHAR(32)  NOT NULL,
     status           VARCHAR(20)  NOT NULL,
-    last_sync_at       TIMESTAMP,
+    last_sync_time TIMESTAMP,
     last_sync_status VARCHAR(20)  NOT NULL,
     last_sync_message  TEXT,
     remark             TEXT,
     nonce              INTEGER DEFAULT 1,
-    created_at         TIMESTAMP    NOT NULL,
+    created_time   TIMESTAMP NOT NULL,
     created_by       VARCHAR(36)  NOT NULL,
-    modified_at        TIMESTAMP    NOT NULL,
+    modified_time  TIMESTAMP NOT NULL,
     modified_by        VARCHAR(36)  NOT NULL,
     PRIMARY KEY (id)
 );

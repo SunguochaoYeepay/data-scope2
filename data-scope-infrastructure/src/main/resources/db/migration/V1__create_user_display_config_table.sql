@@ -17,7 +17,7 @@ CREATE TABLE tbl_user_display_config
     mask_type      VARCHAR(20),
     mask_config    TEXT,
     usage_count    INTEGER DEFAULT 0,
-    last_used_at   TIMESTAMP,
+    last_used_time TIMESTAMP,
     created_by     VARCHAR(36)  NOT NULL,
     created_time   TIMESTAMP    NOT NULL,
     updated_by     VARCHAR(36)  NOT NULL,

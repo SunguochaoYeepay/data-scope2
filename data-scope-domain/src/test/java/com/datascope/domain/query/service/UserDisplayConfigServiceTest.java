@@ -104,6 +104,6 @@ class UserDisplayConfigServiceTest {
         // Assert
         verify(repository).save(any(UserDisplayConfig.class));
         assertEquals(1, config.getUsageCount());
-        assertNotNull(config.getLastUsedAt());
+        assertNotNull(config.getLastUsedTime());
     }
 }

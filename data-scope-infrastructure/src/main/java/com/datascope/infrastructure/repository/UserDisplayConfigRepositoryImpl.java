@@ -88,7 +88,7 @@ public class UserDisplayConfigRepositoryImpl implements UserDisplayConfigReposit
             newConfig.setId(null);
             newConfig.setUserId(toUserId);
             newConfig.setUsageCount(0);
-            newConfig.setLastUsedAt(null);
+            newConfig.setLastUsedTime(null);
             save(newConfig);
         }
     }

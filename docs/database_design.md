@@ -23,9 +23,9 @@
 | sync_frequency     | varchar  | 100 | 是   |          | 同步调度Cron表达式      |
 | last_sync_time     | datetime |     | 是   |          | 最后同步时间           |
 | nonce              | int      |     | 否   | 0        | 乐观锁版本号           |
-| created_at         | datetime |     | 否   |          | 创建时间             |
+| created_time       | datetime |     | 否   |          | 创建时间             |
 | created_by         | varchar  | 100 | 否   |          | 创建人              |
-| modified_at        | datetime |     | 否   |          | 最后修改时间           |
+| modified_time      | datetime |     | 否   |          | 最后修改时间           |
 | modified_by        | varchar  | 100 | 否   |          | 最后修改人            |
 
 索引：
@@ -43,7 +43,7 @@
 | start_time     | datetime |     | 否   |     | 开始时间                 |
 | end_time       | datetime |     | 是   |     | 结束时间                 |
 | error_message  | text     |     | 是   |     | 错误信息                 |
-| created_at     | datetime |     | 否   |     | 创建时间                 |
+| created_time   | datetime |     | 否   |     | 创建时间                 |
 | created_by     | varchar  | 100 | 否   |     | 创建人                  |
 
 索引：
@@ -61,9 +61,9 @@
 | table_type     | varchar  | 20  | 否   |     | 表类型    |
 | description    | varchar  | 500 | 是   |     | 表描述    |
 | nonce          | int      |     | 否   | 0   | 乐观锁版本号 |
-| created_at     | datetime |     | 否   |     | 创建时间   |
+| created_time   | datetime |     | 否   |     | 创建时间   |
 | created_by     | varchar  | 100 | 否   |     | 创建人    |
-| modified_at    | datetime |     | 否   |     | 最后修改时间 |
+| modified_time  | datetime |     | 否   |     | 最后修改时间 |
 | modified_by    | varchar  | 100 | 否   |     | 最后修改人  |
 
 索引：
@@ -84,9 +84,9 @@
 | default_value     | varchar  | 100 | 是   |     | 默认值    |
 | description       | varchar  | 500 | 是   |     | 列描述    |
 | nonce             | int      |     | 否   | 0   | 乐观锁版本号 |
-| created_at        | datetime |     | 否   |     | 创建时间   |
+| created_time      | datetime |     | 否   |     | 创建时间   |
 | created_by        | varchar  | 100 | 否   |     | 创建人    |
-| modified_at       | datetime |     | 否   |     | 最后修改时间 |
+| modified_time     | datetime |     | 否   |     | 最后修改时间 |
 | modified_by       | varchar  | 100 | 否   |     | 最后修改人  |
 
 索引：
@@ -105,9 +105,9 @@
 | source_columns  | varchar  | 500 | 否   |     | 源表关联列(JSON)  |
 | target_columns  | varchar  | 500 | 否   |     | 目标表关联列(JSON) |
 | nonce           | int      |     | 否   | 0   | 乐观锁版本号       |
-| created_at      | datetime |     | 否   |     | 创建时间         |
+| created_time    | datetime |     | 否   |     | 创建时间         |
 | created_by      | varchar  | 100 | 否   |     | 创建人          |
-| modified_at     | datetime |     | 否   |     | 最后修改时间       |
+| modified_time   | datetime |     | 否   |     | 最后修改时间       |
 | modified_by     | varchar  | 100 | 否   |     | 最后修改人        |
 
 索引：
@@ -130,14 +130,14 @@
 | row_count      | int      |     | 否   |     | 结果行数         |
 | status         | varchar  | 20  | 否   |     | 执行状态         |
 | error_message  | text     |     | 是   |     | 错误信息         |
-| created_at     | datetime |     | 否   |     | 创建时间         |
+| created_time   | datetime |     | 否   |     | 创建时间         |
 | created_by     | varchar  | 100 | 否   |     | 创建人          |
 
 索引：
 
 - idx_query_history_ds_id (data_source_id)
 - idx_query_history_created_by (created_by)
-- idx_query_history_created_at (created_at)
+- idx_query_history_created_time (created_time)
 
 ### tbl_query_favorite（查询收藏）
 
@@ -150,9 +150,9 @@
 | query_text     | text     |     | 否   |     | 查询文本   |
 | description    | varchar  | 500 | 是   |     | 描述     |
 | nonce          | int      |     | 否   | 0   | 乐观锁版本号 |
-| created_at     | datetime |     | 否   |     | 创建时间   |
+| created_time   | datetime |     | 否   |     | 创建时间   |
 | created_by     | varchar  | 100 | 否   |     | 创建人    |
-| modified_at    | datetime |     | 否   |     | 最后修改时间 |
+| modified_time  | datetime |     | 否   |     | 最后修改时间 |
 | modified_by    | varchar  | 100 | 否   |     | 最后修改人  |
 
 索引：
@@ -175,9 +175,9 @@
 | status           | varchar  | 20  | 否   | DRAFT | 状态         |
 | description      | varchar  | 500 | 是   |       | 描述         |
 | nonce            | int      |     | 否   | 0     | 乐观锁版本号     |
-| created_at       | datetime |     | 否   |       | 创建时间       |
+| created_time     | datetime |     | 否   |       | 创建时间       |
 | created_by       | varchar  | 100 | 否   |       | 创建人        |
-| modified_at      | datetime |     | 否   |       | 最后修改时间     |
+| modified_time    | datetime |     | 否   |       | 最后修改时间     |
 | modified_by      | varchar  | 100 | 否   |       | 最后修改人      |
 
 索引：
@@ -196,9 +196,9 @@
 | preference_key   | varchar  | 100 | 否   |     | 偏好键       |
 | preference_value | text     |     | 否   |     | 偏好值(JSON) |
 | nonce            | int      |     | 否   | 0   | 乐观锁版本号    |
-| created_at       | datetime |     | 否   |     | 创建时间      |
+| created_time     | datetime |     | 否   |     | 创建时间      |
 | created_by       | varchar  | 100 | 否   |     | 创建人       |
-| modified_at      | datetime |     | 否   |     | 最后修改时间    |
+| modified_time    | datetime |     | 否   |     | 最后修改时间    |
 | modified_by      | varchar  | 100 | 否   |     | 最后修改人     |
 
 索引：

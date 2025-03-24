@@ -10,7 +10,7 @@ import java.util.List;
 /**
  * Facade mapper for user display configuration
  */
-@Mapper
+@Mapper(componentModel = "spring")
 public interface UserDisplayConfigConverter {
 
     UserDisplayConfigConverter INSTANCE = Mappers.getMapper(UserDisplayConfigConverter.class);

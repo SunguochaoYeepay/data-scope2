@@ -470,28 +470,28 @@ public class DataSourceRepositoryImpl implements DataSourceRepository {
         <result property="password" column="password_encrypted"/>
         <result property="salt" column="salt"/>
         <result property="status" column="status"/>
-        <result property="lastSyncAt" column="last_sync_at"/>
+      <result property="lastSyncAt" column="last_sync_time"/>
         <result property="lastSyncStatus" column="last_sync_status"/>
         <result property="lastSyncMessage" column="last_sync_message"/>
         <result property="remark" column="remark"/>
         <result property="nonce" column="nonce"/>
-        <result property="createdAt" column="created_at"/>
+      <result property="createdAt" column="created_time"/>
         <result property="createdBy" column="created_by"/>
-        <result property="modifiedAt" column="modified_at"/>
+      <result property="modifiedAt" column="modified_time"/>
         <result property="modifiedBy" column="modified_by"/>
     </resultMap>
     
     <sql id="baseColumns">
         id, name, type, host, port, database_name, username, password_encrypted, salt,
-        status, last_sync_at, last_sync_status, last_sync_message, remark,
-        nonce, created_at, created_by, modified_at, modified_by
+      status, last_sync_time, last_sync_status, last_sync_message, remark,
+      nonce, created_time, created_by, modified_time, modified_by
     </sql>
     
     <insert id="insert" parameterType="com.datascope.domain.datasource.entity.DataSource">
         INSERT INTO tbl_data_source (
             id, name, type, host, port, database_name, username, password_encrypted, salt,
-            status, last_sync_at, last_sync_status, last_sync_message, remark,
-            nonce, created_at, created_by, modified_at, modified_by
+      status, last_sync_time, last_sync_status, last_sync_message, remark,
+      nonce, created_time, created_by, modified_time, modified_by
         ) VALUES (
             #{id}, #{name}, #{type}, #{host}, #{port}, #{database}, #{username}, #{password}, #{salt},
             #{status}, #{lastSyncAt}, #{lastSyncStatus}, #{lastSyncMessage}, #{remark},
@@ -510,12 +510,12 @@ public class DataSourceRepositoryImpl implements DataSourceRepository {
             password_encrypted = #{password},
             salt = #{salt},
             status = #{status},
-            last_sync_at = #{lastSyncAt},
+      last_sync_time = #{lastSyncAt},
             last_sync_status = #{lastSyncStatus},
             last_sync_message = #{lastSyncMessage},
             remark = #{remark},
             nonce = #{nonce},
-            modified_at = #{modifiedAt},
+      modified_time = #{modifiedAt},
             modified_by = #{modifiedBy}
         WHERE id = #{id}
     </update>

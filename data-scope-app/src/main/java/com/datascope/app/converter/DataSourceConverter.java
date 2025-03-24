@@ -12,7 +12,7 @@ import java.util.List;
 /**
  * 数据源实体映射器
  */
-@Mapper
+@Mapper(componentModel = "spring")
 public interface DataSourceConverter {
 
     DataSourceConverter INSTANCE = Mappers.getMapper(DataSourceConverter.class);
@@ -27,7 +27,7 @@ public interface DataSourceConverter {
     @Mapping(target = "createdBy", ignore = true)
     @Mapping(target = "updatedTime", ignore = true)
     @Mapping(target = "updatedBy", ignore = true)
-    @Mapping(target = "lastSyncAt", ignore = true)
+    @Mapping(target = "lastSyncTime", ignore = true)
     @Mapping(target = "lastSyncStatus", ignore = true)
     @Mapping(target = "lastSyncMessage", ignore = true)
     @Mapping(target = "remark", ignore = true)
@@ -53,7 +53,7 @@ public interface DataSourceConverter {
     @Mapping(target = "createdBy", ignore = true)
     @Mapping(target = "updatedTime", ignore = true)
     @Mapping(target = "updatedBy", ignore = true)
-    @Mapping(target = "lastSyncAt", ignore = true)
+    @Mapping(target = "lastSyncTime", ignore = true)
     @Mapping(target = "lastSyncStatus", ignore = true)
     @Mapping(target = "lastSyncMessage", ignore = true)
     @Mapping(target = "remark", ignore = true)
