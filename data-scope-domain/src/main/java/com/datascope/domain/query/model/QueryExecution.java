@@ -17,7 +17,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @EqualsAndHashCode(of = "id")
 public class QueryExecution {
-    private UUID id;
+    private String id;
     private DataSourceId dataSourceId;
     private String sql;
     private Map<String, Object> parameters;
@@ -29,7 +29,7 @@ public class QueryExecution {
     private String userId;
 
     public QueryExecution(DataSourceId dataSourceId, String sql, Map<String, Object> parameters) {
-        this.id = UUID.randomUUID();
+        this.id = UUID.randomUUID().toString();
         this.dataSourceId = dataSourceId;
         this.sql = sql;
         this.parameters = parameters;

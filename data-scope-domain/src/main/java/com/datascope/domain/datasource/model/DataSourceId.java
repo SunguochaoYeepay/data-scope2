@@ -6,9 +6,9 @@ import java.util.UUID;
  * 数据源ID值对象
  */
 public class DataSourceId {
-    private final UUID value;
+    private final String value;
 
-    public DataSourceId(UUID value) {
+    public DataSourceId(String value) {
         if (value == null) {
             throw new IllegalArgumentException("DataSource ID cannot be null");
         }
@@ -16,18 +16,14 @@ public class DataSourceId {
     }
 
     public static DataSourceId create() {
-        return new DataSourceId(UUID.randomUUID());
-    }
-
-    public static DataSourceId of(UUID value) {
-        return new DataSourceId(value);
+        return new DataSourceId(UUID.randomUUID().toString());
     }
 
     public static DataSourceId of(String value) {
-        return new DataSourceId(UUID.fromString(value));
+        return new DataSourceId(value);
     }
 
-    public UUID getValue() {
+    public String getValue() {
         return value;
     }
 
@@ -46,6 +42,6 @@ public class DataSourceId {
 
     @Override
     public String toString() {
-        return value.toString();
+        return value;
     }
 }

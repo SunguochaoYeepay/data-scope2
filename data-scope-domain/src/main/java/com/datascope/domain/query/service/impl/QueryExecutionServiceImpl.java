@@ -12,7 +12,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.UUID;
 
 /**
  * 查询执行服务实现
@@ -65,7 +64,7 @@ public class QueryExecutionServiceImpl implements QueryExecutionService {
     }
 
     @Override
-    public Optional<QueryExecution> getById(UUID id) {
+    public Optional<QueryExecution> getById(String id) {
         return queryExecutionRepository.findById(id);
     }
 
@@ -76,7 +75,7 @@ public class QueryExecutionServiceImpl implements QueryExecutionService {
 
     @Override
     @Transactional
-    public void cancel(UUID id) {
+    public void cancel(String id) {
         Optional<QueryExecution> execution = queryExecutionRepository.findById(id);
         if (execution.isPresent()) {
             // TODO: 实际取消查询执行
@@ -86,7 +85,7 @@ public class QueryExecutionServiceImpl implements QueryExecutionService {
     }
 
     @Override
-    public String exportResult(UUID id, String format) {
+    public String exportResult(String id, String format) {
         Optional<QueryExecution> execution = queryExecutionRepository.findById(id);
         if (execution.isPresent()) {
             // TODO: 实现导出逻辑

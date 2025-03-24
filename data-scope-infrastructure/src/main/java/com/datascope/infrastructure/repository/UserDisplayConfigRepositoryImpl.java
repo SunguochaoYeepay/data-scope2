@@ -3,6 +3,7 @@ package com.datascope.infrastructure.repository;
 import com.datascope.domain.query.entity.UserDisplayConfig;
 import com.datascope.domain.query.repository.UserDisplayConfigRepository;
 import com.datascope.infrastructure.mybatis.mapper.UserDisplayConfigMapper;
+import lombok.Getter;
 import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
@@ -12,6 +13,8 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Repository
+@Getter
+@Setter
 public class UserDisplayConfigRepositoryImpl implements UserDisplayConfigRepository {
 
     @Setter(onMethod_ = @Autowired)

@@ -33,6 +33,11 @@ public class QueryDTO {
     /**
      * SQL语句
      */
+    private String queryText;
+
+    /**
+     * SQL语句
+     */
     @NotBlank(message = "SQL语句不能为空")
     private String sql;
 

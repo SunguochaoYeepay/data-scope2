@@ -1,5 +1,7 @@
 package com.datascope.main;
 
+import com.datascope.domain.query.service.QueryExecutionService;
+import com.datascope.domain.query.service.impl.QueryExecutionServiceImpl;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

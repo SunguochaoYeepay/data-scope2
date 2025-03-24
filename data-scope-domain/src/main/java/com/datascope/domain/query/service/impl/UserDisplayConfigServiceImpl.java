@@ -108,7 +108,6 @@ public class UserDisplayConfigServiceImpl implements UserDisplayConfigService {
     @Transactional
     public UserDisplayConfig create(UserDisplayConfig config, String operator) {
         LocalDateTime now = LocalDateTime.now();
-        config = config.copy();
         config.setId(UUID.randomUUID().toString());
         config.setCreatedBy(operator);
         config.setCreatedTime(now);

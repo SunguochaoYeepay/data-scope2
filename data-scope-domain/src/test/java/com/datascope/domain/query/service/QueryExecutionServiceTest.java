@@ -55,8 +55,8 @@ class QueryExecutionServiceTest {
     @Test
     void getById_ShouldReturnExecution() {
         // Given
-        UUID id = UUID.randomUUID();
-        UUID dataSourceId = UUID.randomUUID();
+        String id = UUID.randomUUID().toString();
+        String dataSourceId = UUID.randomUUID().toString();
         QueryExecution execution = new QueryExecution(
             DataSourceId.of(dataSourceId.toString()),
             "SELECT 1",
@@ -78,7 +78,7 @@ class QueryExecutionServiceTest {
         // Given
         String userId = "test-user";
         int limit = 10;
-        UUID dataSourceId = UUID.randomUUID();
+        String dataSourceId = UUID.randomUUID().toString();
         QueryExecution execution = new QueryExecution(
             DataSourceId.of(dataSourceId.toString()),
             "SELECT 1",
@@ -99,8 +99,8 @@ class QueryExecutionServiceTest {
     @Test
     void cancel_ShouldMarkExecutionAsFailed() {
         // Given
-        UUID id = UUID.randomUUID();
-        UUID dataSourceId = UUID.randomUUID();
+        String id = UUID.randomUUID().toString();
+        String dataSourceId = UUID.randomUUID().toString();
         QueryExecution execution = new QueryExecution(
             DataSourceId.of(dataSourceId.toString()),
             "SELECT 1",

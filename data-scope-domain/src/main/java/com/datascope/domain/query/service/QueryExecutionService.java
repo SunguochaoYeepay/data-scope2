@@ -5,7 +5,6 @@ import com.datascope.domain.query.model.QueryExecution;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.UUID;
 
 /**
  * 查询执行服务接口
@@ -36,7 +35,7 @@ public interface QueryExecutionService {
      * @param id 查询执行记录ID
      * @return 查询执行记录
      */
-    Optional<QueryExecution> getById(UUID id);
+    Optional<QueryExecution> getById(String id);
 
     /**
      * 获取用户最近的查询记录
@@ -52,7 +51,7 @@ public interface QueryExecutionService {
      *
      * @param id 查询执行记录ID
      */
-    void cancel(UUID id);
+    void cancel(String id);
 
     /**
      * 导出查询结果
@@ -61,5 +60,5 @@ public interface QueryExecutionService {
      * @param format 导出格式
      * @return 导出文件路径
      */
-    String exportResult(UUID id, String format);
+    String exportResult(String id, String format);
 }
