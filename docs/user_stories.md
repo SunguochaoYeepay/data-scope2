@@ -1,3 +1,5 @@
+> **Note**: This document is deprecated. Please use the updated version at [User Stories](user_stories.md).
+
 # DataScope 用户故事
 
 ## 数据源管理

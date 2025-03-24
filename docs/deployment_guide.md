@@ -1,3 +1,5 @@
+> **Note**: This document is deprecated. Please use the updated version at [Deployment Guide](deployment_guide.md).
+
 # DataScope 部署指南
 
 ## 系统要求

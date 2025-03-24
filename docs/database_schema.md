@@ -1,329 +1,225 @@
-# Database Schema Design
+> **Note**: This document is deprecated. Please use the updated version at [Database Design](database_design.md).
 
-## Overview
-This document outlines the database schema design for the DataScope system, including tables, relationships, and indexes.
+# DataScope Database Schema Design
 
-## Core Tables
+## Data Source Management
 
-### Data Sources (tbl_data_source)
+### tbl_data_source
+
+Data source configuration table
 ```sql
 CREATE TABLE tbl_data_source (
-    id VARCHAR(36) NOT NULL,
-    name VARCHAR(100) NOT NULL,
-    type VARCHAR(50) NOT NULL,  -- MYSQL, DB2
-    host VARCHAR(255) NOT NULL,
-    port INT NOT NULL,
-    database_name VARCHAR(100) NOT NULL,
-    schema_name VARCHAR(100),
-    username VARCHAR(100) NOT NULL,
-    password_encrypted VARCHAR(255) NOT NULL,
-    description TEXT,
-    connection_timeout INT DEFAULT 30,
-    max_pool_size INT DEFAULT 10,
-    auto_sync BOOLEAN DEFAULT true,
-    nonce INT DEFAULT 0,
-    created_at TIMESTAMP NOT NULL,
-    created_by VARCHAR(100) NOT NULL,
-    modified_at TIMESTAMP NOT NULL,
-    modified_by VARCHAR(100) NOT NULL,
+    id VARCHAR(36) NOT NULL COMMENT 'Primary key',
+    name VARCHAR(100) NOT NULL COMMENT 'Data source name',
+    type VARCHAR(20) NOT NULL COMMENT 'Data source type: MYSQL, DB2',
+    host VARCHAR(255) NOT NULL COMMENT 'Host address',
+    port INT NOT NULL COMMENT 'Port number',
+    database_name VARCHAR(100) NOT NULL COMMENT 'Database name',
+    username VARCHAR(100) NOT NULL COMMENT 'Username',
+    password VARCHAR(255) NOT NULL COMMENT 'Encrypted password',
+    password_salt VARCHAR(36) NOT NULL COMMENT 'Password salt',
+    status VARCHAR(20) NOT NULL COMMENT 'Status: ACTIVE, INACTIVE',
+    description TEXT COMMENT 'Description',
+    nonce INT NOT NULL DEFAULT 0 COMMENT 'Optimistic lock version',
+    created_at DATETIME NOT NULL COMMENT 'Create time',
+    created_by VARCHAR(36) NOT NULL COMMENT 'Creator',
+    modified_at DATETIME NOT NULL COMMENT 'Last modify time',
+    modified_by VARCHAR(36) NOT NULL COMMENT 'Last modifier',
     PRIMARY KEY (id),
-    CONSTRAINT u_idx_data_source_name UNIQUE (name)
-);
+    UNIQUE KEY u_idx_name (name)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Data source configuration';
 ```
 
-### Metadata Tables (tbl_table_metadata)
+### tbl_metadata_sync_history
+
+Metadata synchronization history
 ```sql
-CREATE TABLE tbl_table_metadata (
-    id VARCHAR(36) NOT NULL,
-    data_source_id VARCHAR(36) NOT NULL,
-    schema_name VARCHAR(100) NOT NULL,
-    table_name VARCHAR(100) NOT NULL,
-    table_type VARCHAR(50) NOT NULL,  -- TABLE, VIEW
-    description TEXT,
-    row_count BIGINT,
-    size_bytes BIGINT,
-    nonce INT DEFAULT 0,
-    created_at TIMESTAMP NOT NULL,
-    created_by VARCHAR(100) NOT NULL,
-    modified_at TIMESTAMP NOT NULL,
-    modified_by VARCHAR(100) NOT NULL,
+CREATE TABLE tbl_metadata_sync_history (
+    id VARCHAR(36) NOT NULL COMMENT 'Primary key',
+    data_source_id VARCHAR(36) NOT NULL COMMENT 'Data source ID',
+    sync_type VARCHAR(20) NOT NULL COMMENT 'Sync type: FULL, INCREMENTAL',
+    status VARCHAR(20) NOT NULL COMMENT 'Status: SUCCESS, FAILED',
+    start_time DATETIME NOT NULL COMMENT 'Start time',
+    end_time DATETIME COMMENT 'End time',
+    error_message TEXT COMMENT 'Error message',
+    created_at DATETIME NOT NULL COMMENT 'Create time',
+    created_by VARCHAR(36) NOT NULL COMMENT 'Creator',
     PRIMARY KEY (id),
-    CONSTRAINT u_idx_table_metadata UNIQUE (data_source_id, schema_name, table_name),
-    CONSTRAINT fk_table_metadata_data_source FOREIGN KEY (data_source_id) 
-        REFERENCES tbl_data_source(id)
-);
-
-CREATE TABLE tbl_column_metadata (
-    id VARCHAR(36) NOT NULL,
-    table_metadata_id VARCHAR(36) NOT NULL,
-    column_name VARCHAR(100) NOT NULL,
-    data_type VARCHAR(50) NOT NULL,
-    column_type VARCHAR(100) NOT NULL,
-    is_nullable BOOLEAN NOT NULL,
-    is_primary_key BOOLEAN NOT NULL,
-    is_foreign_key BOOLEAN NOT NULL,
-    column_default TEXT,
-    description TEXT,
-    ordinal_position INT NOT NULL,
-    nonce INT DEFAULT 0,
-    created_at TIMESTAMP NOT NULL,
-    created_by VARCHAR(100) NOT NULL,
-    modified_at TIMESTAMP NOT NULL,
-    modified_by VARCHAR(100) NOT NULL,
-    PRIMARY KEY (id),
-    CONSTRAINT u_idx_column_metadata UNIQUE (table_metadata_id, column_name),
-    CONSTRAINT fk_column_metadata_table FOREIGN KEY (table_metadata_id) 
-        REFERENCES tbl_table_metadata(id)
-);
-
-CREATE TABLE tbl_index_metadata (
-    id VARCHAR(36) NOT NULL,
-    table_metadata_id VARCHAR(36) NOT NULL,
-    index_name VARCHAR(100) NOT NULL,
-    index_type VARCHAR(50) NOT NULL,  -- BTREE, HASH
-    is_unique BOOLEAN NOT NULL,
-    description TEXT,
-    nonce INT DEFAULT 0,
-    created_at TIMESTAMP NOT NULL,
-    created_by VARCHAR(100) NOT NULL,
-    modified_at TIMESTAMP NOT NULL,
-    modified_by VARCHAR(100) NOT NULL,
-    PRIMARY KEY (id),
-    CONSTRAINT u_idx_index_metadata UNIQUE (table_metadata_id, index_name),
-    CONSTRAINT fk_index_metadata_table FOREIGN KEY (table_metadata_id) 
-        REFERENCES tbl_table_metadata(id)
-);
-
-CREATE TABLE tbl_index_column (
-    id VARCHAR(36) NOT NULL,
-    index_metadata_id VARCHAR(36) NOT NULL,
-    column_metadata_id VARCHAR(36) NOT NULL,
-    ordinal_position INT NOT NULL,
-    sort_order VARCHAR(4) NOT NULL,  -- ASC, DESC
-    nonce INT DEFAULT 0,
-    created_at TIMESTAMP NOT NULL,
-    created_by VARCHAR(100) NOT NULL,
-    modified_at TIMESTAMP NOT NULL,
-    modified_by VARCHAR(100) NOT NULL,
-    PRIMARY KEY (id),
-    CONSTRAINT u_idx_index_column UNIQUE (index_metadata_id, column_metadata_id),
-    CONSTRAINT fk_index_column_index FOREIGN KEY (index_metadata_id) 
-        REFERENCES tbl_index_metadata(id),
-    CONSTRAINT fk_index_column_column FOREIGN KEY (column_metadata_id) 
-        REFERENCES tbl_column_metadata(id)
-);
+    KEY idx_data_source_id (data_source_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Metadata sync history';
 ```
 
-### Table Relations (tbl_table_relation)
+## Schema Management
+
+### tbl_schema
+
+Schema information
+
 ```sql
-CREATE TABLE tbl_table_relation (
-    id VARCHAR(36) NOT NULL,
-    source_table_id VARCHAR(36) NOT NULL,
-    target_table_id VARCHAR(36) NOT NULL,
-    relation_type VARCHAR(50) NOT NULL,  -- FK, INFERRED
-    confidence DECIMAL(5,2),  -- For inferred relations
-    description TEXT,
-    nonce INT DEFAULT 0,
-    created_at TIMESTAMP NOT NULL,
-    created_by VARCHAR(100) NOT NULL,
-    modified_at TIMESTAMP NOT NULL,
-    modified_by VARCHAR(100) NOT NULL,
+CREATE TABLE tbl_schema (
+    id VARCHAR(36) NOT NULL COMMENT 'Primary key',
+    data_source_id VARCHAR(36) NOT NULL COMMENT 'Data source ID',
+    name VARCHAR(100) NOT NULL COMMENT 'Schema name',
+    description TEXT COMMENT 'Description',
+    nonce INT NOT NULL DEFAULT 0 COMMENT 'Optimistic lock version',
+    created_at DATETIME NOT NULL COMMENT 'Create time',
+    created_by VARCHAR(36) NOT NULL COMMENT 'Creator',
+    modified_at DATETIME NOT NULL COMMENT 'Last modify time',
+    modified_by VARCHAR(36) NOT NULL COMMENT 'Last modifier',
     PRIMARY KEY (id),
-    CONSTRAINT u_idx_table_relation UNIQUE (source_table_id, target_table_id, relation_type),
-    CONSTRAINT fk_relation_source_table FOREIGN KEY (source_table_id) 
-        REFERENCES tbl_table_metadata(id),
-    CONSTRAINT fk_relation_target_table FOREIGN KEY (target_table_id) 
-        REFERENCES tbl_table_metadata(id)
-);
-
-CREATE TABLE tbl_column_relation (
-    id VARCHAR(36) NOT NULL,
-    table_relation_id VARCHAR(36) NOT NULL,
-    source_column_id VARCHAR(36) NOT NULL,
-    target_column_id VARCHAR(36) NOT NULL,
-    nonce INT DEFAULT 0,
-    created_at TIMESTAMP NOT NULL,
-    created_by VARCHAR(100) NOT NULL,
-    modified_at TIMESTAMP NOT NULL,
-    modified_by VARCHAR(100) NOT NULL,
-    PRIMARY KEY (id),
-    CONSTRAINT u_idx_column_relation UNIQUE (table_relation_id, source_column_id, target_column_id),
-    CONSTRAINT fk_column_relation_table_relation FOREIGN KEY (table_relation_id) 
-        REFERENCES tbl_table_relation(id),
-    CONSTRAINT fk_column_relation_source FOREIGN KEY (source_column_id) 
-        REFERENCES tbl_column_metadata(id),
-    CONSTRAINT fk_column_relation_target FOREIGN KEY (target_column_id) 
-        REFERENCES tbl_column_metadata(id)
-);
+    UNIQUE KEY u_idx_ds_name (data_source_id, name)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Schema information';
 ```
 
-### Queries (tbl_query)
+### tbl_table
+
+Table information
+
+```sql
+CREATE TABLE tbl_table (
+    id VARCHAR(36) NOT NULL COMMENT 'Primary key',
+    schema_id VARCHAR(36) NOT NULL COMMENT 'Schema ID',
+    name VARCHAR(100) NOT NULL COMMENT 'Table name',
+    description TEXT COMMENT 'Description',
+    nonce INT NOT NULL DEFAULT 0 COMMENT 'Optimistic lock version',
+    created_at DATETIME NOT NULL COMMENT 'Create time',
+    created_by VARCHAR(36) NOT NULL COMMENT 'Creator',
+    modified_at DATETIME NOT NULL COMMENT 'Last modify time',
+    modified_by VARCHAR(36) NOT NULL COMMENT 'Last modifier',
+    PRIMARY KEY (id),
+    UNIQUE KEY u_idx_schema_name (schema_id, name)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Table information';
+```
+
+### tbl_column
+
+Column information
+```sql
+CREATE TABLE tbl_column (
+    id VARCHAR(36) NOT NULL COMMENT 'Primary key',
+    table_id VARCHAR(36) NOT NULL COMMENT 'Table ID',
+    name VARCHAR(100) NOT NULL COMMENT 'Column name',
+    data_type VARCHAR(50) NOT NULL COMMENT 'Data type',
+    length INT COMMENT 'Length',
+    precision INT COMMENT 'Precision',
+    scale INT COMMENT 'Scale',
+    nullable BOOLEAN NOT NULL COMMENT 'Nullable',
+    is_primary_key BOOLEAN NOT NULL COMMENT 'Is primary key',
+    description TEXT COMMENT 'Description',
+    nonce INT NOT NULL DEFAULT 0 COMMENT 'Optimistic lock version',
+    created_at DATETIME NOT NULL COMMENT 'Create time',
+    created_by VARCHAR(36) NOT NULL COMMENT 'Creator',
+    modified_at DATETIME NOT NULL COMMENT 'Last modify time',
+    modified_by VARCHAR(36) NOT NULL COMMENT 'Last modifier',
+    PRIMARY KEY (id),
+    UNIQUE KEY u_idx_table_name (table_id, name)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Column information';
+```
+
+## Query Management
+
+### tbl_query
+
+Query information
 ```sql
 CREATE TABLE tbl_query (
-    id VARCHAR(36) NOT NULL,
-    name VARCHAR(100) NOT NULL,
-    description TEXT,
-    data_source_id VARCHAR(36) NOT NULL,
-    sql_text TEXT NOT NULL,
-    version INT NOT NULL DEFAULT 1,
-    is_active BOOLEAN DEFAULT true,
-    nonce INT DEFAULT 0,
-    created_at TIMESTAMP NOT NULL,
-    created_by VARCHAR(100) NOT NULL,
-    modified_at TIMESTAMP NOT NULL,
-    modified_by VARCHAR(100) NOT NULL,
+    id VARCHAR(36) NOT NULL COMMENT 'Primary key',
+    name VARCHAR(100) NOT NULL COMMENT 'Query name',
+    description TEXT COMMENT 'Description',
+    data_source_id VARCHAR(36) NOT NULL COMMENT 'Data source ID',
+    sql_content TEXT NOT NULL COMMENT 'SQL content',
+    version INT NOT NULL COMMENT 'Version number',
+    status VARCHAR(20) NOT NULL COMMENT 'Status: DRAFT, PUBLISHED',
+    nonce INT NOT NULL DEFAULT 0 COMMENT 'Optimistic lock version',
+    created_at DATETIME NOT NULL COMMENT 'Create time',
+    created_by VARCHAR(36) NOT NULL COMMENT 'Creator',
+    modified_at DATETIME NOT NULL COMMENT 'Last modify time',
+    modified_by VARCHAR(36) NOT NULL COMMENT 'Last modifier',
     PRIMARY KEY (id),
-    CONSTRAINT fk_query_data_source FOREIGN KEY (data_source_id) 
-        REFERENCES tbl_data_source(id)
-);
-
-CREATE TABLE tbl_query_version (
-    id VARCHAR(36) NOT NULL,
-    query_id VARCHAR(36) NOT NULL,
-    version INT NOT NULL,
-    sql_text TEXT NOT NULL,
-    change_notes TEXT,
-    nonce INT DEFAULT 0,
-    created_at TIMESTAMP NOT NULL,
-    created_by VARCHAR(100) NOT NULL,
-    modified_at TIMESTAMP NOT NULL,
-    modified_by VARCHAR(100) NOT NULL,
-    PRIMARY KEY (id),
-    CONSTRAINT u_idx_query_version UNIQUE (query_id, version),
-    CONSTRAINT fk_query_version_query FOREIGN KEY (query_id) 
-        REFERENCES tbl_query(id)
-);
-
-CREATE TABLE tbl_query_parameter (
-    id VARCHAR(36) NOT NULL,
-    query_id VARCHAR(36) NOT NULL,
-    name VARCHAR(100) NOT NULL,
-    data_type VARCHAR(50) NOT NULL,
-    is_required BOOLEAN DEFAULT false,
-    default_value TEXT,
-    description TEXT,
-    nonce INT DEFAULT 0,
-    created_at TIMESTAMP NOT NULL,
-    created_by VARCHAR(100) NOT NULL,
-    modified_at TIMESTAMP NOT NULL,
-    modified_by VARCHAR(100) NOT NULL,
-    PRIMARY KEY (id),
-    CONSTRAINT u_idx_query_parameter UNIQUE (query_id, name),
-    CONSTRAINT fk_query_parameter_query FOREIGN KEY (query_id) 
-        REFERENCES tbl_query(id)
-);
+    KEY idx_creator (created_by)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Query information';
 ```
 
-### Query History (tbl_query_history)
+### tbl_query_history
+
+Query execution history
 ```sql
 CREATE TABLE tbl_query_history (
-    id VARCHAR(36) NOT NULL,
-    query_id VARCHAR(36),  -- NULL for ad-hoc queries
-    sql_text TEXT NOT NULL,
-    parameters TEXT,  -- JSON format
-    execution_time BIGINT,  -- in milliseconds
-    row_count INT,
-    status VARCHAR(50) NOT NULL,  -- SUCCESS, FAILED, CANCELLED
-    error_message TEXT,
-    created_at TIMESTAMP NOT NULL,
-    created_by VARCHAR(100) NOT NULL,
+    id VARCHAR(36) NOT NULL COMMENT 'Primary key',
+    query_id VARCHAR(36) COMMENT 'Query ID',
+    data_source_id VARCHAR(36) NOT NULL COMMENT 'Data source ID',
+    sql_content TEXT NOT NULL COMMENT 'SQL content',
+    execution_time BIGINT NOT NULL COMMENT 'Execution time (ms)',
+    row_count INT NOT NULL COMMENT 'Result row count',
+    status VARCHAR(20) NOT NULL COMMENT 'Status: SUCCESS, FAILED',
+    error_message TEXT COMMENT 'Error message',
+    created_at DATETIME NOT NULL COMMENT 'Create time',
+    created_by VARCHAR(36) NOT NULL COMMENT 'Creator',
     PRIMARY KEY (id),
-    CONSTRAINT fk_query_history_query FOREIGN KEY (query_id) 
-        REFERENCES tbl_query(id)
-);
+    KEY idx_query_id (query_id),
+    KEY idx_creator (created_by)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Query execution history';
 ```
 
-### User Preferences (tbl_user_preference)
+### tbl_table_relationship
+
+Table relationship information
+```sql
+CREATE TABLE tbl_table_relationship (
+    id VARCHAR(36) NOT NULL COMMENT 'Primary key',
+    source_table_id VARCHAR(36) NOT NULL COMMENT 'Source table ID',
+    target_table_id VARCHAR(36) NOT NULL COMMENT 'Target table ID',
+    source_column_id VARCHAR(36) NOT NULL COMMENT 'Source column ID',
+    target_column_id VARCHAR(36) NOT NULL COMMENT 'Target column ID',
+    relationship_type VARCHAR(20) NOT NULL COMMENT 'Type: MANUAL, AUTO_DETECTED',
+    confidence DECIMAL(5,2) COMMENT 'Confidence score for auto-detected relationships',
+    nonce INT NOT NULL DEFAULT 0 COMMENT 'Optimistic lock version',
+    created_at DATETIME NOT NULL COMMENT 'Create time',
+    created_by VARCHAR(36) NOT NULL COMMENT 'Creator',
+    modified_at DATETIME NOT NULL COMMENT 'Last modify time',
+    modified_by VARCHAR(36) NOT NULL COMMENT 'Last modifier',
+    PRIMARY KEY (id),
+    UNIQUE KEY u_idx_relationship (source_table_id, target_table_id, source_column_id, target_column_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Table relationship information';
+```
+
+## Display Configuration
+
+### tbl_display_config
+
+Display configuration
+```sql
+CREATE TABLE tbl_display_config (
+    id VARCHAR(36) NOT NULL COMMENT 'Primary key',
+    query_id VARCHAR(36) NOT NULL COMMENT 'Query ID',
+    display_type VARCHAR(20) NOT NULL COMMENT 'Display type: FORM, TABLE, CHART',
+    config_content JSON NOT NULL COMMENT 'Configuration content',
+    is_default BOOLEAN NOT NULL COMMENT 'Is default configuration',
+    nonce INT NOT NULL DEFAULT 0 COMMENT 'Optimistic lock version',
+    created_at DATETIME NOT NULL COMMENT 'Create time',
+    created_by VARCHAR(36) NOT NULL COMMENT 'Creator',
+    modified_at DATETIME NOT NULL COMMENT 'Last modify time',
+    modified_by VARCHAR(36) NOT NULL COMMENT 'Last modifier',
+    PRIMARY KEY (id),
+    KEY idx_query_id (query_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Display configuration';
+```
+
+### tbl_user_preference
+
+User preference settings
 ```sql
 CREATE TABLE tbl_user_preference (
-    id VARCHAR(36) NOT NULL,
-    user_id VARCHAR(100) NOT NULL,
-    preference_key VARCHAR(100) NOT NULL,
-    preference_value TEXT NOT NULL,
-    nonce INT DEFAULT 0,
-    created_at TIMESTAMP NOT NULL,
-    created_by VARCHAR(100) NOT NULL,
-    modified_at TIMESTAMP NOT NULL,
-    modified_by VARCHAR(100) NOT NULL,
+    id VARCHAR(36) NOT NULL COMMENT 'Primary key',
+    user_id VARCHAR(36) NOT NULL COMMENT 'User ID',
+    preference_type VARCHAR(20) NOT NULL COMMENT 'Preference type',
+    preference_key VARCHAR(100) NOT NULL COMMENT 'Preference key',
+    preference_value TEXT NOT NULL COMMENT 'Preference value',
+    nonce INT NOT NULL DEFAULT 0 COMMENT 'Optimistic lock version',
+    created_at DATETIME NOT NULL COMMENT 'Create time',
+    created_by VARCHAR(36) NOT NULL COMMENT 'Creator',
+    modified_at DATETIME NOT NULL COMMENT 'Last modify time',
+    modified_by VARCHAR(36) NOT NULL COMMENT 'Last modifier',
     PRIMARY KEY (id),
-    CONSTRAINT u_idx_user_preference UNIQUE (user_id, preference_key)
-);
-```
-
-### Favorites (tbl_favorite)
-```sql
-CREATE TABLE tbl_favorite (
-    id VARCHAR(36) NOT NULL,
-    user_id VARCHAR(100) NOT NULL,
-    item_type VARCHAR(50) NOT NULL,  -- QUERY, TABLE, DATA_SOURCE
-    item_id VARCHAR(36) NOT NULL,
-    folder_name VARCHAR(100),
-    nonce INT DEFAULT 0,
-    created_at TIMESTAMP NOT NULL,
-    created_by VARCHAR(100) NOT NULL,
-    modified_at TIMESTAMP NOT NULL,
-    modified_by VARCHAR(100) NOT NULL,
-    PRIMARY KEY (id),
-    CONSTRAINT u_idx_favorite UNIQUE (user_id, item_type, item_id)
-);
-```
-
-## Indexes
-
-### Performance Indexes
-```sql
-CREATE INDEX idx_data_source_type ON tbl_data_source(type);
-CREATE INDEX idx_table_metadata_data_source ON tbl_table_metadata(data_source_id);
-CREATE INDEX idx_column_metadata_table ON tbl_column_metadata(table_metadata_id);
-CREATE INDEX idx_index_metadata_table ON tbl_index_metadata(table_metadata_id);
-CREATE INDEX idx_table_relation_source ON tbl_table_relation(source_table_id);
-CREATE INDEX idx_table_relation_target ON tbl_table_relation(target_table_id);
-CREATE INDEX idx_query_data_source ON tbl_query(data_source_id);
-CREATE INDEX idx_query_history_query ON tbl_query_history(query_id);
-CREATE INDEX idx_query_history_created ON tbl_query_history(created_at);
-CREATE INDEX idx_favorite_user ON tbl_favorite(user_id);
-```
-
-## Data Types
-
-### Common Enums
-```sql
--- Data Source Types
-MYSQL
-DB2
-
--- Table Types
-TABLE
-VIEW
-
--- Index Types
-BTREE
-HASH
-
--- Relation Types
-FK          -- Foreign Key
-INFERRED    -- AI Inferred Relation
-
--- Query Status
-SUCCESS
-FAILED
-CANCELLED
-
--- Favorite Item Types
-QUERY
-TABLE
-DATA_SOURCE
-```
-
-## Notes
-
-1. All tables use UUID as primary key for better scalability and data migration
-2. Timestamps are stored in UTC
-3. Soft delete is not implemented but can be added if needed
-4. Version control is implemented for queries
-5. User authentication and authorization are handled by external systems
-6. All tables include audit fields (created_at, created_by, modified_at, modified_by)
-7. Optimistic locking is implemented using the nonce field
-8. Unique constraints are prefixed with u_idx_
-9. Foreign key constraints are prefixed with fk_
-10. Regular indexes are prefixed with idx_
+    UNIQUE KEY u_idx_user_pref (user_id, preference_type, preference_key)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='User preference settings';

@@ -1,3 +1,5 @@
+> **Note**: This document is deprecated. Please use the updated version at [UI Design](ui_prototypes.md).
+
 # DataScope - UI Prototypes
 
 ## Overview

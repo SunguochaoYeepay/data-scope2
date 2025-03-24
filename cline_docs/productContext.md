@@ -14,6 +14,8 @@ DataScope solves the following problems:
 * **Slow Application Development:** Enables seamless integration with low-code platforms for rapid application
   development.
 * **Limited Data Access:** Empowers users to retrieve data using both SQL queries and natural language descriptions.
+* **Data Security Concerns:** Implements comprehensive data masking to protect sensitive information.
+* **Query Management Challenges:** Provides tracking and management of query execution with proper status handling.
 
 ### How it should work?
 
@@ -25,3 +27,6 @@ DataScope should work as follows:
 3. **Low-Code Integration:** Facilitate seamless integration with low-code platforms by providing configuration options
    and APIs.
 4. **AI-Powered Assistance:** Offer AI-powered features to enhance the configuration and query process.
+5. **Data Security:** Implement data masking and access control to protect sensitive information.
+6. **Query Execution and Management:** Track and manage query execution with proper status handling and result
+   processing.

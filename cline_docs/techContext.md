@@ -35,3 +35,6 @@ The project uses Maven for dependency management and building. The development e
 * Each API interface should have a default timeout of 30 seconds.
 * User query frequency should be limited.
 * Data download should be limited to 50000 rows.
+* Data masking should be applied to sensitive information according to configured rules.
+* Query execution should be tracked and managed with proper status handling.
+* Natural language queries should be converted to SQL using OpenRouter's LLM interface.
