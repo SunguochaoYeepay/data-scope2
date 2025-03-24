@@ -2,49 +2,44 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.datascope.infrastructure.mybatis.mapper.UserDisplayConfigMapper">
 
-    <resultMap id="BaseResultMap" type="com.datascope.domain.query.entity.UserDisplayConfig">
-        <id column="id" property="id"/>
-        <result column="user_id" property="userId"/>
-        <result column="data_source_id" property="dataSourceId"/>
-        <result column="table_name" property="tableName"/>
-        <result column="column_name" property="columnName"/>
-        <result column="display_name" property="displayName"/>
-        <result column="width" property="width"/>
-        <result column="align" property="align"/>
-        <result column="column_fixed" property="columnFixed"/>
-        <result column="visible" property="visible"/>
-        <result column="order_num" property="orderNum"/>
-        <result column="sortable" property="sortable"/>
-        <result column="searchable" property="searchable"/>
-        <result column="required" property="required"/>
-        <result column="mask_type" property="maskType"/>
-        <result column="mask_config" property="maskConfig"/>
-        <result column="usage_count" property="usageCount"/>
-        <result column="last_used_at" property="lastUsedAt"/>
-        <result column="created_by" property="createdBy"/>
-        <result column="created_time" property="createdTime"/>
-        <result column="updated_by" property="updatedBy"/>
-        <result column="updated_time" property="updatedTime"/>
-    </resultMap>
-
-    <sql id="Base_Column_List">
-        id
-        , user_id, data_source_id, table_name, column_name, display_name,
-        width, align, column_fixed, visible, order_num, sortable,
-        searchable, required, mask_type, mask_config, usage_count,
-        last_used_at, created_by, created_time, updated_by, updated_time
-    </sql>
-
     <insert id="insert" parameterType="com.datascope.domain.query.entity.UserDisplayConfig">
-        INSERT INTO user_display_config (
-            <include refid="Base_Column_List"/>
+        INSERT INTO user_display_config (id, user_id, data_source_id, table_name, column_name, display_name,
+                                         width, align, column_fixed, visible, order_num, sortable,
+                                         searchable, required, mask_type, mask_config, usage_count,
+                                         last_used_at, created_by, created_time, updated_by, updated_time
         ) VALUES (
             #{id}, #{userId}, #{dataSourceId}, #{tableName}, #{columnName}, #{displayName},
-        #{width}, #{align}, #{columnFixed}, #{visible}, #{orderNum}, #{sortable},
-        #{searchable}, #{required}, #{maskType}, #{maskConfig}, #{usageCount},
-        #{lastUsedAt}, #{createdBy}, #{createdTime}, #{updatedBy}, #{updatedTime}
+            #{width}, #{align}, #{fixed}, #{visible}, #{order}, #{sortable},
+            #{searchable}, #{required}, #{maskType}, #{maskConfig}, #{usageCount},
+            #{lastUsedAt}, #{createdBy}, #{createdTime}, #{updatedBy}, #{updatedTime}
         )
     </insert>
+
+    <select id="selectById" parameterType="java.lang.String"
+            resultType="com.datascope.domain.query.entity.UserDisplayConfig">
+        SELECT *
+        FROM user_display_config
+        WHERE id = #{id}
+    </select>
+
+    <select id="selectByUserId" parameterType="java.lang.String"
+            resultType="com.datascope.domain.query.entity.UserDisplayConfig">
+        SELECT *
+        FROM user_display_config
+        WHERE user_id = #{userId}
+    </select>
+
+    <delete id="deleteById" parameterType="java.lang.String">
+        DELETE
+        FROM user_display_config
+        WHERE id = #{id}
+    </delete>
+
+    <delete id="deleteByUserId" parameterType="java.lang.String">
+        DELETE
+        FROM user_display_config
+        WHERE user_id = #{userId}
+    </delete>
 
     <update id="update" parameterType="com.datascope.domain.query.entity.UserDisplayConfig">
         UPDATE user_display_config
@@ -55,9 +50,9 @@
             display_name = #{displayName},
             width = #{width},
             align = #{align},
-            column_fixed = #{columnFixed},
+            column_fixed = #{fixed},
             visible = #{visible},
-            order_num = #{orderNum},
+            order_num    = #{order},
             sortable = #{sortable},
             searchable = #{searchable},
             required = #{required},
@@ -65,93 +60,37 @@
             mask_config = #{maskConfig},
             usage_count = #{usageCount},
             last_used_at = #{lastUsedAt},
+            created_by   = #{createdBy},
+            created_time = #{createdTime},
             updated_by   = #{updatedBy},
             updated_time = #{updatedTime}
         WHERE id = #{id}
     </update>
 
-    <delete id="deleteById" parameterType="string">
-        DELETE
-        FROM user_display_config
-        WHERE id = #{id}
-    </delete>
-
-    <delete id="deleteAll">
-        DELETE
-        FROM user_display_config
-    </delete>
-
-    <delete id="deleteAllById">
-        DELETE FROM user_display_config WHERE id IN
-        <foreach collection="ids" item="id" open="(" separator="," close=")">
-            #{id}
-        </foreach>
-    </delete>
-
-    <select id="selectById" parameterType="string" resultMap="BaseResultMap">
-        SELECT <include refid="Base_Column_List"/>
-        FROM user_display_config
-        WHERE id = #{id}
-    </select>
-
-    <select id="findAllById" resultMap="BaseResultMap">
-        SELECT <include refid="Base_Column_List"/>
-        FROM user_display_config
-        WHERE id IN
-        <foreach collection="ids" item="id" open="(" separator="," close=")">
-            #{id}
-        </foreach>
-    </select>
-
-    <select id="selectAll" resultMap="BaseResultMap">
-        SELECT
-        <include refid="Base_Column_List"/>
-        FROM user_display_config
-    </select>
-
-    <select id="count" resultType="long">
-        SELECT COUNT(*)
-        FROM user_display_config
-    </select>
-
-    <select id="existsById" parameterType="string" resultType="boolean">
-        SELECT EXISTS(SELECT 1 FROM user_display_config WHERE id = #{id})
-    </select>
-
-    <select id="selectByUserId" resultMap="BaseResultMap">
-        SELECT <include refid="Base_Column_List"/>
-        FROM user_display_config
-        WHERE user_id = #{userId}
-    </select>
-
-    <select id="selectByUserIdAndDataSourceId" resultMap="BaseResultMap">
-        SELECT <include refid="Base_Column_List"/>
+    <select id="selectByUserIdAndDataSourceId" resultType="com.datascope.domain.query.entity.UserDisplayConfig">
+        SELECT *
         FROM user_display_config
         WHERE user_id = #{userId} AND data_source_id = #{dataSourceId}
     </select>
 
-    <select id="selectByUserIdAndDataSourceIdAndTableName" resultMap="BaseResultMap">
-        SELECT <include refid="Base_Column_List"/>
+    <select id="selectByUserIdAndDataSourceIdAndTableName"
+            resultType="com.datascope.domain.query.entity.UserDisplayConfig">
+        SELECT *
         FROM user_display_config
         WHERE user_id = #{userId}
           AND data_source_id = #{dataSourceId}
           AND table_name = #{tableName}
     </select>
 
-    <select id="selectByUserIdAndDataSourceIdAndTableNameAndColumnName" resultMap="BaseResultMap">
-        SELECT <include refid="Base_Column_List"/>
+    <select id="selectByUserIdAndDataSourceIdAndTableNameAndColumnName"
+            resultType="com.datascope.domain.query.entity.UserDisplayConfig">
+        SELECT *
         FROM user_display_config
         WHERE user_id = #{userId}
           AND data_source_id = #{dataSourceId}
           AND table_name = #{tableName}
           AND column_name = #{columnName}
     </select>
-
-    <delete id="deleteByUserId">
-        DELETE
-        FROM user_display_config
-        WHERE user_id = #{userId}
-    </delete>
 
     <delete id="deleteByUserIdAndDataSourceId">
         DELETE
@@ -167,4 +106,35 @@
           AND data_source_id = #{dataSourceId}
           AND table_name = #{tableName}
     </delete>
+
+    <insert id="copyConfigs">
+        INSERT INTO user_display_config (id, user_id, data_source_id, table_name, column_name, display_name,
+                                         width, align, column_fixed, visible, order_num, sortable,
+                                         searchable, required, mask_type, mask_config, usage_count,
+                                         last_used_at, created_by, created_time, updated_by, updated_time)
+        SELECT UUID(),
+               #{toUserId},
+               data_source_id,
+               table_name,
+               column_name,
+               display_name,
+               width,
+               align,
+               column_fixed,
+               visible,
+               order_num,
+               sortable,
+               searchable,
+               required,
+               mask_type,
+               mask_config,
+               0,
+               NULL,
+               created_by,
+               created_time,
+               updated_by,
+               updated_time
+        FROM user_display_config
+        WHERE user_id = #{fromUserId}
+    </insert>
 </mapper>

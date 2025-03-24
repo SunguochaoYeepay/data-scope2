@@ -59,10 +59,10 @@ class DataSourceConnectionGatewayImplTest {
                         field.set(dataSource, 3306);
                         break;
                     case "database":
-                        field.set(dataSource, "test_db");
+                        field.set(dataSource, "test");
                         break;
                     case "username":
-                        field.set(dataSource, "test_user");
+                        field.set(dataSource, "test");
                         break;
                     case "password":
                         field.set(dataSource, "encrypted_password");
@@ -82,13 +82,13 @@ class DataSourceConnectionGatewayImplTest {
             log.error("Failed to set field value", e);
             throw new RuntimeException(e);
         }
-
-        when(passwordEncryptor.decrypt(anyString(), anyString()))
-            .thenReturn("decrypted_password");
     }
 
     @Test
     void testTestConnection() {
+        when(passwordEncryptor.decrypt(anyString(), anyString()))
+            .thenReturn("test");
+
         boolean result = dataSourceConnectionGateway.testConnection(dataSource);
         assertTrue(result);
         verify(passwordEncryptor).decrypt(anyString(), anyString());
@@ -106,6 +106,9 @@ class DataSourceConnectionGatewayImplTest {
 
     @Test
     void testGetConnection() throws SQLException {
+        when(passwordEncryptor.decrypt(anyString(), anyString()))
+            .thenReturn("test");
+
         dataSourceConnectionGateway.getConnection(dataSource);
         verify(passwordEncryptor).decrypt(anyString(), anyString());
     }
@@ -129,19 +132,21 @@ class DataSourceConnectionGatewayImplTest {
                         field.set(dataSource2, "test-db-2");
                         break;
                     case "type":
-                        field.set(dataSource2, DataSourceType.DB2);
+                        field.set(dataSource2, DataSourceType.MYSQL);
+//                        field.set(dataSource2, DataSourceType.DB2);
                         break;
                     case "host":
                         field.set(dataSource2, "localhost");
                         break;
                     case "port":
-                        field.set(dataSource2, 50000);
+                        field.set(dataSource2, 3306);
+//                        field.set(dataSource2, 50000);
                         break;
                     case "database":
-                        field.set(dataSource2, "test_db_2");
+                        field.set(dataSource2, "test");
                         break;
                     case "username":
-                        field.set(dataSource2, "test_user_2");
+                        field.set(dataSource2, "test");
                         break;
                     case "password":
                         field.set(dataSource2, "encrypted_password_2");
@@ -161,6 +166,9 @@ class DataSourceConnectionGatewayImplTest {
             log.error("Failed to set field value", e);
             throw new RuntimeException(e);
         }
+
+        when(passwordEncryptor.decrypt(anyString(), anyString()))
+            .thenReturn("test");
 
         dataSourceConnectionGateway.getConnection(dataSource);
         dataSourceConnectionGateway.getConnection(dataSource2);

@@ -20,10 +20,11 @@ public class UserDisplayConfigRepositoryImpl implements UserDisplayConfigReposit
     @Override
     public UserDisplayConfig save(UserDisplayConfig config) {
         if (config.getId() == null) {
-            config = config.copy();
             config.setId(UUID.randomUUID().toString());
+            mybatisMapper.insert(config);
+        } else {
+            mybatisMapper.update(config);
         }
-        mybatisMapper.insert(config);
         return config;
     }
 

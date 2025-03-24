@@ -22,7 +22,7 @@ public class UserDisplayConfig {
     private String tableName;
     private String columnName;
     private String displayName;
-    private Integer columnWidth;
+    private Integer width;
     private ColumnFixed fixed;
     private ColumnAlign align;
     private Boolean visible;
@@ -30,7 +30,7 @@ public class UserDisplayConfig {
     private Boolean searchable;
     private Boolean required;
     private MaskType maskType;
-    private String maskChar;
+    private String maskConfig;
     private Boolean sortable;
     private String sortType;
     private Integer usageCount;
@@ -46,7 +46,7 @@ public class UserDisplayConfig {
         copy.tableName = this.tableName;
         copy.columnName = this.columnName;
         copy.displayName = this.displayName;
-        copy.columnWidth = this.columnWidth;
+        copy.width = this.width;
         copy.align = this.align;
         copy.fixed = this.fixed;
         copy.visible = this.visible;
@@ -55,7 +55,7 @@ public class UserDisplayConfig {
         copy.searchable = this.searchable;
         copy.required = this.required;
         copy.maskType = this.maskType;
-        copy.maskChar = this.maskChar;
+        copy.maskConfig = this.maskConfig;
         copy.usageCount = 0;
         return copy;
     }

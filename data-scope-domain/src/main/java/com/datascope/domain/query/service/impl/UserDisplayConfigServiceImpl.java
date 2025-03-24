@@ -131,7 +131,6 @@ public class UserDisplayConfigServiceImpl implements UserDisplayConfigService {
     @Transactional
     public void updateUsageStatistics(List<UserDisplayConfig> configs) {
         configs.forEach(config -> {
-            config = config.copy();
             config.setUsageCount(config.getUsageCount() + 1);
             config.setLastUsedAt(LocalDateTime.now());
             repository.save(config);

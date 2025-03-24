@@ -4,6 +4,7 @@ import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -23,5 +24,10 @@ public class DataScopeApplication {
 
     public static void main(String[] args) {
         SpringApplication.run(DataScopeApplication.class, args);
+    }
+
+    @Bean
+    public SqlExecutionEngine sqlExecutionEngine() {
+        return new SqlExecutionEngineImpl();
     }
 }

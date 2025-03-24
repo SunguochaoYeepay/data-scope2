@@ -18,6 +18,10 @@
             <groupId>com.datascope</groupId>
             <artifactId>data-scope-facade</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.datascope</groupId>
+            <artifactId>data-scope-domain</artifactId>
+        </dependency>
 
         <!-- Spring Boot -->
         <dependency>

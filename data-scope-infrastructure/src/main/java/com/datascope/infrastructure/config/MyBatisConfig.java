@@ -26,7 +26,7 @@ public class MyBatisConfig {
         PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
 
         // Set mapper locations
-        factoryBean.setMapperLocations(resolver.getResources("classpath:mybatis/mapper/*.xml"));
+        factoryBean.setMapperLocations(resolver.getResources("classpath:mapper/*.xml"));
 
         // Set MyBatis configuration
         factoryBean.setConfigLocation(resolver.getResource("classpath:mybatis-config.xml"));

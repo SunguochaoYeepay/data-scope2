@@ -5,20 +5,22 @@ import com.datascope.domain.query.enums.ColumnAlign;
 import com.datascope.domain.query.enums.ColumnFixed;
 import com.datascope.domain.query.enums.MaskType;
 import com.datascope.domain.query.repository.UserDisplayConfigRepository;
+import com.datascope.infrastructure.config.MyBatisConfig;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@SpringBootTest
-@ActiveProfiles("test")
+@EnableAutoConfiguration
+@SpringBootTest(classes = {MyBatisConfig.class, DataSourceAutoConfiguration.class,
+    UserDisplayConfigRepositoryImpl.class})
 @Transactional
 class UserDisplayConfigRepositoryIntegrationTest {
 
@@ -87,13 +89,12 @@ class UserDisplayConfigRepositoryIntegrationTest {
 
     private UserDisplayConfig createTestConfig(String userId, String dataSourceId) {
         return UserDisplayConfig.builder()
-            .id(UUID.randomUUID().toString())
             .userId(userId)
             .dataSourceId(dataSourceId)
             .tableName("test_table")
             .columnName("test_column")
             .displayName("Test Column")
-            .columnWidth(100)
+            .width(100)
             .align(ColumnAlign.LEFT)
             .fixed(ColumnFixed.NONE)
             .visible(true)

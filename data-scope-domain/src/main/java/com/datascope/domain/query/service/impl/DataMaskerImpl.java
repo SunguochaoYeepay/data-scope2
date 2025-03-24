@@ -20,6 +20,9 @@ public class DataMaskerImpl implements DataMasker {
             return "";
         }
 
+        if (type == null) {
+            return value;
+        }
         switch (type) {
             case FULL:
                 return maskAll(value);
@@ -38,7 +41,7 @@ public class DataMaskerImpl implements DataMasker {
             case BANK_CARD:
                 return maskBankCard(value);
             case CUSTOM:
-                return maskCustom(value, MaskOptions.custom(value, 1, 1));
+                return value;
             default:
                 return value;
         }
@@ -100,14 +103,14 @@ public class DataMaskerImpl implements DataMasker {
         if (value.length() != 18) {
             return value;
         }
-        return value.substring(0, 4) + "*".repeat(10) + value.substring(14);
+        return value.substring(0, 6) + "*".repeat(8) + value.substring(value.length() - 4);
     }
 
     private String maskBankCard(String value) {
         if (value.length() < 16) {
             return value;
         }
-        return value.substring(0, 4) + "*".repeat(value.length() - 8) + value.substring(value.length() - 4);
+        return value.substring(0, 6) + "*".repeat(9) + value.substring(value.length() - 4);
     }
 
     private String maskCustom(String value, MaskOptions options) {

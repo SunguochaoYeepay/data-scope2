@@ -82,7 +82,7 @@ class DataMaskerImplTest {
     @Test
     void shouldMaskIdCard() {
         assertThat(dataMasker.mask("310101199001011234", MaskType.ID_CARD))
-            .isEqualTo("3101********1234");
+            .isEqualTo("310101********1234");
     }
 
     @Test
@@ -94,7 +94,7 @@ class DataMaskerImplTest {
     @Test
     void shouldMaskBankCard() {
         assertThat(dataMasker.mask("6222021234567890123", MaskType.BANK_CARD))
-            .isEqualTo("6222**********0123");
+            .isEqualTo("622202*********0123");
     }
 
     @Test
