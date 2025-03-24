@@ -1,13 +1,16 @@
-package com.datascope.app.mapper;
+package com.datascope.app.converter;
 
 import org.mapstruct.Mapper;
+import org.mapstruct.factory.Mappers;
 
 /**
  * 枚举类型转换器
  * 用于Domain模块和Facade模块之间的枚举类型转换
  */
-@Mapper(componentModel = "spring")
+@Mapper
 public interface EnumConverter {
+
+    EnumConverter INSTANCE = Mappers.getMapper(EnumConverter.class);
 
     // ColumnAlign枚举转换
     default com.datascope.facade.query.enums.ColumnAlign toFacade(com.datascope.domain.query.enums.ColumnAlign domainEnum) {

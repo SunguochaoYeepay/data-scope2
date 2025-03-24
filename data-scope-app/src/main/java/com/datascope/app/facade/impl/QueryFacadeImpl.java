@@ -1,6 +1,6 @@
 package com.datascope.app.facade.impl;
 
-import com.datascope.app.mapper.QueryConverter;
+import com.datascope.app.converter.QueryConverter;
 import com.datascope.domain.datasource.model.DataSourceId;
 import com.datascope.domain.query.service.QueryExecutionService;
 import com.datascope.domain.query.service.QueryService;

@@ -1,6 +1,6 @@
 package com.datascope.app.facade.impl;
 
-import com.datascope.app.mapper.DataSourceConverter;
+import com.datascope.app.converter.DataSourceConverter;
 import com.datascope.domain.datasource.entity.DataSource;
 import com.datascope.domain.datasource.service.DataSourceService;
 import com.datascope.facade.datasource.DataSourceFacade;

@@ -5,8 +5,9 @@ import com.datascope.domain.datasource.gateway.DataSourceConnectionGateway;
 import com.datascope.domain.datasource.gateway.PasswordEncryptorGateway;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
-import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.sql.Connection;
@@ -16,10 +17,12 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
 @Component
-@RequiredArgsConstructor
 public class DataSourceConnectionGatewayImpl implements DataSourceConnectionGateway {
-    private final PasswordEncryptorGateway passwordEncryptor;
-    private final Map<String, HikariDataSource> dataSources = new ConcurrentHashMap<>();
+
+    @Setter(onMethod_ = @Autowired)
+    private PasswordEncryptorGateway passwordEncryptor;
+
+    private Map<String, HikariDataSource> dataSources = new ConcurrentHashMap<>();
 
     @Override
     public Connection getConnection(DataSource dataSource) throws SQLException {
@@ -31,13 +34,19 @@ public class DataSourceConnectionGatewayImpl implements DataSourceConnectionGate
     public boolean testConnection(DataSource dataSource) {
         try {
             HikariDataSource hikariDataSource = createDataSource(dataSource);
-            try (Connection connection = hikariDataSource.getConnection()) {
-                return connection.isValid(5);
+            try {
+                Connection connection = hikariDataSource.getConnection();
+                boolean isValid = connection.isValid(5);
+                connection.close();
+                return isValid;
+            } catch (SQLException e) {
+                log.error("测试数据源连接失败: {}, 错误信息: {}", dataSource.getName(), e.getMessage());
+                return false;
             } finally {
                 hikariDataSource.close();
             }
-        } catch (SQLException e) {
-            log.error("测试数据源连接失败: {}", dataSource.getId(), e);
+        } catch (Exception e) {
+            log.error("创建数据源连接池失败: {}, 错误信息: {}", dataSource.getName(), e.getMessage());
             return false;
         }
     }
@@ -68,19 +77,27 @@ public class DataSourceConnectionGatewayImpl implements DataSourceConnectionGate
         HikariConfig config = new HikariConfig();
 
         String jdbcUrl = buildJdbcUrl(dataSource);
-        String decryptedPassword = passwordEncryptor.decrypt(dataSource.getPassword(), dataSource.getSalt());
+        String password = dataSource.getPassword();
+
+        // 如果是已保存的数据源，需要解密密码
+        if (dataSource.getSalt() != null && !dataSource.getSalt().isEmpty()) {
+            password = passwordEncryptor.decrypt(dataSource.getPassword(), dataSource.getSalt());
+        }
 
         config.setJdbcUrl(jdbcUrl);
         config.setUsername(dataSource.getUsername());
-        config.setPassword(decryptedPassword);
+        config.setPassword(password);
 
         // 连接池配置
         config.setMaximumPoolSize(10);
         config.setMinimumIdle(2);
         config.setIdleTimeout(30000);
-        config.setConnectionTimeout(30000);
+        config.setConnectionTimeout(5000); // 减少连接超时时间，加快测试响应
         config.setMaxLifetime(1800000);
         config.setPoolName("HikariPool-" + dataSource.getName());
+
+        // 设置连接验证超时时间
+        config.setValidationTimeout(3000);
 
         // 根据数据源类型设置驱动类
         switch (dataSource.getType()) {

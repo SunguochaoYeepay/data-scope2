@@ -5,7 +5,6 @@ import com.datascope.domain.datasource.enums.DataSourceStatus;
 import com.datascope.domain.datasource.enums.DataSourceType;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.apache.commons.lang3.RandomStringUtils;
 
 import java.time.LocalDateTime;
 
@@ -43,7 +42,6 @@ public class DataSource {
         this.updatedTime = LocalDateTime.now();
         this.status = DataSourceStatus.INACTIVE;
         this.lastSyncStatus = SyncStatus.NOT_SYNCED;
-        this.salt = RandomStringUtils.randomAlphanumeric(16);
     }
 
     public void update(String operator) {
