@@ -27,25 +27,28 @@
   * 定义了 QueryExecutionStatus 枚举，表示查询执行的不同状态
   * 实现了 QueryExecutionService 接口，提供查询执行的服务方法
   * 实现了 QueryExecutionRepository 接口，提供查询执行记录的存储和检索方法
-* 实现了 SQL 执行引擎的基本框架：
-  * 定义了 SqlExecutionEngine 接口，提供 SQL 执行的核心方法
-  * 创建了 SqlExecutionEngineImpl 类的基本框架
-  * 定义了 QueryResult 模型，用于存储查询结果
-  * 定义了 SqlMetadata 模型，用于存储 SQL 元数据
+* 实现了 SQL 执行引擎的核心功能：
+  * 实现了 SqlExecutionEngine 接口的所有方法
+  * 实现了 execute 方法：执行 SQL 查询
+  * 实现了 cancel 方法：取消正在执行的查询
+  * 实现了 validate 方法：验证 SQL 语句
+  * 实现了 getMetadata 方法：获取 SQL 语句的元数据
+  * 实现了 estimateRowCount 方法：估算查询结果行数
+* 完善了查询执行服务的实现：
+  * 修复了 QueryExecution 类中缺少 result 字段和 setResult 方法的问题
+  * 完善了 QueryExecutionServiceImpl 类的 cancel 方法
+  * 实现了 exportResult 方法的基本框架
+  * 实现了 executeNaturalLanguage 方法的基本框架
+  * 完善了 executeSql 方法，添加了查询超时处理
 
 ### Next steps?
 
-1. **完成查询执行引擎的实现：**
-  * 实现 SqlExecutionEngineImpl 类的核心方法，包括：
-    * execute 方法：执行 SQL 查询
-    * cancel 方法：取消正在执行的查询
-    * validate 方法：验证 SQL 语句
-    * getMetadata 方法：获取 SQL 语句的元数据
-    * estimateRowCount 方法：估算查询结果行数
-  * 实现 QueryExecutionServiceImpl 类的核心方法，包括：
-    * executeSql 方法：执行 SQL 查询
-    * executeNaturalLanguage 方法：执行自然语言查询
-    * exportResult 方法：导出查询结果
+1. **完善查询执行服务功能：**
+
+* 实现查询结果缓存功能
+* 实现查询结果分页功能
+* 实现查询结果排序功能
+* 实现导出功能的具体实现（CSV、JSON、Excel）
 
 2. **实现自然语言到 SQL 的转换：**
   * 集成 OpenRouter 的 LLM 接口

@@ -19,6 +19,7 @@ import java.util.UUID;
 public class QueryExecution {
     private String id;
     private DataSourceId dataSourceId;
+    @Setter
     private String sql;
     private Map<String, Object> parameters;
     private QueryExecutionStatus status;
@@ -27,6 +28,9 @@ public class QueryExecution {
     private Long resultCount;
     private String errorMessage;
     private String userId;
+
+    @Setter
+    private QueryResult result;
 
     public QueryExecution(DataSourceId dataSourceId, String sql, Map<String, Object> parameters) {
         this.id = UUID.randomUUID().toString();
