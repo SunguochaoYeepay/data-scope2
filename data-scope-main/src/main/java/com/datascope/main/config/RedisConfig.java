@@ -5,7 +5,8 @@ import io.lettuce.core.RedisClient;
 import io.lettuce.core.RedisURI;
 import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.api.sync.RedisCommands;
-import lombok.RequiredArgsConstructor;
+import lombok.Setter;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -20,10 +21,10 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
  * Redis配置类
  */
 @Configuration
-@RequiredArgsConstructor
 public class RedisConfig {
 
-    private final AppProperties appProperties;
+    @Setter(onMethod_ = @Autowired)
+    private AppProperties appProperties;
 
     @Bean
     public RedisConnectionFactory redisConnectionFactory() {

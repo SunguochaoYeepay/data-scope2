@@ -28,11 +28,17 @@ spring:
     baseline-on-migrate: true
     validate-on-migrate: true
     clean-disabled: true
+  mvc:
+    static-path-pattern: /**
+  web:
+    resources:
+      static-locations: classpath:/static/
 
 server:
   port: 8080
-  servlet:
-    context-path: /api
+  # 移除上下文路径，使静态资源可以直接访问
+  # servlet:
+  #   context-path: /api
 
 logging:
   level:
