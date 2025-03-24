@@ -72,11 +72,6 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>com.datascope</groupId>
-            <artifactId>data-scope-facade</artifactId>
-            <version>${project.version}</version>
-        </dependency>
     </dependencies>
 
 </project>
