@@ -151,4 +151,115 @@ public interface QueryExecutionService {
      * @param id 查询执行记录ID
      */
     void removeCachedResult(String id);
+
+    /**
+     * 获取过滤后的查询结果
+     *
+     * @param id          查询执行记录ID
+     * @param filterGroup 过滤条件组
+     * @return 过滤后的查询结果
+     */
+    QueryResult getFilteredResult(String id, QueryResultFilterService.FilterGroup filterGroup);
+
+    /**
+     * 获取过滤后的查询结果（单个条件）
+     *
+     * @param id        查询执行记录ID
+     * @param condition 过滤条件
+     * @return 过滤后的查询结果
+     */
+    QueryResult getFilteredResult(String id, QueryResultFilterService.FilterCondition condition);
+
+    /**
+     * 获取过滤后的分页查询结果
+     *
+     * @param id          查询执行记录ID
+     * @param pageNumber  页码（从1开始）
+     * @param pageSize    每页大小
+     * @param filterGroup 过滤条件组
+     * @return 过滤后的分页查询结果
+     */
+    PagedQueryResult getFilteredPagedResult(String id, int pageNumber, int pageSize, QueryResultFilterService.FilterGroup filterGroup);
+
+    /**
+     * 获取过滤后的分页查询结果（单个条件）
+     *
+     * @param id         查询执行记录ID
+     * @param pageNumber 页码（从1开始）
+     * @param pageSize   每页大小
+     * @param condition  过滤条件
+     * @return 过滤后的分页查询结果
+     */
+    PagedQueryResult getFilteredPagedResult(String id, int pageNumber, int pageSize, QueryResultFilterService.FilterCondition condition);
+
+    /**
+     * 获取过滤并排序后的查询结果
+     *
+     * @param id          查询执行记录ID
+     * @param filterGroup 过滤条件组
+     * @param sortFields  排序字段列表
+     * @return 过滤并排序后的查询结果
+     */
+    QueryResult getFilteredAndSortedResult(String id, QueryResultFilterService.FilterGroup filterGroup, List<QueryResultSortService.SortField> sortFields);
+
+    /**
+     * 获取过滤并排序后的分页查询结果
+     *
+     * @param id          查询执行记录ID
+     * @param pageNumber  页码（从1开始）
+     * @param pageSize    每页大小
+     * @param filterGroup 过滤条件组
+     * @param sortFields  排序字段列表
+     * @return 过滤并排序后的分页查询结果
+     */
+    PagedQueryResult getFilteredAndSortedPagedResult(String id, int pageNumber, int pageSize, QueryResultFilterService.FilterGroup filterGroup, List<QueryResultSortService.SortField> sortFields);
+
+    /**
+     * 计算查询结果的统计信息
+     *
+     * @param id        查询执行记录ID
+     * @param fieldName 字段名
+     * @param function  统计函数
+     * @return 统计结果
+     */
+    QueryResultStatisticsService.StatisticsResult calculateStatistics(String id, String fieldName, QueryResultStatisticsService.StatisticsFunction function);
+
+    /**
+     * 计算查询结果的多项统计信息
+     *
+     * @param id        查询执行记录ID
+     * @param fieldName 字段名
+     * @param functions 统计函数列表
+     * @return 统计结果列表
+     */
+    List<QueryResultStatisticsService.StatisticsResult> calculateStatistics(String id, String fieldName, List<QueryResultStatisticsService.StatisticsFunction> functions);
+
+    /**
+     * 计算查询结果的基本统计信息（计数、总和、平均值、最小值、最大值）
+     *
+     * @param id        查询执行记录ID
+     * @param fieldName 字段名
+     * @return 基本统计信息
+     */
+    List<QueryResultStatisticsService.StatisticsResult> calculateBasicStatistics(String id, String fieldName);
+
+    /**
+     * 计算查询结果的完整统计信息
+     *
+     * @param id        查询执行记录ID
+     * @param fieldName 字段名
+     * @return 完整统计信息
+     */
+    List<QueryResultStatisticsService.StatisticsResult> calculateFullStatistics(String id, String fieldName);
+
+    /**
+     * 计算过滤后查询结果的统计信息
+     *
+     * @param id          查询执行记录ID
+     * @param filterGroup 过滤条件组
+     * @param fieldName   字段名
+     * @param function    统计函数
+     * @return 统计结果
+     */
+    QueryResultStatisticsService.StatisticsResult calculateFilteredStatistics(String id, QueryResultFilterService.FilterGroup filterGroup, String fieldName, QueryResultStatisticsService.StatisticsFunction function);
 }

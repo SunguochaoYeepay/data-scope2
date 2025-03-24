@@ -5,12 +5,13 @@ import com.datascope.domain.query.model.PagedQueryResult;
 import com.datascope.domain.query.model.QueryExecution;
 import com.datascope.domain.query.model.QueryResult;
 import com.datascope.domain.query.repository.QueryExecutionRepository;
-import com.datascope.domain.query.service.QueryExecutionService;
-import com.datascope.domain.query.service.QueryResultCacheService;
-import com.datascope.domain.query.service.QueryResultSortService;
+import com.datascope.domain.query.service.*;
+import com.datascope.domain.query.service.QueryResultFilterService.FilterCondition;
+import com.datascope.domain.query.service.QueryResultFilterService.FilterGroup;
 import com.datascope.domain.query.service.QueryResultSortService.SortDirection;
 import com.datascope.domain.query.service.QueryResultSortService.SortField;
-import com.datascope.domain.query.service.SqlExecutionEngine;
+import com.datascope.domain.query.service.QueryResultStatisticsService.StatisticsFunction;
+import com.datascope.domain.query.service.QueryResultStatisticsService.StatisticsResult;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,6 +44,12 @@ public class QueryExecutionServiceImpl implements QueryExecutionService {
 
     @Setter(onMethod_ = @Autowired)
     private QueryResultSortService queryResultSortService;
+
+    @Setter(onMethod_ = @Autowired)
+    private QueryResultFilterService queryResultFilterService;
+
+    @Setter(onMethod_ = @Autowired)
+    private QueryResultStatisticsService queryResultStatisticsService;
 
     // 查询超时时间（秒）
     private static final int QUERY_TIMEOUT_SECONDS = 60;
@@ -505,5 +512,238 @@ public class QueryExecutionServiceImpl implements QueryExecutionService {
     public void removeCachedResult(String id) {
         log.debug("Removing cached result for query execution {}", id);
         queryResultCacheService.removeResult(id);
+    }
+
+    @Override
+    public QueryResult getFilteredResult(String id, FilterGroup filterGroup) {
+        log.info("Getting filtered result for query execution {}", id);
+
+        if (filterGroup == null || filterGroup.getConditions().isEmpty()) {
+            throw new IllegalArgumentException("Filter group cannot be null or empty");
+        }
+
+        // 获取查询执行记录
+        Optional<QueryExecution> executionOpt = queryExecutionRepository.findById(id);
+        if (executionOpt.isEmpty()) {
+            throw new IllegalArgumentException("Query execution not found: " + id);
+        }
+
+        QueryExecution execution = executionOpt.get();
+
+        // 检查查询是否已完成
+        if (!execution.isCompleted()) {
+            throw new IllegalStateException("Cannot get filtered result for query that is not completed: " + id);
+        }
+
+        // 检查是否有结果
+        if (execution.getResult() == null) {
+            throw new IllegalStateException("Query execution has no results: " + id);
+        }
+
+        // 对结果进行过滤
+        QueryResult filteredResult = queryResultFilterService.filter(execution.getResult(), filterGroup);
+
+        log.info("Filtered result created for query execution {}", id);
+        return filteredResult;
+    }
+
+    @Override
+    public QueryResult getFilteredResult(String id, FilterCondition condition) {
+        FilterGroup filterGroup = new FilterGroup(List.of(condition), QueryResultFilterService.FilterLogic.AND);
+        return getFilteredResult(id, filterGroup);
+    }
+
+    @Override
+    public PagedQueryResult getFilteredPagedResult(String id, int pageNumber, int pageSize, FilterGroup filterGroup) {
+        log.info("Getting filtered paged result for query execution {}, page {}, size {}", id, pageNumber, pageSize);
+
+        // 验证参数
+        if (pageNumber < 1) {
+            throw new IllegalArgumentException("Page number must be greater than or equal to 1");
+        }
+        if (pageSize < 1) {
+            throw new IllegalArgumentException("Page size must be greater than or equal to 1");
+        }
+
+        // 获取过滤后的结果
+        QueryResult filteredResult = getFilteredResult(id, filterGroup);
+
+        // 创建分页结果
+        PagedQueryResult pagedResult = PagedQueryResult.fromQueryResult(filteredResult, pageNumber, pageSize);
+
+        log.info("Filtered paged result created for query execution {}", id);
+        return pagedResult;
+    }
+
+    @Override
+    public PagedQueryResult getFilteredPagedResult(String id, int pageNumber, int pageSize, FilterCondition condition) {
+        FilterGroup filterGroup = new FilterGroup(List.of(condition), QueryResultFilterService.FilterLogic.AND);
+        return getFilteredPagedResult(id, pageNumber, pageSize, filterGroup);
+    }
+
+    @Override
+    public QueryResult getFilteredAndSortedResult(String id, FilterGroup filterGroup, List<SortField> sortFields) {
+        log.info("Getting filtered and sorted result for query execution {}", id);
+
+        // 先过滤
+        QueryResult filteredResult = getFilteredResult(id, filterGroup);
+
+        // 再排序
+        QueryResult sortedResult = queryResultSortService.sort(filteredResult, sortFields);
+
+        log.info("Filtered and sorted result created for query execution {}", id);
+        return sortedResult;
+    }
+
+    @Override
+    public PagedQueryResult getFilteredAndSortedPagedResult(String id, int pageNumber, int pageSize, FilterGroup filterGroup, List<SortField> sortFields) {
+        log.info("Getting filtered and sorted paged result for query execution {}, page {}, size {}", id, pageNumber, pageSize);
+
+        // 验证参数
+        if (pageNumber < 1) {
+            throw new IllegalArgumentException("Page number must be greater than or equal to 1");
+        }
+        if (pageSize < 1) {
+            throw new IllegalArgumentException("Page size must be greater than or equal to 1");
+        }
+
+        // 获取过滤并排序后的结果
+        QueryResult filteredAndSortedResult = getFilteredAndSortedResult(id, filterGroup, sortFields);
+
+        // 创建分页结果
+        PagedQueryResult pagedResult = PagedQueryResult.fromQueryResult(filteredAndSortedResult, pageNumber, pageSize);
+
+        log.info("Filtered and sorted paged result created for query execution {}", id);
+        return pagedResult;
+    }
+
+    @Override
+    public StatisticsResult calculateStatistics(String id, String fieldName, StatisticsFunction function) {
+        log.info("Calculating statistics for query execution {}, field {}, function {}", id, fieldName, function);
+
+        // 获取查询执行记录
+        Optional<QueryExecution> executionOpt = queryExecutionRepository.findById(id);
+        if (executionOpt.isEmpty()) {
+            throw new IllegalArgumentException("Query execution not found: " + id);
+        }
+
+        QueryExecution execution = executionOpt.get();
+
+        // 检查查询是否已完成
+        if (!execution.isCompleted()) {
+            throw new IllegalStateException("Cannot calculate statistics for query that is not completed: " + id);
+        }
+
+        // 检查是否有结果
+        if (execution.getResult() == null) {
+            throw new IllegalStateException("Query execution has no results: " + id);
+        }
+
+        // 计算统计结果
+        StatisticsResult result = queryResultStatisticsService.calculate(execution.getResult(), fieldName, function);
+
+        log.info("Statistics calculated for query execution {}: {}", id, result);
+        return result;
+    }
+
+    @Override
+    public List<StatisticsResult> calculateStatistics(String id, String fieldName, List<StatisticsFunction> functions) {
+        log.info("Calculating multiple statistics for query execution {}, field {}", id, fieldName);
+
+        // 获取查询执行记录
+        Optional<QueryExecution> executionOpt = queryExecutionRepository.findById(id);
+        if (executionOpt.isEmpty()) {
+            throw new IllegalArgumentException("Query execution not found: " + id);
+        }
+
+        QueryExecution execution = executionOpt.get();
+
+        // 检查查询是否已完成
+        if (!execution.isCompleted()) {
+            throw new IllegalStateException("Cannot calculate statistics for query that is not completed: " + id);
+        }
+
+        // 检查是否有结果
+        if (execution.getResult() == null) {
+            throw new IllegalStateException("Query execution has no results: " + id);
+        }
+
+        // 计算统计结果
+        List<StatisticsResult> results = queryResultStatisticsService.calculate(execution.getResult(), fieldName, functions);
+
+        log.info("Multiple statistics calculated for query execution {}", id);
+        return results;
+    }
+
+    @Override
+    public List<StatisticsResult> calculateBasicStatistics(String id, String fieldName) {
+        log.info("Calculating basic statistics for query execution {}, field {}", id, fieldName);
+
+        // 获取查询执行记录
+        Optional<QueryExecution> executionOpt = queryExecutionRepository.findById(id);
+        if (executionOpt.isEmpty()) {
+            throw new IllegalArgumentException("Query execution not found: " + id);
+        }
+
+        QueryExecution execution = executionOpt.get();
+
+        // 检查查询是否已完成
+        if (!execution.isCompleted()) {
+            throw new IllegalStateException("Cannot calculate statistics for query that is not completed: " + id);
+        }
+
+        // 检查是否有结果
+        if (execution.getResult() == null) {
+            throw new IllegalStateException("Query execution has no results: " + id);
+        }
+
+        // 计算基本统计结果
+        List<StatisticsResult> results = queryResultStatisticsService.calculateBasicStatistics(execution.getResult(), fieldName);
+
+        log.info("Basic statistics calculated for query execution {}", id);
+        return results;
+    }
+
+    @Override
+    public List<StatisticsResult> calculateFullStatistics(String id, String fieldName) {
+        log.info("Calculating full statistics for query execution {}, field {}", id, fieldName);
+
+        // 获取查询执行记录
+        Optional<QueryExecution> executionOpt = queryExecutionRepository.findById(id);
+        if (executionOpt.isEmpty()) {
+            throw new IllegalArgumentException("Query execution not found: " + id);
+        }
+
+        QueryExecution execution = executionOpt.get();
+
+        // 检查查询是否已完成
+        if (!execution.isCompleted()) {
+            throw new IllegalStateException("Cannot calculate statistics for query that is not completed: " + id);
+        }
+
+        // 检查是否有结果
+        if (execution.getResult() == null) {
+            throw new IllegalStateException("Query execution has no results: " + id);
+        }
+
+        // 计算完整统计结果
+        List<StatisticsResult> results = queryResultStatisticsService.calculateFullStatistics(execution.getResult(), fieldName);
+
+        log.info("Full statistics calculated for query execution {}", id);
+        return results;
+    }
+
+    @Override
+    public StatisticsResult calculateFilteredStatistics(String id, FilterGroup filterGroup, String fieldName, StatisticsFunction function) {
+        log.info("Calculating filtered statistics for query execution {}, field {}, function {}", id, fieldName, function);
+
+        // 先获取过滤后的结果
+        QueryResult filteredResult = getFilteredResult(id, filterGroup);
+
+        // 计算统计结果
+        StatisticsResult result = queryResultStatisticsService.calculate(filteredResult, fieldName, function);
+
+        log.info("Filtered statistics calculated for query execution {}: {}", id, result);
+        return result;
     }
 }
