@@ -6,6 +6,10 @@ import com.datascope.domain.query.model.QueryExecution;
 import com.datascope.domain.query.model.QueryResult;
 import com.datascope.domain.query.repository.QueryExecutionRepository;
 import com.datascope.domain.query.service.QueryExecutionService;
+import com.datascope.domain.query.service.QueryResultCacheService;
+import com.datascope.domain.query.service.QueryResultSortService;
+import com.datascope.domain.query.service.QueryResultSortService.SortDirection;
+import com.datascope.domain.query.service.QueryResultSortService.SortField;
 import com.datascope.domain.query.service.SqlExecutionEngine;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -33,6 +37,12 @@ public class QueryExecutionServiceImpl implements QueryExecutionService {
 
     @Setter(onMethod_ = @Autowired)
     private SqlExecutionEngine sqlExecutionEngine;
+
+    @Setter(onMethod_ = @Autowired)
+    private QueryResultCacheService queryResultCacheService;
+
+    @Setter(onMethod_ = @Autowired)
+    private QueryResultSortService queryResultSortService;
 
     // 查询超时时间（秒）
     private static final int QUERY_TIMEOUT_SECONDS = 60;
@@ -379,5 +389,121 @@ public class QueryExecutionServiceImpl implements QueryExecutionService {
 
         log.info("Paged result created for query execution {}", id);
         return pagedResult;
+    }
+
+    @Override
+    public QueryResult getSortedResult(String id, List<SortField> sortFields) {
+        log.info("Getting sorted result for query execution {}", id);
+
+        if (sortFields == null || sortFields.isEmpty()) {
+            throw new IllegalArgumentException("Sort fields cannot be null or empty");
+        }
+
+        // 获取查询执行记录
+        Optional<QueryExecution> executionOpt = queryExecutionRepository.findById(id);
+        if (executionOpt.isEmpty()) {
+            throw new IllegalArgumentException("Query execution not found: " + id);
+        }
+
+        QueryExecution execution = executionOpt.get();
+
+        // 检查查询是否已完成
+        if (!execution.isCompleted()) {
+            throw new IllegalStateException("Cannot get sorted result for query that is not completed: " + id);
+        }
+
+        // 检查是否有结果
+        if (execution.getResult() == null) {
+            throw new IllegalStateException("Query execution has no results: " + id);
+        }
+
+        // 对结果进行排序
+        QueryResult sortedResult = queryResultSortService.sort(execution.getResult(), sortFields);
+
+        log.info("Sorted result created for query execution {}", id);
+        return sortedResult;
+    }
+
+    @Override
+    public QueryResult getSortedResult(String id, String fieldName, SortDirection direction) {
+        return getSortedResult(id, List.of(new SortField(fieldName, direction)));
+    }
+
+    @Override
+    public PagedQueryResult getSortedPagedResult(String id, int pageNumber, int pageSize, List<SortField> sortFields) {
+        log.info("Getting sorted paged result for query execution {}, page {}, size {}", id, pageNumber, pageSize);
+
+        // 验证参数
+        if (pageNumber < 1) {
+            throw new IllegalArgumentException("Page number must be greater than or equal to 1");
+        }
+        if (pageSize < 1) {
+            throw new IllegalArgumentException("Page size must be greater than or equal to 1");
+        }
+        if (sortFields == null || sortFields.isEmpty()) {
+            throw new IllegalArgumentException("Sort fields cannot be null or empty");
+        }
+
+        // 获取排序后的结果
+        QueryResult sortedResult = getSortedResult(id, sortFields);
+
+        // 创建分页结果
+        PagedQueryResult pagedResult = PagedQueryResult.fromQueryResult(sortedResult, pageNumber, pageSize);
+
+        log.info("Sorted paged result created for query execution {}", id);
+        return pagedResult;
+    }
+
+    @Override
+    public PagedQueryResult getSortedPagedResult(String id, int pageNumber, int pageSize, String fieldName, SortDirection direction) {
+        return getSortedPagedResult(id, pageNumber, pageSize, List.of(new SortField(fieldName, direction)));
+    }
+
+    @Override
+    public boolean cacheResult(String id, int ttlSeconds) {
+        log.info("Caching result for query execution {}, TTL: {} seconds", id, ttlSeconds);
+
+        if (ttlSeconds <= 0) {
+            throw new IllegalArgumentException("TTL must be greater than 0");
+        }
+
+        // 获取查询执行记录
+        Optional<QueryExecution> executionOpt = queryExecutionRepository.findById(id);
+        if (executionOpt.isEmpty()) {
+            log.warn("Cannot cache result: query execution not found: {}", id);
+            return false;
+        }
+
+        QueryExecution execution = executionOpt.get();
+
+        // 检查查询是否已完成
+        if (!execution.isCompleted()) {
+            log.warn("Cannot cache result: query execution is not completed: {}", id);
+            return false;
+        }
+
+        // 检查是否有结果
+        if (execution.getResult() == null) {
+            log.warn("Cannot cache result: query execution has no results: {}", id);
+            return false;
+        }
+
+        // 缓存结果
+        queryResultCacheService.cacheResult(id, execution.getResult(), ttlSeconds);
+
+        log.info("Result cached for query execution {}", id);
+        return true;
+    }
+
+    @Override
+    public Optional<QueryResult> getResultFromCache(String id) {
+        log.debug("Getting result from cache for query execution {}", id);
+        return queryResultCacheService.getResult(id);
+    }
+
+    @Override
+    public void removeCachedResult(String id) {
+        log.debug("Removing cached result for query execution {}", id);
+        queryResultCacheService.removeResult(id);
     }
 }

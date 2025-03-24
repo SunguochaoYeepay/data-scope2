@@ -2,6 +2,7 @@ package com.datascope.domain.query.service;
 
 import com.datascope.domain.query.model.PagedQueryResult;
 import com.datascope.domain.query.model.QueryExecution;
+import com.datascope.domain.query.model.QueryResult;
 
 import java.util.List;
 import java.util.Map;
@@ -84,4 +85,70 @@ public interface QueryExecutionService {
      * @return 分页查询结果
      */
     PagedQueryResult getPagedResult(String id, int pageNumber, int pageSize);
+
+    /**
+     * 获取排序后的查询结果
+     *
+     * @param id         查询执行记录ID
+     * @param sortFields 排序字段列表
+     * @return 排序后的查询结果
+     */
+    QueryResult getSortedResult(String id, List<QueryResultSortService.SortField> sortFields);
+
+    /**
+     * 获取排序后的查询结果（单字段排序）
+     *
+     * @param id        查询执行记录ID
+     * @param fieldName 排序字段名
+     * @param direction 排序方向
+     * @return 排序后的查询结果
+     */
+    QueryResult getSortedResult(String id, String fieldName, QueryResultSortService.SortDirection direction);
+
+    /**
+     * 获取排序后的分页查询结果
+     *
+     * @param id         查询执行记录ID
+     * @param pageNumber 页码（从1开始）
+     * @param pageSize   每页大小
+     * @param sortFields 排序字段列表
+     * @return 排序后的分页查询结果
+     */
+    PagedQueryResult getSortedPagedResult(String id, int pageNumber, int pageSize, List<QueryResultSortService.SortField> sortFields);
+
+    /**
+     * 获取排序后的分页查询结果（单字段排序）
+     *
+     * @param id         查询执行记录ID
+     * @param pageNumber 页码（从1开始）
+     * @param pageSize   每页大小
+     * @param fieldName  排序字段名
+     * @param direction  排序方向
+     * @return 排序后的分页查询结果
+     */
+    PagedQueryResult getSortedPagedResult(String id, int pageNumber, int pageSize, String fieldName, QueryResultSortService.SortDirection direction);
+
+    /**
+     * 将查询结果缓存
+     *
+     * @param id         查询执行记录ID
+     * @param ttlSeconds 缓存过期时间（秒）
+     * @return 是否缓存成功
+     */
+    boolean cacheResult(String id, int ttlSeconds);
+
+    /**
+     * 从缓存中获取查询结果
+     *
+     * @param id 查询执行记录ID
+     * @return 查询结果（如果存在）
+     */
+    Optional<QueryResult> getResultFromCache(String id);
+
+    /**
+     * 从缓存中删除查询结果
+     *
+     * @param id 查询执行记录ID
+     */
+    void removeCachedResult(String id);
 }
