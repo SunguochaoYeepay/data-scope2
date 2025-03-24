@@ -13,12 +13,6 @@
     <packaging>jar</packaging>
 
     <dependencies>
-        <!-- Internal Dependencies -->
-        <dependency>
-            <groupId>com.datascope</groupId>
-            <artifactId>data-scope-domain</artifactId>
-        </dependency>
-
         <!-- Spring Boot -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
