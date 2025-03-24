@@ -7,7 +7,7 @@ import org.mapstruct.Mapper;
  * 用于Domain模块和Facade模块之间的枚举类型转换
  */
 @Mapper(componentModel = "spring")
-public interface EnumMapper {
+public interface EnumConverter {
 
     // ColumnAlign枚举转换
     default com.datascope.facade.query.enums.ColumnAlign toFacade(com.datascope.domain.query.enums.ColumnAlign domainEnum) {

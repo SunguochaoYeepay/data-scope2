@@ -2,79 +2,97 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.datascope.infrastructure.mybatis.mapper.UserDisplayConfigMapper">
 
+    <!-- 结果映射 -->
+    <resultMap id="BaseResultMap" type="com.datascope.domain.query.entity.UserDisplayConfig">
+        <id column="id" property="id"/>
+        <result column="user_id" property="userId"/>
+        <result column="data_source_id" property="dataSourceId"/>
+        <result column="table_name" property="tableName"/>
+        <result column="column_name" property="columnName"/>
+        <result column="display_name" property="displayName"/>
+        <result column="width" property="width"/>
+        <result column="fixed_position" property="fixed"/>
+        <result column="align_type" property="align"/>
+        <result column="visible" property="visible"/>
+        <result column="display_order" property="order"/>
+        <result column="searchable" property="searchable"/>
+        <result column="required" property="required"/>
+        <result column="mask_type" property="maskType"/>
+        <result column="mask_config" property="maskConfig"/>
+        <result column="sortable" property="sortable"/>
+        <result column="sort_type" property="sortType"/>
+        <result column="usage_count" property="usageCount"/>
+        <result column="last_used_at" property="lastUsedAt"/>
+        <result column="created_by" property="createdBy"/>
+        <result column="created_time" property="createdTime"/>
+        <result column="updated_by" property="updatedBy"/>
+        <result column="updated_time" property="updatedTime"/>
+    </resultMap>
+
+    <!-- 插入配置 -->
     <insert id="insert" parameterType="com.datascope.domain.query.entity.UserDisplayConfig">
         INSERT INTO user_display_config (id, user_id, data_source_id, table_name, column_name, display_name,
-                                         width, align, column_fixed, visible, order_num, sortable,
-                                         searchable, required, mask_type, mask_config, usage_count,
-                                         last_used_at, created_by, created_time, updated_by, updated_time
+                                         width, fixed_position, align_type, visible, display_order, searchable,
+                                         required,
+                                         mask_type, mask_config, sortable, sort_type, usage_count, last_used_at,
+                                         created_by, created_time, updated_by, updated_time
         ) VALUES (
             #{id}, #{userId}, #{dataSourceId}, #{tableName}, #{columnName}, #{displayName},
-            #{width}, #{align}, #{fixed}, #{visible}, #{order}, #{sortable},
-            #{searchable}, #{required}, #{maskType}, #{maskConfig}, #{usageCount},
-            #{lastUsedAt}, #{createdBy}, #{createdTime}, #{updatedBy}, #{updatedTime}
+            #{width}, #{fixed}, #{align}, #{visible}, #{order}, #{searchable}, #{required},
+            #{maskType}, #{maskConfig}, #{sortable}, #{sortType}, #{usageCount}, #{lastUsedAt},
+            #{createdBy}, #{createdTime}, #{updatedBy}, #{updatedTime}
         )
     </insert>
 
-    <select id="selectById" parameterType="java.lang.String"
-            resultType="com.datascope.domain.query.entity.UserDisplayConfig">
-        SELECT *
-        FROM user_display_config
-        WHERE id = #{id}
-    </select>
-
-    <select id="selectByUserId" parameterType="java.lang.String"
-            resultType="com.datascope.domain.query.entity.UserDisplayConfig">
-        SELECT *
-        FROM user_display_config
-        WHERE user_id = #{userId}
-    </select>
-
-    <delete id="deleteById" parameterType="java.lang.String">
-        DELETE
-        FROM user_display_config
-        WHERE id = #{id}
-    </delete>
-
-    <delete id="deleteByUserId" parameterType="java.lang.String">
-        DELETE
-        FROM user_display_config
-        WHERE user_id = #{userId}
-    </delete>
-
+    <!-- 更新配置 -->
     <update id="update" parameterType="com.datascope.domain.query.entity.UserDisplayConfig">
         UPDATE user_display_config
-        SET user_id = #{userId},
+        SET user_id        = #{userId},
             data_source_id = #{dataSourceId},
             table_name = #{tableName},
             column_name = #{columnName},
             display_name = #{displayName},
             width = #{width},
-            align = #{align},
-            column_fixed = #{fixed},
+            fixed_position = #{fixed},
+            align_type     = #{align},
             visible = #{visible},
-            order_num    = #{order},
-            sortable = #{sortable},
+            display_order  = #{order},
             searchable = #{searchable},
             required = #{required},
             mask_type = #{maskType},
             mask_config = #{maskConfig},
+            sortable       = #{sortable},
+            sort_type      = #{sortType},
             usage_count = #{usageCount},
             last_used_at = #{lastUsedAt},
-            created_by   = #{createdBy},
-            created_time = #{createdTime},
-            updated_by   = #{updatedBy},
+            updated_by     = #{updatedBy},
             updated_time = #{updatedTime}
         WHERE id = #{id}
     </update>
 
-    <select id="selectByUserIdAndDataSourceId" resultType="com.datascope.domain.query.entity.UserDisplayConfig">
+    <!-- 根据ID查询配置 -->
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT *
+        FROM user_display_config
+        WHERE id = #{id}
+    </select>
+
+    <!-- 根据用户ID查询配置 -->
+    <select id="selectByUserId" resultMap="BaseResultMap">
+        SELECT *
+        FROM user_display_config
+        WHERE user_id = #{userId}
+    </select>
+
+    <!-- 根据用户ID和数据源ID查询配置 -->
+    <select id="selectByUserIdAndDataSourceId" resultMap="BaseResultMap">
         SELECT *
         FROM user_display_config
         WHERE user_id = #{userId} AND data_source_id = #{dataSourceId}
     </select>
 
-    <select id="selectByUserIdAndDataSourceIdAndTableName"
-            resultType="com.datascope.domain.query.entity.UserDisplayConfig">
+    <!-- 根据用户ID、数据源ID和表名查询配置 -->
+    <select id="selectByUserIdAndDataSourceIdAndTableName" resultMap="BaseResultMap">
         SELECT *
         FROM user_display_config
         WHERE user_id = #{userId}
@@ -82,8 +100,8 @@
           AND table_name = #{tableName}
     </select>
 
-    <select id="selectByUserIdAndDataSourceIdAndTableNameAndColumnName"
-            resultType="com.datascope.domain.query.entity.UserDisplayConfig">
+    <!-- 根据用户ID、数据源ID、表名和列名查询配置 -->
+    <select id="selectByUserIdAndDataSourceIdAndTableNameAndColumnName" resultMap="BaseResultMap">
         SELECT *
         FROM user_display_config
         WHERE user_id = #{userId}
@@ -92,6 +110,21 @@
           AND column_name = #{columnName}
     </select>
 
+    <!-- 根据ID删除配置 -->
+    <delete id="deleteById">
+        DELETE
+        FROM user_display_config
+        WHERE id = #{id}
+    </delete>
+
+    <!-- 根据用户ID删除配置 -->
+    <delete id="deleteByUserId">
+        DELETE
+        FROM user_display_config
+        WHERE user_id = #{userId}
+    </delete>
+
+    <!-- 根据用户ID和数据源ID删除配置 -->
     <delete id="deleteByUserIdAndDataSourceId">
         DELETE
         FROM user_display_config
@@ -99,6 +132,7 @@
           AND data_source_id = #{dataSourceId}
     </delete>
 
+    <!-- 根据用户ID、数据源ID和表名删除配置 -->
     <delete id="deleteByUserIdAndDataSourceIdAndTableName">
         DELETE
         FROM user_display_config
@@ -107,34 +141,23 @@
           AND table_name = #{tableName}
     </delete>
 
-    <insert id="copyConfigs">
-        INSERT INTO user_display_config (id, user_id, data_source_id, table_name, column_name, display_name,
-                                         width, align, column_fixed, visible, order_num, sortable,
-                                         searchable, required, mask_type, mask_config, usage_count,
-                                         last_used_at, created_by, created_time, updated_by, updated_time)
-        SELECT UUID(),
-               #{toUserId},
-               data_source_id,
-               table_name,
-               column_name,
-               display_name,
-               width,
-               align,
-               column_fixed,
-               visible,
-               order_num,
-               sortable,
-               searchable,
-               required,
-               mask_type,
-               mask_config,
-               0,
-               NULL,
-               created_by,
-               created_time,
-               updated_by,
-               updated_time
-        FROM user_display_config
-        WHERE user_id = #{fromUserId}
+    <!-- 批量插入配置 -->
+    <insert id="batchInsert" parameterType="java.util.List">
+        INSERT INTO user_display_config (
+        id, user_id, data_source_id, table_name, column_name, display_name,
+        width, fixed_position, align_type, visible, display_order, searchable, required,
+        mask_type, mask_config, sortable, sort_type, usage_count, last_used_at,
+        created_by, created_time, updated_by, updated_time
+        ) VALUES
+        <foreach collection="configs" item="item" separator=",">
+            (
+            #{item.id}, #{item.userId}, #{item.dataSourceId}, #{item.tableName},
+            #{item.columnName}, #{item.displayName}, #{item.width}, #{item.fixed},
+            #{item.align}, #{item.visible}, #{item.order}, #{item.searchable},
+            #{item.required}, #{item.maskType}, #{item.maskConfig}, #{item.sortable},
+            #{item.sortType}, #{item.usageCount}, #{item.lastUsedAt}, #{item.createdBy},
+            #{item.createdTime}, #{item.updatedBy}, #{item.updatedTime}
+            )
+        </foreach>
     </insert>
 </mapper>

@@ -4,18 +4,16 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * Component Scan Configuration
- * Scans all modules for Spring components
- * 
- * @author dreambt
+ * 组件扫描配置类
  */
 @Configuration
 @ComponentScan(basePackages = {
-    "com.datascope.app",
     "com.datascope.domain",
-    "com.datascope.facade",
-    "com.datascope.infrastructure"
+    "com.datascope.infrastructure.repository",
+    "com.datascope.infrastructure.service",
+    "com.datascope.infrastructure.adapter",
+    "com.datascope.infrastructure.external"
 })
 public class ComponentScanConfig {
-    // Configuration is handled through annotations
+    // 配置类，无需额外方法
 }

@@ -18,66 +18,66 @@ import java.util.UUID;
 public class UserDisplayConfigRepositoryImpl implements UserDisplayConfigRepository {
 
     @Setter(onMethod_ = @Autowired)
-    private UserDisplayConfigMapper mybatisMapper;
+    private UserDisplayConfigMapper userDisplayConfigMapper;
 
     @Override
     public UserDisplayConfig save(UserDisplayConfig config) {
         if (config.getId() == null) {
             config.setId(UUID.randomUUID().toString());
-            mybatisMapper.insert(config);
+            userDisplayConfigMapper.insert(config);
         } else {
-            mybatisMapper.update(config);
+            userDisplayConfigMapper.update(config);
         }
         return config;
     }
 
     @Override
     public Optional<UserDisplayConfig> findById(String id) {
-        return Optional.ofNullable(mybatisMapper.selectById(id));
+        return Optional.ofNullable(userDisplayConfigMapper.selectById(id));
     }
 
     @Override
     public List<UserDisplayConfig> findByUserId(String userId) {
-        return mybatisMapper.selectByUserId(userId);
+        return userDisplayConfigMapper.selectByUserId(userId);
     }
 
     @Override
     public List<UserDisplayConfig> findByUserIdAndDataSourceId(String userId, String dataSourceId) {
-        return mybatisMapper.selectByUserIdAndDataSourceId(userId, dataSourceId);
+        return userDisplayConfigMapper.selectByUserIdAndDataSourceId(userId, dataSourceId);
     }
 
     @Override
     public List<UserDisplayConfig> findByUserIdAndDataSourceIdAndTableName(
         String userId, String dataSourceId, String tableName) {
-        return mybatisMapper.selectByUserIdAndDataSourceIdAndTableName(userId, dataSourceId, tableName);
+        return userDisplayConfigMapper.selectByUserIdAndDataSourceIdAndTableName(userId, dataSourceId, tableName);
     }
 
     @Override
     public List<UserDisplayConfig> findByUserIdAndDataSourceIdAndTableNameAndColumnName(
         String userId, String dataSourceId, String tableName, String columnName) {
-        return mybatisMapper.selectByUserIdAndDataSourceIdAndTableNameAndColumnName(
+        return userDisplayConfigMapper.selectByUserIdAndDataSourceIdAndTableNameAndColumnName(
             userId, dataSourceId, tableName, columnName);
     }
 
     @Override
     public void deleteById(String id) {
-        mybatisMapper.deleteById(id);
+        userDisplayConfigMapper.deleteById(id);
     }
 
     @Override
     public void deleteByUserId(String userId) {
-        mybatisMapper.deleteByUserId(userId);
+        userDisplayConfigMapper.deleteByUserId(userId);
     }
 
     @Override
     public void deleteByUserIdAndDataSourceId(String userId, String dataSourceId) {
-        mybatisMapper.deleteByUserIdAndDataSourceId(userId, dataSourceId);
+        userDisplayConfigMapper.deleteByUserIdAndDataSourceId(userId, dataSourceId);
     }
 
     @Override
     public void deleteByUserIdAndDataSourceIdAndTableName(
         String userId, String dataSourceId, String tableName) {
-        mybatisMapper.deleteByUserIdAndDataSourceIdAndTableName(userId, dataSourceId, tableName);
+        userDisplayConfigMapper.deleteByUserIdAndDataSourceIdAndTableName(userId, dataSourceId, tableName);
     }
 
     @Override

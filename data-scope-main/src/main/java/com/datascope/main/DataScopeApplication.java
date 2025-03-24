@@ -3,6 +3,8 @@ package com.datascope.main;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.domain.EntityScan;
+import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.scheduling.annotation.EnableAsync;
@@ -14,15 +16,19 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
  */
 @EnableAsync
 @EnableScheduling
-@SpringBootApplication
+@SpringBootApplication(exclude = {
+    HibernateJpaAutoConfiguration.class
+})
 @EnableTransactionManagement
 @EnableConfigurationProperties
 @ComponentScan(basePackages = "com.datascope")
 @MapperScan(basePackages = "com.datascope.infrastructure.mybatis.mapper")
+@EntityScan(basePackages = "com.datascope.domain.*.entity")
 public class DataScopeApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(DataScopeApplication.class, args);
+        SpringApplication application = new SpringApplication(DataScopeApplication.class);
+        application.run(args);
     }
 
 }

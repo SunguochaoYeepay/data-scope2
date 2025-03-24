@@ -1,6 +1,6 @@
 package com.datascope.app.facade.impl;
 
-import com.datascope.app.mapper.QueryMapper;
+import com.datascope.app.mapper.QueryConverter;
 import com.datascope.domain.datasource.model.DataSourceId;
 import com.datascope.domain.query.service.QueryExecutionService;
 import com.datascope.domain.query.service.QueryService;
@@ -22,7 +22,7 @@ public class QueryFacadeImpl implements QueryFacade {
 
     private final QueryExecutionService service;
     private final QueryService queryService;
-    private final QueryMapper mapper;
+    private final QueryConverter mapper;
     private final SqlExecutionEngine sqlExecutionEngine;
 
     @Override

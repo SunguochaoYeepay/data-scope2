@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.datascope.infrastructure.mybatis.mapper.QueryExecutionMapper">
+
+    <!-- 结果映射 -->
+    <resultMap id="BaseResultMap" type="com.datascope.domain.query.model.QueryExecution">
+        <id column="id" property="id"/>
+        <result column="data_source_id" property="dataSourceId"
+                typeHandler="com.datascope.infrastructure.mybatis.typehandler.DataSourceIdTypeHandler"/>
+        <result column="sql" property="sql"/>
+        <result column="status" property="status"/>
+        <result column="start_time" property="startTime"/>
+        <result column="end_time" property="endTime"/>
+        <result column="result_count" property="resultCount"/>
+        <result column="error_message" property="errorMessage"/>
+        <result column="user_id" property="userId"/>
+    </resultMap>
+
+    <!-- 插入查询执行记录 -->
+    <insert id="insert" parameterType="com.datascope.domain.query.model.QueryExecution">
+        INSERT INTO query_execution (id, data_source_id, sql, status, start_time, end_time,
+                                     result_count, error_message, user_id)
+        VALUES (#{id},
+                #{dataSourceId, typeHandler=com.datascope.infrastructure.mybatis.typehandler.DataSourceIdTypeHandler},
+                #{sql}, #{status}, #{startTime}, #{endTime},
+                #{resultCount}, #{errorMessage}, #{userId})
+    </insert>
+
+    <!-- 更新查询执行记录 -->
+    <update id="update" parameterType="com.datascope.domain.query.model.QueryExecution">
+        UPDATE query_execution
+        SET data_source_id = #{dataSourceId, typeHandler=com.datascope.infrastructure.mybatis.typehandler.DataSourceIdTypeHandler},
+            sql            = #{sql},
+            status         = #{status},
+            start_time     = #{startTime},
+            end_time       = #{endTime},
+            result_count   = #{resultCount},
+            error_message  = #{errorMessage},
+            user_id        = #{userId}
+        WHERE id = #{id}
+    </update>
+
+    <!-- 根据ID查询查询执行记录 -->
+    <select id="findById" resultMap="BaseResultMap">
+        SELECT *
+        FROM query_execution
+        WHERE id = #{id}
+    </select>
+
+    <!-- 判断ID是否存在 -->
+    <select id="existsById" resultType="boolean">
+        SELECT COUNT(*) > 0
+        FROM query_execution
+        WHERE id = #{id}
+    </select>
+
+    <!-- 查询所有查询执行记录 -->
+    <select id="findAll" resultMap="BaseResultMap">
+        SELECT *
+        FROM query_execution
+    </select>
+
+    <!-- 根据ID列表查询查询执行记录 -->
+    <select id="findAllById" resultMap="BaseResultMap">
+        SELECT * FROM query_execution
+        WHERE id IN
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </select>
+
+    <!-- 统计查询执行记录数量 -->
+    <select id="count" resultType="long">
+        SELECT COUNT(*)
+        FROM query_execution
+    </select>
+
+    <!-- 根据ID删除查询执行记录 -->
+    <delete id="deleteById">
+        DELETE
+        FROM query_execution
+        WHERE id = #{id}
+    </delete>
+
+    <!-- 删除所有查询执行记录 -->
+    <delete id="deleteAll">
+        DELETE
+        FROM query_execution
+    </delete>
+
+    <!-- 根据ID列表删除查询执行记录 -->
+    <delete id="deleteAllById">
+        DELETE FROM query_execution
+        WHERE id IN
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <!-- 查找用户最近的查询记录 -->
+    <select id="findRecentByUserId" resultMap="BaseResultMap">
+        SELECT *
+        FROM query_execution
+        WHERE user_id = #{userId}
+        ORDER BY start_time DESC
+            LIMIT #{limit}
+    </select>
+
+    <!-- 查找数据源的查询记录 -->
+    <select id="findByDataSourceId" resultMap="BaseResultMap">
+        SELECT *
+        FROM query_execution
+        WHERE data_source_id =
+              #{dataSourceId, typeHandler=com.datascope.infrastructure.mybatis.typehandler.DataSourceIdTypeHandler}
+        ORDER BY start_time DESC
+            LIMIT #{limit}
+    </select>
+
+    <!-- 根据状态查询查询执行记录 -->
+    <select id="findByStatus" resultMap="BaseResultMap">
+        SELECT *
+        FROM query_execution
+        WHERE status = #{status}
+    </select>
+
+    <!-- 统计用户查询次数 -->
+    <select id="countByUserId" resultType="long">
+        SELECT COUNT(*)
+        FROM query_execution
+        WHERE user_id = #{userId}
+    </select>
+
+</mapper>

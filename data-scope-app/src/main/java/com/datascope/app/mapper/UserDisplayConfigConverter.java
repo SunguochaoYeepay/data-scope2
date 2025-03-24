@@ -3,47 +3,33 @@ package com.datascope.app.mapper;
 import com.datascope.domain.query.entity.UserDisplayConfig;
 import com.datascope.facade.query.dto.UserDisplayConfigDTO;
 import org.mapstruct.Mapper;
-import org.mapstruct.factory.Mappers;
+import org.mapstruct.ReportingPolicy;
 
 import java.util.List;
 
 /**
- * 用户显示配置转换器
+ * Facade mapper for user display configuration
  */
-@Mapper
+@Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface UserDisplayConfigConverter {
 
-    UserDisplayConfigConverter INSTANCE = Mappers.getMapper(UserDisplayConfigConverter.class);
+    /**
+     * Convert domain object to DTO
+     */
+    UserDisplayConfigDTO toDTO(UserDisplayConfig domain);
 
     /**
-     * DTO转实体
-     *
-     * @param dto DTO对象
-     * @return 实体对象
+     * Convert DTO to domain object
      */
-    UserDisplayConfig toEntity(UserDisplayConfigDTO dto);
+    UserDisplayConfig toDomain(UserDisplayConfigDTO dto);
 
     /**
-     * 实体转DTO
-     *
-     * @param entity 实体对象
-     * @return DTO对象
+     * Convert domain object list to DTO list
      */
-    UserDisplayConfigDTO toDTO(UserDisplayConfig entity);
+    List<UserDisplayConfigDTO> toDTOList(List<UserDisplayConfig> domains);
 
     /**
-     * DTO列表转实体列表
-     *
-     * @param dtos DTO对象列表
-     * @return 实体对象列表
+     * Convert DTO list to domain object list
      */
-    List<UserDisplayConfig> toEntityList(List<UserDisplayConfigDTO> dtos);
-
-    /**
-     * 实体列表转DTO列表
-     *
-     * @param entities 实体对象列表
-     * @return DTO对象列表
-     */
-    List<UserDisplayConfigDTO> toDTOList(List<UserDisplayConfig> entities);
+    List<UserDisplayConfig> toDomainList(List<UserDisplayConfigDTO> dtos);
 }

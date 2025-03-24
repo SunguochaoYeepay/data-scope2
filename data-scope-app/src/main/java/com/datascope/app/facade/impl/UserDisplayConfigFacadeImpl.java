@@ -1,6 +1,6 @@
 package com.datascope.app.facade.impl;
 
-import com.datascope.app.mapper.UserDisplayConfigFacadeMapper;
+import com.datascope.app.mapper.UserDisplayConfigConverter;
 import com.datascope.domain.query.entity.UserDisplayConfig;
 import com.datascope.domain.query.service.UserDisplayConfigService;
 import com.datascope.facade.query.UserDisplayConfigFacade;
@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 public class UserDisplayConfigFacadeImpl implements UserDisplayConfigFacade {
 
     private final UserDisplayConfigService service;
-    private final UserDisplayConfigFacadeMapper mapper;
+    private final UserDisplayConfigConverter mapper;
 
     @Override
     public UserDisplayConfigDTO save(UserDisplayConfigDTO config, String operator) {

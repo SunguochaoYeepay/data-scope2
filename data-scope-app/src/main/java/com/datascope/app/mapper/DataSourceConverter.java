@@ -16,7 +16,7 @@ import java.util.List;
     componentModel = "spring",
     nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE
 )
-public interface DataSourceMapper {
+public interface DataSourceConverter {
 
     /**
      * DTO转实体

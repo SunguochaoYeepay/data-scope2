@@ -9,9 +9,9 @@ import org.mapstruct.factory.Mappers;
 import java.util.List;
 
 @Mapper
-public interface QueryMapper {
+public interface QueryConverter {
 
-    QueryMapper INSTANCE = Mappers.getMapper(QueryMapper.class);
+    QueryConverter INSTANCE = Mappers.getMapper(QueryConverter.class);
 
     @Mapping(source = "dataSourceId.value", target = "dataSourceId")
     QueryDTO toDTO(QueryExecution queryExecution);

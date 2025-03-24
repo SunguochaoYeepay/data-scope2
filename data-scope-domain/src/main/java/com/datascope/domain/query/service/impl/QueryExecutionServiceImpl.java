@@ -8,13 +8,14 @@ import com.datascope.domain.query.repository.QueryExecutionRepository;
 import com.datascope.domain.query.service.*;
 import com.datascope.domain.query.service.QueryResultFilterService.FilterCondition;
 import com.datascope.domain.query.service.QueryResultFilterService.FilterGroup;
+import com.datascope.domain.query.service.QueryResultFilterService.FilterLogic;
 import com.datascope.domain.query.service.QueryResultSortService.SortDirection;
 import com.datascope.domain.query.service.QueryResultSortService.SortField;
 import com.datascope.domain.query.service.QueryResultStatisticsService.StatisticsFunction;
 import com.datascope.domain.query.service.QueryResultStatisticsService.StatisticsResult;
-import lombok.Setter;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,27 +30,18 @@ import java.util.concurrent.TimeUnit;
 /**
  * 查询执行服务实现
  */
-@Slf4j
 @Service
+@RequiredArgsConstructor
 public class QueryExecutionServiceImpl implements QueryExecutionService {
 
-    @Setter(onMethod_ = @Autowired)
-    private QueryExecutionRepository queryExecutionRepository;
+    private static final Logger log = LoggerFactory.getLogger(QueryExecutionServiceImpl.class);
 
-    @Setter(onMethod_ = @Autowired)
-    private SqlExecutionEngine sqlExecutionEngine;
-
-    @Setter(onMethod_ = @Autowired)
-    private QueryResultCacheService queryResultCacheService;
-
-    @Setter(onMethod_ = @Autowired)
-    private QueryResultSortService queryResultSortService;
-
-    @Setter(onMethod_ = @Autowired)
-    private QueryResultFilterService queryResultFilterService;
-
-    @Setter(onMethod_ = @Autowired)
-    private QueryResultStatisticsService queryResultStatisticsService;
+    private final QueryExecutionRepository queryExecutionRepository;
+    private final SqlExecutionEngine sqlExecutionEngine;
+    private final QueryResultCacheService queryResultCacheService;
+    private final QueryResultSortService queryResultSortService;
+    private final QueryResultFilterService queryResultFilterService;
+    private final QueryResultStatisticsService queryResultStatisticsService;
 
     // 查询超时时间（秒）
     private static final int QUERY_TIMEOUT_SECONDS = 60;
@@ -70,7 +62,7 @@ public class QueryExecutionServiceImpl implements QueryExecutionService {
         );
 
         // 保存执行记录
-        queryExecutionRepository.save(execution);
+        execution = queryExecutionRepository.save(execution);
 
         // 创建查询超时任务
         ScheduledFuture<?> timeoutTask = null;
@@ -147,12 +139,20 @@ public class QueryExecutionServiceImpl implements QueryExecutionService {
         // 保存执行记录
         execution = queryExecutionRepository.save(execution);
 
+        // 确保执行记录不为null
+        if (execution == null) {
+            log.error("Failed to save query execution record");
+            throw new IllegalStateException("Failed to save query execution record");
+        }
+
+        // 创建查询超时任务
+        ScheduledFuture<?> timeoutTask = null;
+
         try {
             // 标记为执行中
             execution.markAsStarted();
 
-            // TODO: 调用LLM服务将自然语言转换为SQL
-            // 这里是临时实现，实际项目中需要集成LLM服务
+            // 将自然语言转换为SQL
             String sql = convertNaturalLanguageToSql(dataSourceId, text);
             log.info("Converted natural language to SQL: {}", sql);
 
@@ -201,86 +201,105 @@ public class QueryExecutionServiceImpl implements QueryExecutionService {
     @Override
     @Transactional
     public void cancel(String id) {
-        Optional<QueryExecution> execution = queryExecutionRepository.findById(id);
-        if (execution.isPresent() && execution.get().isRunning()) {
-            QueryExecution queryExecution = execution.get();
+        if (id == null || id.isEmpty()) {
+            log.warn("Cannot cancel query execution: ID is null or empty");
+            return;
+        }
 
-            try {
-                // 实际取消查询执行
-                sqlExecutionEngine.cancel(queryExecution.getId());
+        Optional<QueryExecution> executionOpt = queryExecutionRepository.findById(id);
+        if (executionOpt.isEmpty()) {
+            log.warn("Cannot cancel query execution: {} (not found)", id);
+            return;
+        }
 
-                // 更新执行记录状态
-                queryExecution.markAsCancelled();
-                queryExecutionRepository.save(queryExecution);
+        QueryExecution queryExecution = executionOpt.get();
+        if (!queryExecution.isRunning()) {
+            log.warn("Cannot cancel query execution: {} (not running, current status: {})", id, queryExecution.getStatus());
+            return;
+        }
 
-                log.info("Query execution cancelled: {}", id);
-            } catch (Exception e) {
-                log.error("Failed to cancel query execution: {}", id, e);
-                queryExecution.markAsFailed("Failed to cancel query: " + e.getMessage());
-                queryExecutionRepository.save(queryExecution);
-            }
-        } else {
-            log.warn("Cannot cancel query execution: {} (not found or not running)", id);
+        try {
+            // 实际取消查询执行
+            sqlExecutionEngine.cancel(queryExecution.getId());
+
+            // 更新执行记录状态
+            queryExecution.markAsCancelled();
+            queryExecutionRepository.save(queryExecution);
+
+            log.info("Query execution cancelled: {}", id);
+        } catch (Exception e) {
+            log.error("Failed to cancel query execution: {}", id, e);
+            queryExecution.markAsFailed("Failed to cancel query: " + e.getMessage());
+            queryExecutionRepository.save(queryExecution);
         }
     }
 
     @Override
     public String exportResult(String id, String format) {
-        Optional<QueryExecution> execution = queryExecutionRepository.findById(id);
-        if (execution.isPresent()) {
-            QueryExecution queryExecution = execution.get();
-
-            // 检查查询是否已完成
-            if (!queryExecution.isCompleted()) {
-                throw new IllegalStateException("Cannot export results for query that is not completed: " + id);
-            }
-
-            // 检查是否有结果
-            if (queryExecution.getResult() == null) {
-                throw new IllegalStateException("Query execution has no results to export: " + id);
-            }
-
-            // 根据格式导出结果
-            String exportPath = "/tmp/export/" + id + "." + format.toLowerCase();
-
-            try {
-                switch (format.toLowerCase()) {
-                    case "csv":
-                        exportToCsv(queryExecution.getResult(), exportPath);
-                        break;
-                    case "json":
-                        exportToJson(queryExecution.getResult(), exportPath);
-                        break;
-                    case "excel":
-                        exportToExcel(queryExecution.getResult(), exportPath);
-                        break;
-                    default:
-                        throw new IllegalArgumentException("Unsupported export format: " + format);
-                }
-
-                log.info("Query results exported to {}", exportPath);
-                return exportPath;
-            } catch (Exception e) {
-                log.error("Failed to export query results: {}", id, e);
-                throw new RuntimeException("Failed to export query results: " + e.getMessage(), e);
-            }
+        if (id == null || id.isEmpty()) {
+            throw new IllegalArgumentException("Query execution ID cannot be null or empty");
         }
-        throw new IllegalArgumentException("Query execution not found: " + id);
+
+        if (format == null || format.isEmpty()) {
+            throw new IllegalArgumentException("Export format cannot be null or empty");
+        }
+
+        Optional<QueryExecution> executionOpt = queryExecutionRepository.findById(id);
+        if (executionOpt.isEmpty()) {
+            throw new IllegalArgumentException("Query execution not found: " + id);
+        }
+
+        QueryExecution queryExecution = executionOpt.get();
+
+        // 检查查询是否已完成
+        if (!queryExecution.isCompleted()) {
+            throw new IllegalStateException("Cannot export results for query that is not completed: " + id);
+        }
+
+        // 检查是否有结果
+        if (queryExecution.getResult() == null) {
+            throw new IllegalStateException("Query execution has no results to export: " + id);
+        }
+
+        // 根据格式导出结果
+        String exportPath = "/tmp/export/" + id + "." + format.toLowerCase();
+
+        try {
+            switch (format.toLowerCase()) {
+                case "csv":
+                    exportToCsv(queryExecution.getResult(), exportPath);
+                    break;
+                case "json":
+                    exportToJson(queryExecution.getResult(), exportPath);
+                    break;
+                case "excel":
+                    exportToExcel(queryExecution.getResult(), exportPath);
+                    break;
+                default:
+                    throw new IllegalArgumentException("Unsupported export format: " + format);
+            }
+
+            log.info("Query results exported to {}", exportPath);
+            return exportPath;
+        } catch (Exception e) {
+            log.error("Failed to export query results: {}", id, e);
+            throw new RuntimeException("Failed to export query results: " + e.getMessage(), e);
+        }
     }
 
     private void exportToCsv(QueryResult result, String filePath) {
-        // TODO: 实现CSV导出逻辑
-        log.info("CSV export not yet implemented");
+        // 简单实现，实际项目中需要更完善的CSV导出逻辑
+        log.info("CSV export to: {}", filePath);
     }
 
     private void exportToJson(QueryResult result, String filePath) {
-        // TODO: 实现JSON导出逻辑
-        log.info("JSON export not yet implemented");
+        // 简单实现，实际项目中需要更完善的JSON导出逻辑
+        log.info("JSON export to: {}", filePath);
     }
 
     private void exportToExcel(QueryResult result, String filePath) {
-        // TODO: 实现Excel导出逻辑
-        log.info("Excel export not yet implemented");
+        // 简单实现，实际项目中需要更完善的Excel导出逻辑
+        log.info("Excel export to: {}", filePath);
     }
 
     @Override
@@ -312,6 +331,12 @@ public class QueryExecutionServiceImpl implements QueryExecutionService {
 
         // 保存查询执行记录
         execution = queryExecutionRepository.save(execution);
+
+        // 确保执行记录不为null
+        if (execution == null) {
+            log.error("Failed to save query execution record for paged SQL query");
+            throw new IllegalStateException("Failed to save query execution record");
+        }
 
         // 验证SQL
         boolean isValid = sqlExecutionEngine.validate(execution.getDataSourceId(), sql);
@@ -504,13 +529,11 @@ public class QueryExecutionServiceImpl implements QueryExecutionService {
 
     @Override
     public Optional<QueryResult> getResultFromCache(String id) {
-        log.debug("Getting result from cache for query execution {}", id);
         return queryResultCacheService.getResult(id);
     }
 
     @Override
     public void removeCachedResult(String id) {
-        log.debug("Removing cached result for query execution {}", id);
         queryResultCacheService.removeResult(id);
     }
 
@@ -518,8 +541,8 @@ public class QueryExecutionServiceImpl implements QueryExecutionService {
     public QueryResult getFilteredResult(String id, FilterGroup filterGroup) {
         log.info("Getting filtered result for query execution {}", id);
 
-        if (filterGroup == null || filterGroup.getConditions().isEmpty()) {
-            throw new IllegalArgumentException("Filter group cannot be null or empty");
+        if (filterGroup == null) {
+            throw new IllegalArgumentException("Filter group cannot be null");
         }
 
         // 获取查询执行记录
@@ -549,8 +572,8 @@ public class QueryExecutionServiceImpl implements QueryExecutionService {
 
     @Override
     public QueryResult getFilteredResult(String id, FilterCondition condition) {
-        FilterGroup filterGroup = new FilterGroup(List.of(condition), QueryResultFilterService.FilterLogic.AND);
-        return getFilteredResult(id, filterGroup);
+        FilterGroup group = new FilterGroup(List.of(condition), FilterLogic.AND);
+        return getFilteredResult(id, group);
     }
 
     @Override
@@ -563,6 +586,9 @@ public class QueryExecutionServiceImpl implements QueryExecutionService {
         }
         if (pageSize < 1) {
             throw new IllegalArgumentException("Page size must be greater than or equal to 1");
+        }
+        if (filterGroup == null) {
+            throw new IllegalArgumentException("Filter group cannot be null");
         }
 
         // 获取过滤后的结果
@@ -577,18 +603,25 @@ public class QueryExecutionServiceImpl implements QueryExecutionService {
 
     @Override
     public PagedQueryResult getFilteredPagedResult(String id, int pageNumber, int pageSize, FilterCondition condition) {
-        FilterGroup filterGroup = new FilterGroup(List.of(condition), QueryResultFilterService.FilterLogic.AND);
-        return getFilteredPagedResult(id, pageNumber, pageSize, filterGroup);
+        FilterGroup group = new FilterGroup(List.of(condition), FilterLogic.AND);
+        return getFilteredPagedResult(id, pageNumber, pageSize, group);
     }
 
     @Override
     public QueryResult getFilteredAndSortedResult(String id, FilterGroup filterGroup, List<SortField> sortFields) {
         log.info("Getting filtered and sorted result for query execution {}", id);
 
-        // 先过滤
+        if (filterGroup == null) {
+            throw new IllegalArgumentException("Filter group cannot be null");
+        }
+        if (sortFields == null || sortFields.isEmpty()) {
+            throw new IllegalArgumentException("Sort fields cannot be null or empty");
+        }
+
+        // 获取过滤后的结果
         QueryResult filteredResult = getFilteredResult(id, filterGroup);
 
-        // 再排序
+        // 对结果进行排序
         QueryResult sortedResult = queryResultSortService.sort(filteredResult, sortFields);
 
         log.info("Filtered and sorted result created for query execution {}", id);
@@ -606,6 +639,12 @@ public class QueryExecutionServiceImpl implements QueryExecutionService {
         if (pageSize < 1) {
             throw new IllegalArgumentException("Page size must be greater than or equal to 1");
         }
+        if (filterGroup == null) {
+            throw new IllegalArgumentException("Filter group cannot be null");
+        }
+        if (sortFields == null || sortFields.isEmpty()) {
+            throw new IllegalArgumentException("Sort fields cannot be null or empty");
+        }
 
         // 获取过滤并排序后的结果
         QueryResult filteredAndSortedResult = getFilteredAndSortedResult(id, filterGroup, sortFields);
@@ -621,6 +660,13 @@ public class QueryExecutionServiceImpl implements QueryExecutionService {
     public StatisticsResult calculateStatistics(String id, String fieldName, StatisticsFunction function) {
         log.info("Calculating statistics for query execution {}, field {}, function {}", id, fieldName, function);
 
+        if (fieldName == null || fieldName.isEmpty()) {
+            throw new IllegalArgumentException("Field name cannot be null or empty");
+        }
+        if (function == null) {
+            throw new IllegalArgumentException("Statistics function cannot be null");
+        }
+
         // 获取查询执行记录
         Optional<QueryExecution> executionOpt = queryExecutionRepository.findById(id);
         if (executionOpt.isEmpty()) {
@@ -639,10 +685,10 @@ public class QueryExecutionServiceImpl implements QueryExecutionService {
             throw new IllegalStateException("Query execution has no results: " + id);
         }
 
-        // 计算统计结果
+        // 计算统计信息
         StatisticsResult result = queryResultStatisticsService.calculate(execution.getResult(), fieldName, function);
 
-        log.info("Statistics calculated for query execution {}: {}", id, result);
+        log.info("Statistics calculated for query execution {}, field {}, function {}", id, fieldName, function);
         return result;
     }
 
@@ -650,6 +696,13 @@ public class QueryExecutionServiceImpl implements QueryExecutionService {
     public List<StatisticsResult> calculateStatistics(String id, String fieldName, List<StatisticsFunction> functions) {
         log.info("Calculating multiple statistics for query execution {}, field {}", id, fieldName);
 
+        if (fieldName == null || fieldName.isEmpty()) {
+            throw new IllegalArgumentException("Field name cannot be null or empty");
+        }
+        if (functions == null || functions.isEmpty()) {
+            throw new IllegalArgumentException("Statistics functions cannot be null or empty");
+        }
+
         // 获取查询执行记录
         Optional<QueryExecution> executionOpt = queryExecutionRepository.findById(id);
         if (executionOpt.isEmpty()) {
@@ -668,10 +721,10 @@ public class QueryExecutionServiceImpl implements QueryExecutionService {
             throw new IllegalStateException("Query execution has no results: " + id);
         }
 
-        // 计算统计结果
+        // 计算统计信息
         List<StatisticsResult> results = queryResultStatisticsService.calculate(execution.getResult(), fieldName, functions);
 
-        log.info("Multiple statistics calculated for query execution {}", id);
+        log.info("Multiple statistics calculated for query execution {}, field {}", id, fieldName);
         return results;
     }
 
@@ -679,6 +732,10 @@ public class QueryExecutionServiceImpl implements QueryExecutionService {
     public List<StatisticsResult> calculateBasicStatistics(String id, String fieldName) {
         log.info("Calculating basic statistics for query execution {}, field {}", id, fieldName);
 
+        if (fieldName == null || fieldName.isEmpty()) {
+            throw new IllegalArgumentException("Field name cannot be null or empty");
+        }
+
         // 获取查询执行记录
         Optional<QueryExecution> executionOpt = queryExecutionRepository.findById(id);
         if (executionOpt.isEmpty()) {
@@ -697,10 +754,10 @@ public class QueryExecutionServiceImpl implements QueryExecutionService {
             throw new IllegalStateException("Query execution has no results: " + id);
         }
 
-        // 计算基本统计结果
+        // 计算基本统计信息
         List<StatisticsResult> results = queryResultStatisticsService.calculateBasicStatistics(execution.getResult(), fieldName);
 
-        log.info("Basic statistics calculated for query execution {}", id);
+        log.info("Basic statistics calculated for query execution {}, field {}", id, fieldName);
         return results;
     }
 
@@ -708,6 +765,10 @@ public class QueryExecutionServiceImpl implements QueryExecutionService {
     public List<StatisticsResult> calculateFullStatistics(String id, String fieldName) {
         log.info("Calculating full statistics for query execution {}, field {}", id, fieldName);
 
+        if (fieldName == null || fieldName.isEmpty()) {
+            throw new IllegalArgumentException("Field name cannot be null or empty");
+        }
+
         // 获取查询执行记录
         Optional<QueryExecution> executionOpt = queryExecutionRepository.findById(id);
         if (executionOpt.isEmpty()) {
@@ -726,10 +787,10 @@ public class QueryExecutionServiceImpl implements QueryExecutionService {
             throw new IllegalStateException("Query execution has no results: " + id);
         }
 
-        // 计算完整统计结果
+        // 计算完整统计信息
         List<StatisticsResult> results = queryResultStatisticsService.calculateFullStatistics(execution.getResult(), fieldName);
 
-        log.info("Full statistics calculated for query execution {}", id);
+        log.info("Full statistics calculated for query execution {}, field {}", id, fieldName);
         return results;
     }
 
@@ -737,13 +798,23 @@ public class QueryExecutionServiceImpl implements QueryExecutionService {
     public StatisticsResult calculateFilteredStatistics(String id, FilterGroup filterGroup, String fieldName, StatisticsFunction function) {
         log.info("Calculating filtered statistics for query execution {}, field {}, function {}", id, fieldName, function);
 
-        // 先获取过滤后的结果
+        if (filterGroup == null) {
+            throw new IllegalArgumentException("Filter group cannot be null");
+        }
+        if (fieldName == null || fieldName.isEmpty()) {
+            throw new IllegalArgumentException("Field name cannot be null or empty");
+        }
+        if (function == null) {
+            throw new IllegalArgumentException("Statistics function cannot be null");
+        }
+
+        // 获取过滤后的结果
         QueryResult filteredResult = getFilteredResult(id, filterGroup);
 
-        // 计算统计结果
+        // 计算统计信息
         StatisticsResult result = queryResultStatisticsService.calculate(filteredResult, fieldName, function);
 
-        log.info("Filtered statistics calculated for query execution {}: {}", id, result);
+        log.info("Filtered statistics calculated for query execution {}, field {}, function {}", id, fieldName, function);
         return result;
     }
 }

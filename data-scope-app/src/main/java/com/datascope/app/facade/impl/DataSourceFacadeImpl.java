@@ -1,6 +1,6 @@
 package com.datascope.app.facade.impl;
 
-import com.datascope.app.mapper.DataSourceMapper;
+import com.datascope.app.mapper.DataSourceConverter;
 import com.datascope.domain.datasource.entity.DataSource;
 import com.datascope.domain.datasource.service.DataSourceService;
 import com.datascope.facade.datasource.DataSourceFacade;
@@ -21,7 +21,7 @@ import java.util.List;
 public class DataSourceFacadeImpl implements DataSourceFacade {
 
     private final DataSourceService service;
-    private final DataSourceMapper mapper;
+    private final DataSourceConverter mapper;
 
     @Override
     public DataSourceDTO create(DataSourceDTO dto, String operator) {
