@@ -1,12 +1,9 @@
 package com.datascope.main;
 
-import com.datascope.domain.query.service.QueryExecutionService;
-import com.datascope.domain.query.service.impl.QueryExecutionServiceImpl;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -28,8 +25,4 @@ public class DataScopeApplication {
         SpringApplication.run(DataScopeApplication.class, args);
     }
 
-    @Bean
-    public QueryExecutionService sqlExecutionEngine() {
-        return new QueryExecutionServiceImpl(null);
-    }
 }

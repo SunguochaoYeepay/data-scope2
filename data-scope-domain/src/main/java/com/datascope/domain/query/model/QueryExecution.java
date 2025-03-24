@@ -5,6 +5,7 @@ import com.datascope.domain.query.enums.QueryExecutionStatus;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
 import java.util.Map;
@@ -13,13 +14,13 @@ import java.util.UUID;
 /**
  * 查询执行记录
  */
+@Setter
 @Getter
 @NoArgsConstructor
 @EqualsAndHashCode(of = "id")
 public class QueryExecution {
     private String id;
     private DataSourceId dataSourceId;
-    @Setter
     private String sql;
     private Map<String, Object> parameters;
     private QueryExecutionStatus status;
@@ -28,8 +29,6 @@ public class QueryExecution {
     private Long resultCount;
     private String errorMessage;
     private String userId;
-
-    @Setter
     private QueryResult result;
 
     public QueryExecution(DataSourceId dataSourceId, String sql, Map<String, Object> parameters) {

@@ -56,10 +56,10 @@ public class DataSourceServiceImpl implements DataSourceService {
         validateDataSource(entity);
 
         DataSource existing = repository.findById(entity.getId())
-                .orElseThrow(() -> DataSourceException.notFound(entity.getId()));
+            .orElseThrow(() -> DataSourceException.notFound(entity.getId()));
 
         if (!existing.getName().equals(entity.getName())
-                && repository.existsByName(entity.getName())) {
+            && repository.existsByName(entity.getName())) {
             throw DataSourceException.nameExists(entity.getName());
         }
 
@@ -80,7 +80,7 @@ public class DataSourceServiceImpl implements DataSourceService {
     @Transactional(readOnly = true)
     public DataSource getById(String id) {
         return repository.findById(id)
-                .orElseThrow(() -> DataSourceException.notFound(id));
+            .orElseThrow(() -> DataSourceException.notFound(id));
     }
 
     @Override

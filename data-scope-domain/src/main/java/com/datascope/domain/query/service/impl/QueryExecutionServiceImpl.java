@@ -6,8 +6,9 @@ import com.datascope.domain.query.model.QueryResult;
 import com.datascope.domain.query.repository.QueryExecutionRepository;
 import com.datascope.domain.query.service.QueryExecutionService;
 import com.datascope.domain.query.service.SqlExecutionEngine;
-import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,14 +25,17 @@ import java.util.concurrent.TimeUnit;
  */
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class QueryExecutionServiceImpl implements QueryExecutionService {
 
-    private final QueryExecutionRepository queryExecutionRepository;
-    private final SqlExecutionEngine sqlExecutionEngine;
+    @Setter(onMethod_ = @Autowired)
+    private QueryExecutionRepository queryExecutionRepository;
+
+    @Setter(onMethod_ = @Autowired)
+    private SqlExecutionEngine sqlExecutionEngine;
 
     // 查询超时时间（秒）
     private static final int QUERY_TIMEOUT_SECONDS = 60;
+
     // 调度器用于处理查询超时
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
@@ -48,7 +52,7 @@ public class QueryExecutionServiceImpl implements QueryExecutionService {
         );
 
         // 保存执行记录
-        execution = queryExecutionRepository.save(execution);
+        queryExecutionRepository.save(execution);
 
         // 创建查询超时任务
         ScheduledFuture<?> timeoutTask = null;

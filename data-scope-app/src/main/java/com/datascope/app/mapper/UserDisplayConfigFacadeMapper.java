@@ -1,4 +1,4 @@
-package com.datascope.facade.query.mapper;
+package com.datascope.app.mapper;
 
 import com.datascope.domain.query.entity.UserDisplayConfig;
 import com.datascope.facade.query.dto.UserDisplayConfigDTO;

@@ -1,12 +1,11 @@
-package com.datascope.facade.query.converter;
-
-import java.util.List;
-
-import org.mapstruct.Mapper;
-import org.mapstruct.factory.Mappers;
+package com.datascope.app.mapper;
 
 import com.datascope.domain.query.entity.UserDisplayConfig;
 import com.datascope.facade.query.dto.UserDisplayConfigDTO;
+import org.mapstruct.Mapper;
+import org.mapstruct.factory.Mappers;
+
+import java.util.List;
 
 /**
  * 用户显示配置转换器

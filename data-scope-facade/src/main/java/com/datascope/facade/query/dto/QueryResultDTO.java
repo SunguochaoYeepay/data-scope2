@@ -1,6 +1,6 @@
 package com.datascope.facade.query.dto;
 
-import com.datascope.domain.query.enums.QueryExecutionStatus;
+import com.datascope.facade.query.enums.QueryExecutionStatus;
 import lombok.Data;
 
 import java.time.LocalDateTime;

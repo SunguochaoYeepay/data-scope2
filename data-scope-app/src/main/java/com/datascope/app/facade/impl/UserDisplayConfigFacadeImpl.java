@@ -1,10 +1,10 @@
 package com.datascope.app.facade.impl;
 
+import com.datascope.app.mapper.UserDisplayConfigFacadeMapper;
 import com.datascope.domain.query.entity.UserDisplayConfig;
 import com.datascope.domain.query.service.UserDisplayConfigService;
 import com.datascope.facade.query.UserDisplayConfigFacade;
 import com.datascope.facade.query.dto.UserDisplayConfigDTO;
-import com.datascope.facade.query.mapper.UserDisplayConfigFacadeMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

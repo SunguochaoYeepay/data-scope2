@@ -29,11 +29,12 @@ public class SqlExecutionEngineImpl implements SqlExecutionEngine {
 
     // 用于存储正在执行的查询，以支持取消操作
     private final Map<String, Statement> activeStatements = new ConcurrentHashMap<>();
+
     @Autowired
     private DataSourceRepository dataSourceRepository;
-    @Autowired
-    private DataSourceConnectionGateway connectionGateway;
+
     // 用于存储正在执行的查询，以支持取消操作
+    @Autowired
     private DataSourceConnectionGateway connectionGateway;
 
     @Override
