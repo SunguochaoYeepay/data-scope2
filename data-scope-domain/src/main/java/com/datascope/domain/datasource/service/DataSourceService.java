@@ -103,6 +103,14 @@ public interface DataSourceService {
     boolean testConnection(String id);
 
     /**
+     * 测试数据源连接
+     *
+     * @param connectionInfo 连接信息
+     * @return 是否连接成功
+     */
+    boolean testConnection(DataSource connectionInfo);
+
+    /**
      * 同步数据源元数据
      *
      * @param id       数据源ID

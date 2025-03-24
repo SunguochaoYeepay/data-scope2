@@ -1,13 +1,12 @@
 package com.datascope.app.mapper;
 
-import java.util.List;
-
-import org.mapstruct.Mapper;
-import org.mapstruct.ReportingPolicy;
-
 import com.datascope.app.controller.request.UserDisplayConfigRequest;
 import com.datascope.app.controller.response.UserDisplayConfigResponse;
 import com.datascope.facade.query.dto.UserDisplayConfigDTO;
+import org.mapstruct.Mapper;
+import org.mapstruct.ReportingPolicy;
+
+import java.util.List;
 
 /**
  * 用户显示配置Mapper

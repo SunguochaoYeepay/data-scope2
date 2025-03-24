@@ -135,6 +135,17 @@ public class DataSourceServiceImpl implements DataSourceService {
     }
 
     @Override
+    public boolean testConnection(DataSource connectionInfo) {
+        try {
+            validateDataSource(connectionInfo);
+            return dataSourceConnectionGateway.testConnection(connectionInfo);
+        } catch (Exception e) {
+            log.error("测试数据源连接失败: {}", connectionInfo.getName(), e);
+            return false;
+        }
+    }
+
+    @Override
     @Transactional
     public DataSource syncMetadata(String id, String operator) {
         DataSource entity = getById(id);
@@ -191,5 +202,6 @@ public class DataSourceServiceImpl implements DataSourceService {
         Assert.notNull(entity.getPort(), "端口号不能为空");
         Assert.hasText(entity.getDatabase(), "数据库名称不能为空");
         Assert.hasText(entity.getUsername(), "用户名不能为空");
+        // schema可以为空，不做验证
     }
 }

@@ -5,6 +5,7 @@ import com.datascope.domain.datasource.entity.DataSource;
 import com.datascope.domain.datasource.service.DataSourceService;
 import com.datascope.facade.datasource.DataSourceFacade;
 import com.datascope.facade.datasource.dto.DataSourceDTO;
+import com.datascope.facade.datasource.dto.TestConnectionRequest;
 import com.datascope.facade.datasource.enums.DataSourceStatus;
 import com.datascope.facade.datasource.enums.DataSourceType;
 import lombok.RequiredArgsConstructor;
@@ -70,6 +71,21 @@ public class DataSourceFacadeImpl implements DataSourceFacade {
     @Override
     public boolean testConnection(String id) {
         return service.testConnection(id);
+    }
+
+    @Override
+    public boolean testConnection(TestConnectionRequest request) {
+        DataSource connectionInfo = new DataSource();
+        connectionInfo.setName(request.getName());
+        connectionInfo.setType(convertType(request.getType()));
+        connectionInfo.setHost(request.getHost());
+        connectionInfo.setPort(request.getPort());
+        connectionInfo.setDatabase(request.getDatabase());
+        connectionInfo.setSchema(request.getSchema());
+        connectionInfo.setUsername(request.getUsername());
+        connectionInfo.setPassword(request.getPassword());
+
+        return service.testConnection(connectionInfo);
     }
 
     @Override

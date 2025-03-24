@@ -1,122 +1,182 @@
 package com.datascope.app.controller;
 
+import com.datascope.app.response.ApiResponse;
 import com.datascope.facade.datasource.DataSourceFacade;
 import com.datascope.facade.datasource.dto.DataSourceDTO;
+import com.datascope.facade.datasource.dto.TestConnectionRequest;
 import com.datascope.facade.datasource.enums.DataSourceStatus;
 import com.datascope.facade.datasource.enums.DataSourceType;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 /**
- * 数据源控制器
+ * 数据源管理控制器
  */
-@Tag(name = "数据源管理", description = "数据源相关接口")
+@Slf4j
 @RestController
-@RequestMapping("/api/v1/datasources")
+@RequestMapping("/api/datasources")
 @RequiredArgsConstructor
 public class DataSourceController {
 
-    private final DataSourceFacade facade;
+    private final DataSourceFacade dataSourceFacade;
 
-    @Operation(summary = "创建数据源")
-    @PostMapping
-    public ResponseEntity<DataSourceDTO> create(
-            @RequestBody @Valid DataSourceDTO dto,
-            @RequestHeader("X-User-Id") String operator) {
-        return ResponseEntity.ok(facade.create(dto, operator));
-    }
-
-    @Operation(summary = "更新数据源")
-    @PutMapping("/{id}")
-    public ResponseEntity<DataSourceDTO> update(
-            @PathVariable String id,
-            @RequestBody @Valid DataSourceDTO dto,
-            @RequestHeader("X-User-Id") String operator) {
-        dto.setId(id);
-        return ResponseEntity.ok(facade.update(dto, operator));
-    }
-
-    @Operation(summary = "获取数据源")
-    @GetMapping("/{id}")
-    public ResponseEntity<DataSourceDTO> getById(
-            @PathVariable String id) {
-        return ResponseEntity.ok(facade.getById(id));
-    }
-
-    @Operation(summary = "获取所有数据源")
+    /**
+     * 获取所有数据源
+     */
     @GetMapping
-    public ResponseEntity<List<DataSourceDTO>> getAll(
-        @Parameter(description = "数据源类型") @RequestParam(required = false) DataSourceType type,
-        @Parameter(description = "数据源状态") @RequestParam(required = false) DataSourceStatus status) {
-        if (type != null && status != null) {
-            return ResponseEntity.ok(facade.getByTypeAndStatus(type, status));
-        } else if (type != null) {
-            return ResponseEntity.ok(facade.getByType(type));
-        } else if (status != null) {
-            return ResponseEntity.ok(facade.getByStatus(status));
-        } else {
-            return ResponseEntity.ok(facade.getAll());
+    public ResponseEntity<ApiResponse<List<DataSourceDTO>>> getAllDataSources() {
+        log.info("Getting all data sources");
+        List<DataSourceDTO> dataSources = dataSourceFacade.getAll();
+        return ResponseEntity.ok(ApiResponse.success(dataSources));
+    }
+
+    /**
+     * 根据ID获取数据源
+     */
+    @GetMapping("/{id}")
+    public ResponseEntity<ApiResponse<DataSourceDTO>> getDataSourceById(@PathVariable String id) {
+        log.info("Getting data source by id: {}", id);
+        DataSourceDTO dataSource = dataSourceFacade.getById(id);
+        if (dataSource == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(ApiResponse.error("Data source not found with id: " + id));
         }
+        return ResponseEntity.ok(ApiResponse.success(dataSource));
     }
 
-    @Operation(summary = "删除数据源")
+    /**
+     * 创建数据源
+     */
+    @PostMapping
+    public ResponseEntity<ApiResponse<DataSourceDTO>> createDataSource(
+        @RequestBody DataSourceDTO dataSourceDTO,
+        @RequestHeader("X-User-Id") String userId) {
+        log.info("Creating data source: {}", dataSourceDTO.getName());
+        DataSourceDTO createdDataSource = dataSourceFacade.create(dataSourceDTO, userId);
+        return ResponseEntity.status(HttpStatus.CREATED)
+            .body(ApiResponse.success(createdDataSource));
+    }
+
+    /**
+     * 更新数据源
+     */
+    @PutMapping("/{id}")
+    public ResponseEntity<ApiResponse<DataSourceDTO>> updateDataSource(
+            @PathVariable String id,
+            @RequestBody DataSourceDTO dataSourceDTO,
+            @RequestHeader("X-User-Id") String userId) {
+        log.info("Updating data source with id: {}", id);
+        dataSourceDTO.setId(id);
+        DataSourceDTO updatedDataSource = dataSourceFacade.update(dataSourceDTO, userId);
+        return ResponseEntity.ok(ApiResponse.success(updatedDataSource));
+    }
+
+    /**
+     * 删除数据源
+     */
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(
+    public ResponseEntity<ApiResponse<Void>> deleteDataSource(
             @PathVariable String id,
-            @RequestHeader("X-User-Id") String operator) {
-        facade.delete(id, operator);
-        return ResponseEntity.noContent().build();
+            @RequestHeader("X-User-Id") String userId) {
+        log.info("Deleting data source with id: {}", id);
+        dataSourceFacade.delete(id, userId);
+        return ResponseEntity.ok(ApiResponse.success(null));
     }
 
-    @Operation(summary = "激活数据源")
+    /**
+     * 激活数据源
+     */
     @PostMapping("/{id}/activate")
-    public ResponseEntity<DataSourceDTO> activate(
+    public ResponseEntity<ApiResponse<DataSourceDTO>> activateDataSource(
             @PathVariable String id,
-            @RequestHeader("X-User-Id") String operator) {
-        return ResponseEntity.ok(facade.activate(id, operator));
+            @RequestHeader("X-User-Id") String userId) {
+        log.info("Activating data source with id: {}", id);
+        DataSourceDTO activatedDataSource = dataSourceFacade.activate(id, userId);
+        return ResponseEntity.ok(ApiResponse.success(activatedDataSource));
     }
 
-    @Operation(summary = "停用数据源")
+    /**
+     * 停用数据源
+     */
     @PostMapping("/{id}/deactivate")
-    public ResponseEntity<DataSourceDTO> deactivate(
+    public ResponseEntity<ApiResponse<DataSourceDTO>> deactivateDataSource(
             @PathVariable String id,
-            @RequestHeader("X-User-Id") String operator) {
-        return ResponseEntity.ok(facade.deactivate(id, operator));
+            @RequestHeader("X-User-Id") String userId) {
+        log.info("Deactivating data source with id: {}", id);
+        DataSourceDTO deactivatedDataSource = dataSourceFacade.deactivate(id, userId);
+        return ResponseEntity.ok(ApiResponse.success(deactivatedDataSource));
     }
 
-    @Operation(summary = "测试数据源连接")
-    @PostMapping("/{id}/test")
-    public ResponseEntity<Boolean> testConnection(
-            @PathVariable String id) {
-        return ResponseEntity.ok(facade.testConnection(id));
+    /**
+     * 测试数据源连接
+     */
+    @PostMapping("/test-connection")
+    public ResponseEntity<ApiResponse<Boolean>> testConnection(
+        @RequestBody TestConnectionRequest request) {
+        log.info("Testing connection for data source: {}", request.getName());
+        boolean success = dataSourceFacade.testConnection(request);
+        return ResponseEntity.ok(ApiResponse.success(success));
     }
 
-    @Operation(summary = "同步数据源元数据")
+    /**
+     * 同步数据源元数据
+     */
     @PostMapping("/{id}/sync")
-    public ResponseEntity<DataSourceDTO> syncMetadata(
+    public ResponseEntity<ApiResponse<DataSourceDTO>> syncMetadata(
             @PathVariable String id,
-            @RequestHeader("X-User-Id") String operator) {
-        return ResponseEntity.ok(facade.syncMetadata(id, operator));
+            @RequestHeader("X-User-Id") String userId) {
+        log.info("Syncing metadata for data source with id: {}", id);
+        DataSourceDTO syncedDataSource = dataSourceFacade.syncMetadata(id, userId);
+        return ResponseEntity.ok(ApiResponse.success(syncedDataSource));
     }
 
-    @Operation(summary = "检查数据源名称是否存在")
-    @GetMapping("/check-name")
-    public ResponseEntity<Boolean> checkNameExists(
-            @Parameter(description = "数据源名称") @RequestParam String name) {
-        return ResponseEntity.ok(facade.checkNameExists(name));
-    }
-
-    @Operation(summary = "搜索数据源")
+    /**
+     * 按名称搜索数据源
+     */
     @GetMapping("/search")
-    public ResponseEntity<List<DataSourceDTO>> searchByName(
-            @Parameter(description = "数据源名称（模糊匹配）") @RequestParam String name) {
-        return ResponseEntity.ok(facade.searchByName(name));
+    public ResponseEntity<ApiResponse<List<DataSourceDTO>>> searchDataSources(
+        @RequestParam String name) {
+        log.info("Searching data sources with name: {}", name);
+        List<DataSourceDTO> dataSources = dataSourceFacade.searchByName(name);
+        return ResponseEntity.ok(ApiResponse.success(dataSources));
+    }
+
+    /**
+     * 按类型筛选数据源
+     */
+    @GetMapping("/filter/type/{type}")
+    public ResponseEntity<ApiResponse<List<DataSourceDTO>>> filterByType(
+        @PathVariable DataSourceType type) {
+        log.info("Filtering data sources by type: {}", type);
+        List<DataSourceDTO> dataSources = dataSourceFacade.getByType(type);
+        return ResponseEntity.ok(ApiResponse.success(dataSources));
+    }
+
+    /**
+     * 按状态筛选数据源
+     */
+    @GetMapping("/filter/status/{status}")
+    public ResponseEntity<ApiResponse<List<DataSourceDTO>>> filterByStatus(
+        @PathVariable DataSourceStatus status) {
+        log.info("Filtering data sources by status: {}", status);
+        List<DataSourceDTO> dataSources = dataSourceFacade.getByStatus(status);
+        return ResponseEntity.ok(ApiResponse.success(dataSources));
+    }
+
+    /**
+     * 按类型和状态筛选数据源
+     */
+    @GetMapping("/filter/type/{type}/status/{status}")
+    public ResponseEntity<ApiResponse<List<DataSourceDTO>>> filterByTypeAndStatus(
+        @PathVariable DataSourceType type,
+        @PathVariable DataSourceStatus status) {
+        log.info("Filtering data sources by type: {} and status: {}", type, status);
+        List<DataSourceDTO> dataSources = dataSourceFacade.getByTypeAndStatus(type, status);
+        return ResponseEntity.ok(ApiResponse.success(dataSources));
     }
 }

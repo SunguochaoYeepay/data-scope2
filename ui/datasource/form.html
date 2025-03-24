@@ -6,6 +6,7 @@
     <title>Add Data Source - DataScope</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <script defer src="js/datasource.js"></script>
 </head>
 <body class="bg-gray-100">
     <!-- Navigation -->
@@ -37,22 +38,23 @@
         <!-- Header -->
         <div class="md:flex md:items-center md:justify-between mb-6">
             <div class="flex-1 min-w-0">
-                <h2 class="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate">
+              <h2 class="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate" id="form-title">
                     Add Data Source
                 </h2>
             </div>
             <div class="mt-4 flex md:mt-0 md:ml-4">
-                <button type="button" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+              <a class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                 href="list.html">
                     <i class="fas fa-arrow-left mr-2"></i>
                     Back to List
-                </button>
+              </a>
             </div>
         </div>
 
         <!-- Form -->
         <div class="bg-white shadow rounded-lg">
             <div class="p-6">
-                <form class="space-y-8 divide-y divide-gray-200">
+              <form class="space-y-8 divide-y divide-gray-200" id="datasource-form">
                     <!-- Basic Information -->
                     <div class="space-y-6">
                         <div>
@@ -78,8 +80,8 @@
                                 </label>
                                 <div class="mt-1">
                                     <select name="type" class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md">
-                                        <option value="mysql">MySQL</option>
-                                        <option value="db2">DB2</option>
+                                      <option value="MYSQL">MySQL</option>
+                                      <option value="DB2">DB2</option>
                                     </select>
                                 </div>
                             </div>
@@ -207,10 +209,12 @@
 
             <!-- Form Actions -->
             <div class="px-6 py-3 bg-gray-50 flex items-center justify-end space-x-3 rounded-b-lg">
-                <button type="button" class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+              <button class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" id="test-connection-btn"
+                      type="button">
                     Test Connection
                 </button>
-                <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+              <button class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" form="datasource-form"
+                      type="submit">
                     Save Data Source
                 </button>
             </div>
