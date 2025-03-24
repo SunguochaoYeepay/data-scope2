@@ -2,8 +2,10 @@ package com.datascope.domain.query.service.impl;
 
 import com.datascope.domain.datasource.model.DataSourceId;
 import com.datascope.domain.query.model.QueryExecution;
+import com.datascope.domain.query.model.QueryResult;
 import com.datascope.domain.query.repository.QueryExecutionRepository;
 import com.datascope.domain.query.service.QueryExecutionService;
+import com.datascope.domain.query.service.SqlExecutionEngine;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -22,6 +24,7 @@ import java.util.Optional;
 public class QueryExecutionServiceImpl implements QueryExecutionService {
 
     private final QueryExecutionRepository queryExecutionRepository;
+    private final SqlExecutionEngine sqlExecutionEngine;
 
     @Override
     @Transactional
@@ -40,11 +43,16 @@ public class QueryExecutionServiceImpl implements QueryExecutionService {
             // 标记为执行中
             execution.markAsStarted();
 
-            // TODO: 实际执行SQL查询
-            // TODO: 处理查询结果
+            // 实际执行SQL查询
+            QueryResult queryResult = sqlExecutionEngine.execute(
+                DataSourceId.of(dataSourceId),
+                sql,
+                parameters
+            );
 
             // 更新执行记录
-            execution.markAsCompleted(0L); // TODO: 设置实际的结果行数
+            execution.markAsCompleted(queryResult.getTotalRows());
+            execution.setResult(queryResult);
 
         } catch (Exception e) {
             log.error("SQL execution failed", e);

@@ -1,44 +1,74 @@
 package com.datascope.domain.query.service.impl;
 
+import com.datascope.domain.datasource.gateway.DataSourceConnectionGateway;
 import com.datascope.domain.datasource.model.DataSourceId;
+import com.datascope.domain.datasource.repository.DataSourceRepository;
+import com.datascope.domain.query.exception.DataExecutionException;
 import com.datascope.domain.query.model.QueryResult;
 import com.datascope.domain.query.model.SqlMetadata;
 import com.datascope.domain.query.service.SqlExecutionEngine;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * SQL执行引擎实现类
  */
+@Slf4j
 @Service
+@RequiredArgsConstructor
 public class SqlExecutionEngineImpl implements SqlExecutionEngine {
+
+    // 用于存储正在执行的查询，以支持取消操作
+    private final Map<String, Statement> activeStatements = new ConcurrentHashMap<>();
+    @Autowired
+    private DataSourceRepository dataSourceRepository;
+    @Autowired
+    private DataSourceConnectionGateway connectionGateway;
+    // 用于存储正在执行的查询，以支持取消操作
+    private DataSourceConnectionGateway connectionGateway;
+
     @Override
-    public QueryResult execute(DataSourceId dataSourceId, String sql, Map<String, Object> parameters) {
-        // TODO: 实现SQL查询执行逻辑
+    public QueryResult execute(DataSourceId dataSourceId, String sql, Map<String, Object> parameters) throws DataExecutionException {
         return null;
     }
 
-    @Override
-    public void cancel(String executionId) {
-        // TODO: 实现取消正在执行的查询逻辑
+    private void setParameters(PreparedStatement stmt, Map<String, Object> parameters) throws SQLException {
+    }
+
+    private void setParameter(PreparedStatement stmt, int index, Object value) throws SQLException {
+    }
+
+    private void processResultSet(ResultSet rs, QueryResult result) throws SQLException {
+    }
+
+    private void closeResources(ResultSet rs, Statement stmt) {
     }
 
     @Override
-    public boolean validate(DataSourceId dataSourceId, String sql) {
-        // TODO: 实现SQL语句验证逻辑
+    public void cancel(String executionId) throws DataExecutionException {
+    }
+
+    @Override
+    public boolean validate(DataSourceId dataSourceId, String sql) throws DataExecutionException {
         return false;
     }
 
     @Override
-    public SqlMetadata getMetadata(DataSourceId dataSourceId, String sql) {
-        // TODO: 实现获取SQL语句元数据逻辑
+    public SqlMetadata getMetadata(DataSourceId dataSourceId, String sql) throws DataExecutionException {
         return null;
     }
 
     @Override
-    public long estimateRowCount(DataSourceId dataSourceId, String sql) {
-        // TODO: 实现估算查询结果行数逻辑
+    public long estimateRowCount(DataSourceId dataSourceId, String sql) throws DataExecutionException {
         return 0;
     }
 }

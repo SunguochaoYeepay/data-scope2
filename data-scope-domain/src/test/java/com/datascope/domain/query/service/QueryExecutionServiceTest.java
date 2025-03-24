@@ -3,7 +3,6 @@ package com.datascope.domain.query.service;
 import com.datascope.domain.datasource.model.DataSourceId;
 import com.datascope.domain.query.model.QueryExecution;
 import com.datascope.domain.query.repository.QueryExecutionRepository;
-import com.datascope.domain.query.service.impl.QueryExecutionServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -21,12 +20,18 @@ class QueryExecutionServiceTest {
 
     @Mock
     private QueryExecutionRepository queryExecutionRepository;
+    @Mock
+    private SqlExecutionEngine sqlExecutionEngine;
 
-    private QueryExecutionService queryExecutionService;
+    private QueryExecutionServiceImpl queryExecutionService;
+
+    QueryExecutionServiceImpl(queryExecutionRepository, sqlExecutionEngine);
+
+    queryExecutionService =new
 
     @BeforeEach
     void setUp() {
-        queryExecutionService = new QueryExecutionServiceImpl(queryExecutionRepository);
+    }
     }
 
     @Test
