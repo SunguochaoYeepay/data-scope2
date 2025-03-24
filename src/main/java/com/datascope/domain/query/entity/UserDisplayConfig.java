@@ -29,7 +29,7 @@ public class UserDisplayConfig {
     private String maskType;
     private String maskConfig;
     private Integer usageCount;
-    private LocalDateTime lastUsedAt;
+    private LocalDateTime lastUsedTime;
     private AuditInfo auditInfo;
 
     public void updateUsage() {
@@ -37,6 +37,6 @@ public class UserDisplayConfig {
             this.usageCount = 0;
         }
         this.usageCount++;
-        this.lastUsedAt = LocalDateTime.now();
+        this.lastUsedTime = LocalDateTime.now();
     }
 }

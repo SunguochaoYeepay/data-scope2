@@ -11,6 +11,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Repository
 @RequiredArgsConstructor
@@ -21,6 +22,7 @@ public class DataSourceRepositoryImpl implements DataSourceRepository {
     @Override
     public DataSource save(DataSource entity) {
         if (entity.getId() == null) {
+            entity.setId(UUID.randomUUID().toString());
             mapper.insert(entity);
         } else {
             mapper.update(entity);

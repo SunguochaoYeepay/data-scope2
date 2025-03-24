@@ -1,6 +1,3 @@
-> **Note**: This document is deprecated. Please use the updated version
-> at [Development Guidelines](development_guidelines.md).
-
 # DataScope 开发规范指南
 
 ## 代码规范

@@ -51,9 +51,9 @@ class UserDisplayConfigServiceTest {
         // Assert
         assertNotNull(result.getId());
         assertEquals("testOperator", result.getCreatedBy());
-        assertEquals("testOperator", result.getUpdatedBy());
+        assertEquals("testOperator", result.getModifiedBy());
         assertNotNull(result.getCreatedTime());
-        assertNotNull(result.getUpdatedTime());
+        assertNotNull(result.getModifiedTime());
         verify(repository).save(any(UserDisplayConfig.class));
     }
 
@@ -69,8 +69,8 @@ class UserDisplayConfigServiceTest {
         UserDisplayConfig result = service.update(config, "testOperator");
 
         // Assert
-        assertEquals("testOperator", result.getUpdatedBy());
-        assertNotNull(result.getUpdatedTime());
+        assertEquals("testOperator", result.getModifiedBy());
+        assertNotNull(result.getModifiedTime());
         verify(repository).save(any(UserDisplayConfig.class));
     }
 

@@ -8,6 +8,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 /**
  * 查询执行记录仓储实现类
@@ -23,6 +24,7 @@ public class QueryExecutionRepositoryImpl implements QueryExecutionRepository {
         if (existsById(entity.getId())) {
             queryExecutionMapper.update(entity);
         } else {
+            entity.setId(UUID.randomUUID().toString());
             queryExecutionMapper.insert(entity);
         }
         return entity;

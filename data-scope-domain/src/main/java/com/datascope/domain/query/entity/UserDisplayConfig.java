@@ -37,8 +37,8 @@ public class UserDisplayConfig {
     private LocalDateTime lastUsedTime;
     private String createdBy;
     private LocalDateTime createdTime;
-    private String updatedBy;
-    private LocalDateTime updatedTime;
+    private String modifiedBy;
+    private LocalDateTime modifiedTime;
 
     public UserDisplayConfig copy() {
         UserDisplayConfig copy = new UserDisplayConfig();
@@ -60,8 +60,8 @@ public class UserDisplayConfig {
         copy.usageCount = this.usageCount;
         copy.createdBy = this.createdBy;
         copy.createdTime = this.createdTime;
-        copy.updatedBy = this.updatedBy;
-        copy.updatedTime = this.updatedTime;
+        copy.modifiedBy = this.modifiedBy;
+        copy.modifiedTime = this.modifiedTime;
         return copy;
     }
 

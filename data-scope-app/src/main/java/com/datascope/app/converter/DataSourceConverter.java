@@ -25,13 +25,14 @@ public interface DataSourceConverter {
      */
     @Mapping(target = "createdTime", ignore = true)
     @Mapping(target = "createdBy", ignore = true)
-    @Mapping(target = "updatedTime", ignore = true)
-    @Mapping(target = "updatedBy", ignore = true)
+    @Mapping(target = "modifiedTime", ignore = true)
+    @Mapping(target = "modifiedBy", ignore = true)
     @Mapping(target = "lastSyncTime", ignore = true)
     @Mapping(target = "lastSyncStatus", ignore = true)
     @Mapping(target = "lastSyncMessage", ignore = true)
     @Mapping(target = "remark", ignore = true)
     @Mapping(target = "nonce", ignore = true)
+    @Mapping(target = "salt", ignore = true)
     DataSource toEntity(DataSourceDTO dataSourceDTO);
 
     /**
@@ -51,13 +52,14 @@ public interface DataSourceConverter {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "createdTime", ignore = true)
     @Mapping(target = "createdBy", ignore = true)
-    @Mapping(target = "updatedTime", ignore = true)
-    @Mapping(target = "updatedBy", ignore = true)
+    @Mapping(target = "modifiedTime", ignore = true)
+    @Mapping(target = "modifiedBy", ignore = true)
     @Mapping(target = "lastSyncTime", ignore = true)
     @Mapping(target = "lastSyncStatus", ignore = true)
     @Mapping(target = "lastSyncMessage", ignore = true)
     @Mapping(target = "remark", ignore = true)
     @Mapping(target = "nonce", ignore = true)
+    @Mapping(target = "salt", ignore = true)
     void updateEntity(DataSourceDTO dataSourceDTO, @MappingTarget DataSource dataSource);
 
     /**

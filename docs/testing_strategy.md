@@ -1,6 +1,3 @@
-> **Note**: This document is deprecated. Please use the updated version
-> at [Development Guidelines](development_guidelines.md).
-
 # DataScope 测试策略
 
 ## 测试范围

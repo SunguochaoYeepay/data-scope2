@@ -27,12 +27,12 @@ public class UserDisplayConfigServiceImpl implements UserDisplayConfigService {
             config.setId(UUID.randomUUID().toString());
             config.setCreatedBy(operator);
             config.setCreatedTime(now);
-            config.setUpdatedBy(operator);
-            config.setUpdatedTime(now);
+            config.setModifiedBy(operator);
+            config.setModifiedTime(now);
         } else {
             config = config.copy();
-            config.setUpdatedBy(operator);
-            config.setUpdatedTime(now);
+            config.setModifiedBy(operator);
+            config.setModifiedTime(now);
         }
         return repository.save(config);
     }
@@ -111,8 +111,8 @@ public class UserDisplayConfigServiceImpl implements UserDisplayConfigService {
         config.setId(UUID.randomUUID().toString());
         config.setCreatedBy(operator);
         config.setCreatedTime(now);
-        config.setUpdatedBy(operator);
-        config.setUpdatedTime(now);
+        config.setModifiedBy(operator);
+        config.setModifiedTime(now);
         return repository.save(config);
     }
 
@@ -121,8 +121,8 @@ public class UserDisplayConfigServiceImpl implements UserDisplayConfigService {
     public UserDisplayConfig update(UserDisplayConfig config, String operator) {
         LocalDateTime now = LocalDateTime.now();
         config = config.copy();
-        config.setUpdatedBy(operator);
-        config.setUpdatedTime(now);
+        config.setModifiedBy(operator);
+        config.setModifiedTime(now);
         return repository.save(config);
     }
 

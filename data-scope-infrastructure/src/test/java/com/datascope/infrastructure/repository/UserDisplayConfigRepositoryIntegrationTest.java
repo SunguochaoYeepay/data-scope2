@@ -106,8 +106,8 @@ class UserDisplayConfigRepositoryIntegrationTest {
             .usageCount(0)
             .createdBy("test")
             .createdTime(LocalDateTime.now())
-            .updatedBy("test")
-            .updatedTime(LocalDateTime.now())
+            .modifiedBy("test")
+            .modifiedTime(LocalDateTime.now())
             .build();
     }
 }

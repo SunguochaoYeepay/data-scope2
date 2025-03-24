@@ -17,7 +17,7 @@
     </resultMap>
 
     <!-- 插入查询执行记录 -->
-    <insert id="insert" parameterType="com.datascope.domain.query.model.QueryExecution">
+    <insert id="insert" parameterType="com.datascope.domain.query.model.QueryExecution" useGeneratedKeys="true">
         INSERT INTO tbl_query_execution (id, data_source_id, sql, status, start_time, end_time,
                                      result_count, error_message, user_id)
         VALUES (#{id},

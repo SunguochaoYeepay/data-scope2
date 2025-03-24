@@ -30,9 +30,9 @@ public class UserDisplayConfigDTO {
     private MaskType maskType;
     private String maskConfig;
     private Integer usageCount;
-    private LocalDateTime lastUsedAt;
+    private LocalDateTime lastUsedTime;
     private String createdBy;
     private LocalDateTime createdTime;
-    private String updatedBy;
-    private LocalDateTime updatedTime;
+    private String modifiedBy;
+    private LocalDateTime modifiedTime;
 }

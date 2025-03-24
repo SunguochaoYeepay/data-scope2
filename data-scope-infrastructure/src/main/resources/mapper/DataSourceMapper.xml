@@ -31,7 +31,7 @@
         nonce, created_time, created_by, modified_time, modified_by
     </sql>
 
-    <insert id="insert" parameterType="com.datascope.domain.datasource.entity.DataSource">
+    <insert id="insert" parameterType="com.datascope.domain.datasource.entity.DataSource" useGeneratedKeys="true">
         INSERT INTO tbl_data_source (id, name, type, host, port, database_name, username, password_encrypted, salt,
                                      status, last_sync_time, last_sync_status, last_sync_message, remark,
                                      nonce, created_time, created_by, modified_time, modified_by)

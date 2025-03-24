@@ -104,7 +104,7 @@ public class UserDisplayConfigResponse {
     /**
      * 最后使用时间
      */
-    private Long lastUsedAt;
+    private Long lastUsedTime;
 
     /**
      * 创建时间

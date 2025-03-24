@@ -30,7 +30,7 @@
     </resultMap>
 
     <!-- 插入配置 -->
-    <insert id="insert" parameterType="com.datascope.domain.query.entity.UserDisplayConfig">
+    <insert id="insert" parameterType="com.datascope.domain.query.entity.UserDisplayConfig" useGeneratedKeys="true">
         INSERT INTO tbl_user_display_config (id, user_id, data_source_id, table_name, column_name, display_name,
                                          width, fixed_position, align_type, visible, display_order, searchable,
                                          required,

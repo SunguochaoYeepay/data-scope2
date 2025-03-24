@@ -1,5 +1,3 @@
-> **Note**: This document is deprecated. Please use the updated version at [API Design](api_design.md).
-
 # DataScope API Design
 
 ## API Standards

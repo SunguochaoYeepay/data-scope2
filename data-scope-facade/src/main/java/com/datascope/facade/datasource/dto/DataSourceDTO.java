@@ -22,7 +22,7 @@ public class DataSourceDTO {
     private SyncStatus lastSyncStatus;
     private String createdBy;
     private LocalDateTime createdTime;
-    private String updatedBy;
-    private LocalDateTime updatedTime;
+    private String modifiedBy;
+    private LocalDateTime modifiedTime;
 
 }

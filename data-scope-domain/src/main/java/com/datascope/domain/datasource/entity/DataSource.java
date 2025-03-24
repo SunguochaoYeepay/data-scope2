@@ -25,28 +25,28 @@ public class DataSource {
     private String password;
     private String salt;
     private DataSourceStatus status;
-    private LocalDateTime lastSyncAt;
+    private LocalDateTime lastSyncTime;
     private SyncStatus lastSyncStatus;
     private String lastSyncMessage;
     private String remark;
     private int nonce = 1;
     private String createdBy;
     private LocalDateTime createdTime;
-    private String updatedBy;
-    private LocalDateTime updatedTime;
+    private String modifiedBy;
+    private LocalDateTime modifiedTime;
 
     public void init(String operator) {
         this.createdBy = operator;
-        this.updatedBy = operator;
+        this.modifiedBy = operator;
         this.createdTime = LocalDateTime.now();
-        this.updatedTime = LocalDateTime.now();
+        this.modifiedTime = LocalDateTime.now();
         this.status = DataSourceStatus.INACTIVE;
         this.lastSyncStatus = SyncStatus.NOT_SYNCED;
     }
 
     public void update(String operator) {
-        this.updatedBy = operator;
-        this.updatedTime = LocalDateTime.now();
+        this.modifiedBy = operator;
+        this.modifiedTime = LocalDateTime.now();
         this.nonce++;
     }
 
@@ -63,7 +63,7 @@ public class DataSource {
     public void updateSyncStatus(SyncStatus status, String message, String operator) {
         this.lastSyncStatus = status;
         this.lastSyncMessage = message;
-        this.lastSyncAt = LocalDateTime.now();
+        this.lastSyncTime = LocalDateTime.now();
         update(operator);
     }
 }
