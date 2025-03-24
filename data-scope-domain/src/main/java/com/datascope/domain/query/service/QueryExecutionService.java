@@ -1,5 +1,6 @@
 package com.datascope.domain.query.service;
 
+import com.datascope.domain.query.model.PagedQueryResult;
 import com.datascope.domain.query.model.QueryExecution;
 
 import java.util.List;
@@ -61,4 +62,26 @@ public interface QueryExecutionService {
      * @return 导出文件路径
      */
     String exportResult(String id, String format);
+
+    /**
+     * 执行分页SQL查询
+     *
+     * @param dataSourceId 数据源ID
+     * @param sql          SQL语句
+     * @param parameters   查询参数
+     * @param pageNumber   页码（从1开始）
+     * @param pageSize     每页大小
+     * @return 分页查询执行记录
+     */
+    QueryExecution executePagedSql(String dataSourceId, String sql, Map<String, Object> parameters, int pageNumber, int pageSize);
+
+    /**
+     * 获取分页查询结果
+     *
+     * @param id         查询执行记录ID
+     * @param pageNumber 页码（从1开始）
+     * @param pageSize   每页大小
+     * @return 分页查询结果
+     */
+    PagedQueryResult getPagedResult(String id, int pageNumber, int pageSize);
 }
