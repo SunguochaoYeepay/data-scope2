@@ -10,6 +10,7 @@
     </parent>
 
     <artifactId>data-scope-app</artifactId>
+    <packaging>jar</packaging>
 
     <dependencies>
         <!-- Internal Dependencies -->

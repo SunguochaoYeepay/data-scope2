@@ -13,6 +13,7 @@
     <artifactId>data-scope-main</artifactId>
     <name>DataScope Main</name>
     <description>Main application module containing the application entry point</description>
+    <packaging>jar</packaging>
 
     <dependencies>
         <!-- Internal -->
@@ -76,14 +77,18 @@
                 <executions>
                     <execution>
                         <goals>
+                            <goal>build-info</goal>
                             <goal>repackage</goal>
                         </goals>
+                        <configuration>
+                            <skip>false</skip>
+                        </configuration>
                     </execution>
                 </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <layout>ZIP</layout>
+                    <mainClass>com.datascope.main.DataScopeApplication</mainClass>
+                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

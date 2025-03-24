@@ -10,6 +10,7 @@
     </parent>
 
     <artifactId>data-scope-facade</artifactId>
+    <packaging>jar</packaging>
 
     <dependencies>
         <!-- Internal Dependencies -->
@@ -47,4 +48,20 @@
         </dependency>
     </dependencies>
 
+    <build>
+        <plugins>
+            <!--配置生成源码包-->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>3.3.0</version>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <phase>deploy</phase>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 </project>
