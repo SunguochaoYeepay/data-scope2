@@ -265,10 +265,23 @@
                 <h3 class="text-lg font-medium text-gray-900 mb-2">构建查询</h3>
                 <p class="text-sm text-gray-500">选择表、字段和条件来构建查询</p>
               </div>
-              <button class="inline-flex items-center px-3 py-1.5 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                      id="addStepButton">
-                <i class="fas fa-plus mr-1"></i> 添加步骤
-              </button>
+              <div class="flex space-x-2">
+                <button
+                  class="inline-flex items-center px-3 py-1.5 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                  id="addGroupByButton">
+                  <i class="fas fa-layer-group mr-1"></i> 添加分组
+                </button>
+                <button
+                  class="inline-flex items-center px-3 py-1.5 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                  id="addOrderByButton">
+                  <i class="fas fa-sort mr-1"></i> 添加排序
+                </button>
+                <button
+                  class="inline-flex items-center px-3 py-1.5 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                  id="addStepButton">
+                  <i class="fas fa-plus mr-1"></i> 添加步骤
+                </button>
+              </div>
             </div>
 
             <!-- Builder Steps Container -->
@@ -285,6 +298,26 @@
               </div>
 
               <!-- Steps will be added here dynamically -->
+            </div>
+
+            <!-- Group By Section -->
+            <div class="mt-6 p-4 bg-gray-50 rounded-md hidden" id="groupByContainer">
+              <div class="flex items-center justify-between mb-2">
+                <h4 class="text-sm font-medium text-gray-700">分组条件</h4>
+              </div>
+              <div class="space-y-2" id="groupByList">
+                <!-- Group by items will be added here dynamically -->
+              </div>
+            </div>
+
+            <!-- Order By Section -->
+            <div class="mt-4 p-4 bg-gray-50 rounded-md hidden" id="orderByContainer">
+              <div class="flex items-center justify-between mb-2">
+                <h4 class="text-sm font-medium text-gray-700">排序条件</h4>
+              </div>
+              <div class="space-y-2" id="orderByList">
+                <!-- Order by items will be added here dynamically -->
+              </div>
             </div>
           </div>
 
@@ -485,29 +518,107 @@
               </div>
             </div>
           </div>
-        </div>
-        <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-          <button class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm" id="confirmAddConditionButton"
-                  type="button">
-            添加
-          </button>
-          <button class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm" id="cancelAddConditionButton"
-                  type="button">
-            取消
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-</main>
+          <!-- Add Group By Modal -->
+          <div class="fixed z-10 inset-0 overflow-y-auto hidden" id="addGroupByModal">
+            <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+              <div aria-hidden="true" class="fixed inset-0 transition-opacity">
+                <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
+              </div>
+              <span aria-hidden="true" class="hidden sm:inline-block sm:align-middle sm:h-screen">&#8203;</span>
+              <div
+                class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                  <div class="sm:flex sm:items-start">
+                    <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+                      <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-title">
+                        添加分组
+                      </h3>
+                      <div class="mt-4">
+                        <label class="block text-sm font-medium text-gray-700" for="groupByFieldSelect">选择字段</label>
+                        <select
+                          class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+                          id="groupByFieldSelect">
+                          <option value="">选择字段...</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                  <button
+                    class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm"
+                    id="confirmAddGroupByButton"
+                    type="button">
+                    添加
+                  </button>
+                  <button
+                    class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
+                    id="cancelAddGroupByButton"
+                    type="button">
+                    取消
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Add Order By Modal -->
+          <div class="fixed z-10 inset-0 overflow-y-auto hidden" id="addOrderByModal">
+            <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+              <div aria-hidden="true" class="fixed inset-0 transition-opacity">
+                <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
+              </div>
+              <span aria-hidden="true" class="hidden sm:inline-block sm:align-middle sm:h-screen">&#8203;</span>
+              <div
+                class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                  <div class="sm:flex sm:items-start">
+                    <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+                      <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-title">
+                        添加排序
+                      </h3>
+                      <div class="mt-4">
+                        <label class="block text-sm font-medium text-gray-700" for="orderByFieldSelect">选择字段</label>
+                        <select
+                          class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+                          id="orderByFieldSelect">
+                          <option value="">选择字段...</option>
+                        </select>
+                      </div>
+                      <div class="mt-4">
+                        <label class="block text-sm font-medium text-gray-700"
+                               for="orderByDirectionSelect">排序方向</label>
+                        <select
+                          class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+                          id="orderByDirectionSelect">
+                          <option value="ASC">升序 (ASC)</option>
+                          <option value="DESC">降序 (DESC)</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                  <button
+                    class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm"
+                    id="confirmAddOrderByButton"
+                    type="button">
+                    添加
+                  </button>
+                  <button
+                    class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
+                    id="cancelAddOrderByButton"
+                    type="button">
+                    取消
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
 
 <!-- Scripts -->
-<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-<!-- 引入拆分后的JavaScript模块 -->
-<script src="/query/js/query-builder-core.js"></script>
-<script src="/query/js/query-builder-api.js"></script>
-<script src="/query/js/query-builder-ui.js"></script>
-<script src="/query/js/query-builder-modals.js"></script>
+          <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
+          <script src="/query/js/query-builder-modals-extra.js"></script>
 <script src="/query/js/query-builder.js"></script>
 </body>
 </html>
