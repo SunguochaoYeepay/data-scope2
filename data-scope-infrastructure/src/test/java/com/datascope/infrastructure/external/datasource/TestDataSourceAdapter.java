@@ -1,6 +1,6 @@
 package com.datascope.infrastructure.external.datasource;
 
-import com.datascope.domain.datasource.entity.DataSource;
+import com.datascope.domain.datasource.enums.DataSourceType;
 
 public class TestDataSourceAdapter implements ITestDataSource {
 
@@ -55,12 +55,12 @@ public class TestDataSourceAdapter implements ITestDataSource {
         return testDataSource.getType();
     }
 
-    private DataSource.DataSourceType convertType(DataSourceType type) {
+    private DataSourceType convertType(DataSourceType type) {
         switch (type) {
             case MYSQL:
-                return DataSource.DataSourceType.MYSQL;
+                return DataSourceType.MYSQL;
             case DB2:
-                return DataSource.DataSourceType.DB2;
+                return DataSourceType.DB2;
             default:
                 throw new IllegalArgumentException("Unsupported data source type: " + type);
         }

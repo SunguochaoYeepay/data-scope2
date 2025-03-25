@@ -1,8 +1,8 @@
 package com.datascope.facade.query.dto.request;
 
-import com.datascope.domain.query.enums.ColumnAlign;
-import com.datascope.domain.query.enums.ColumnFixed;
-import com.datascope.domain.query.enums.MaskType;
+import com.datascope.facade.query.enums.ColumnAlign;
+import com.datascope.facade.query.enums.ColumnFixed;
+import com.datascope.facade.query.enums.MaskType;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;

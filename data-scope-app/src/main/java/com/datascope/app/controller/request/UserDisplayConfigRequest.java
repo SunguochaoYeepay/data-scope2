@@ -3,15 +3,13 @@ package com.datascope.app.controller.request;
 import com.datascope.domain.query.enums.ColumnAlign;
 import com.datascope.domain.query.enums.ColumnFixed;
 import com.datascope.domain.query.enums.MaskType;
-import com.datascope.facade.query.dto.UserDisplayConfigDTO;
-
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 /**
  * User display configuration request
- * 
+ *
  * @author dreambt
  */
 @Data
@@ -100,28 +98,4 @@ public class UserDisplayConfigRequest {
      */
     private String maskConfig;
 
-    /**
-     * Convert to DTO
-     *
-     * @return DTO object
-     */
-    public UserDisplayConfigDTO toDTO() {
-        UserDisplayConfigDTO dto = new UserDisplayConfigDTO();
-        dto.setUserId(userId);
-        dto.setDataSourceId(dataSourceId);
-        dto.setTableName(tableName);
-        dto.setColumnName(columnName);
-        dto.setDisplayName(displayName);
-        dto.setWidth(width);
-        dto.setAlign(align);
-        dto.setFixed(fixed);
-        dto.setVisible(visible);
-        dto.setOrderNum(orderNum);
-        dto.setSortable(sortable);
-        dto.setSearchable(searchable);
-        dto.setRequired(required);
-        dto.setMaskType(maskType);
-        dto.setMaskConfig(maskConfig);
-        return dto;
-    }
 }

@@ -1,9 +1,9 @@
 package com.datascope.infrastructure.external.datasource;
 
+import com.datascope.domain.common.enums.SyncStatus;
 import com.datascope.domain.datasource.entity.DataSource;
-import com.datascope.domain.datasource.entity.DataSource.DataSourceStatus;
-import com.datascope.domain.datasource.entity.DataSource.DataSourceType;
-import com.datascope.domain.datasource.entity.DataSource.SyncStatus;
+import com.datascope.domain.datasource.enums.DataSourceStatus;
+import com.datascope.domain.datasource.enums.DataSourceType;
 
 import java.lang.reflect.Field;
 

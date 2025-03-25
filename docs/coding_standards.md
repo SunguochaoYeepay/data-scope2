@@ -566,7 +566,7 @@ Example:
     INSERT INTO tbl_data_source (
       id, name, description, type, host, port, database_name, 
       username, password_encrypted, password_salt, status,
-      nonce, created_at, created_by, modified_at, modified_by
+      nonce, created_time, created_by, modified_time, modified_by
     ) VALUES (
       #{id}, #{name}, #{description}, #{type}, #{host}, #{port}, #{databaseName},
       #{username}, #{password.encryptedValue}, #{password.salt}, #{status},

@@ -1,5 +1,6 @@
 package com.datascope.facade.query.dto;
 
+import com.datascope.facade.query.enums.QueryExecutionStatus;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -30,7 +31,7 @@ public class QueryResultDTO {
     /**
      * 执行状态
      */
-    private QueryDTO.QueryExecutionStatus status;
+    private QueryExecutionStatus status;
 
     /**
      * 执行消息

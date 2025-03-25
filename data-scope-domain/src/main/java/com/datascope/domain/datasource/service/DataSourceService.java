@@ -1,6 +1,8 @@
 package com.datascope.domain.datasource.service;
 
 import com.datascope.domain.datasource.entity.DataSource;
+import com.datascope.domain.datasource.enums.DataSourceStatus;
+import com.datascope.domain.datasource.enums.DataSourceType;
 
 import java.util.List;
 
@@ -56,7 +58,7 @@ public interface DataSourceService {
      * @param type 数据源类型
      * @return 数据源实体列表
      */
-    List<DataSource> getByType(DataSource.DataSourceType type);
+    List<DataSource> getByType(DataSourceType type);
 
     /**
      * 根据状态获取数据源列表
@@ -64,7 +66,7 @@ public interface DataSourceService {
      * @param status 数据源状态
      * @return 数据源实体列表
      */
-    List<DataSource> getByStatus(DataSource.DataSourceStatus status);
+    List<DataSource> getByStatus(DataSourceStatus status);
 
     /**
      * 删除数据源
@@ -101,6 +103,14 @@ public interface DataSourceService {
     boolean testConnection(String id);
 
     /**
+     * 测试数据源连接
+     *
+     * @param connectionInfo 连接信息
+     * @return 是否连接成功
+     */
+    boolean testConnection(DataSource connectionInfo);
+
+    /**
      * 同步数据源元数据
      *
      * @param id       数据源ID
@@ -132,5 +142,5 @@ public interface DataSourceService {
      * @param status 数据源状态
      * @return 数据源实体列表
      */
-    List<DataSource> getByTypeAndStatus(DataSource.DataSourceType type, DataSource.DataSourceStatus status);
+    List<DataSource> getByTypeAndStatus(DataSourceType type, DataSourceStatus status);
 }

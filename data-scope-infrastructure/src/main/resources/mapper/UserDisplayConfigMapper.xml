@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.datascope.infrastructure.mybatis.mapper.UserDisplayConfigMapper">
+
+    <!-- 结果映射 -->
     <resultMap id="BaseResultMap" type="com.datascope.domain.query.entity.UserDisplayConfig">
         <id column="id" property="id"/>
         <result column="user_id" property="userId"/>
@@ -9,111 +11,98 @@
         <result column="column_name" property="columnName"/>
         <result column="display_name" property="displayName"/>
         <result column="width" property="width"/>
-        <result column="align" property="align"/>
-        <result column="fixed" property="fixed"/>
+        <result column="fixed_position" property="fixed"/>
+        <result column="align_type" property="align"/>
         <result column="visible" property="visible"/>
-        <result column="order_num" property="orderNum"/>
-        <result column="sortable" property="sortable"/>
+        <result column="display_order" property="order"/>
         <result column="searchable" property="searchable"/>
         <result column="required" property="required"/>
         <result column="mask_type" property="maskType"/>
         <result column="mask_config" property="maskConfig"/>
+        <result column="sortable" property="sortable"/>
+        <result column="sort_type" property="sortType"/>
         <result column="usage_count" property="usageCount"/>
-        <result column="last_used_at" property="lastUsedAt"/>
-        <result column="nonce" property="nonce"/>
-        <result column="created_at" property="createdAt"/>
+        <result column="last_used_time" property="lastUsedTime"/>
         <result column="created_by" property="createdBy"/>
-        <result column="modified_at" property="modifiedAt"/>
-        <result column="modified_by" property="modifiedBy"/>
+        <result column="created_time" property="createdTime"/>
+        <result column="updated_by" property="updatedBy"/>
+        <result column="updated_time" property="updatedTime"/>
     </resultMap>
 
-    <sql id="Base_Column_List">
-        id, user_id, data_source_id, table_name, column_name, display_name, width, align, fixed,
-        visible, order_num, sortable, searchable, required, mask_type, mask_config, usage_count,
-        last_used_at, nonce, created_at, created_by, modified_at, modified_by
-    </sql>
-
-    <insert id="insert" parameterType="com.datascope.domain.query.entity.UserDisplayConfig">
-        INSERT INTO tbl_user_display_config (
-            <include refid="Base_Column_List"/>
+    <!-- 插入配置 -->
+    <insert id="insert" parameterType="com.datascope.domain.query.entity.UserDisplayConfig" useGeneratedKeys="true">
+        INSERT INTO tbl_user_display_config (id, user_id, data_source_id, table_name, column_name, display_name,
+                                         width, fixed_position, align_type, visible, display_order, searchable,
+                                         required,
+                                             mask_type, mask_config, sortable, sort_type, usage_count, last_used_time,
+                                         created_by, created_time, updated_by, updated_time
         ) VALUES (
             #{id}, #{userId}, #{dataSourceId}, #{tableName}, #{columnName}, #{displayName},
-            #{width}, #{align}, #{fixed}, #{visible}, #{orderNum}, #{sortable}, #{searchable},
-            #{required}, #{maskType}, #{maskConfig}, #{usageCount}, #{lastUsedAt}, #{nonce},
-            #{createdAt}, #{createdBy}, #{modifiedAt}, #{modifiedBy}
+            #{width}, #{fixed}, #{align}, #{visible}, #{order}, #{searchable}, #{required},
+            #{maskType}, #{maskConfig}, #{sortable}, #{sortType}, #{usageCount}, #{lastUsedTime},
+            #{createdBy}, #{createdTime}, #{updatedBy}, #{updatedTime}
         )
     </insert>
 
+    <!-- 更新配置 -->
     <update id="update" parameterType="com.datascope.domain.query.entity.UserDisplayConfig">
         UPDATE tbl_user_display_config
-        SET user_id = #{userId},
+        SET user_id        = #{userId},
             data_source_id = #{dataSourceId},
             table_name = #{tableName},
             column_name = #{columnName},
             display_name = #{displayName},
             width = #{width},
-            align = #{align},
-            fixed = #{fixed},
+            fixed_position = #{fixed},
+            align_type     = #{align},
             visible = #{visible},
-            order_num = #{orderNum},
-            sortable = #{sortable},
+            display_order  = #{order},
             searchable = #{searchable},
             required = #{required},
             mask_type = #{maskType},
             mask_config = #{maskConfig},
+            sortable       = #{sortable},
+            sort_type      = #{sortType},
             usage_count = #{usageCount},
-            last_used_at = #{lastUsedAt},
-            nonce = #{nonce},
-            modified_at = #{modifiedAt},
-            modified_by = #{modifiedBy}
+            last_used_time = #{lastUsedTime},
+            updated_by     = #{updatedBy},
+            updated_time = #{updatedTime}
         WHERE id = #{id}
     </update>
 
-    <select id="findById" resultMap="BaseResultMap">
-        SELECT <include refid="Base_Column_List"/>
+    <!-- 根据ID查询配置 -->
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT *
         FROM tbl_user_display_config
         WHERE id = #{id}
     </select>
 
-    <select id="findAll" resultMap="BaseResultMap">
-        SELECT <include refid="Base_Column_List"/>
-        FROM tbl_user_display_config
-    </select>
-
-    <delete id="deleteById">
-        DELETE FROM tbl_user_display_config WHERE id = #{id}
-    </delete>
-
-    <select id="existsById" resultType="boolean">
-        SELECT COUNT(*) FROM tbl_user_display_config WHERE id = #{id}
-    </select>
-
-    <select id="count" resultType="long">
-        SELECT COUNT(*) FROM tbl_user_display_config
-    </select>
-
-    <select id="findByUserId" resultMap="BaseResultMap">
-        SELECT <include refid="Base_Column_List"/>
+    <!-- 根据用户ID查询配置 -->
+    <select id="selectByUserId" resultMap="BaseResultMap">
+        SELECT *
         FROM tbl_user_display_config
         WHERE user_id = #{userId}
     </select>
 
-    <select id="findByUserIdAndDataSourceId" resultMap="BaseResultMap">
-        SELECT <include refid="Base_Column_List"/>
+    <!-- 根据用户ID和数据源ID查询配置 -->
+    <select id="selectByUserIdAndDataSourceId" resultMap="BaseResultMap">
+        SELECT *
         FROM tbl_user_display_config
         WHERE user_id = #{userId} AND data_source_id = #{dataSourceId}
     </select>
 
-    <select id="findByUserIdAndDataSourceIdAndTableName" resultMap="BaseResultMap">
-        SELECT <include refid="Base_Column_List"/>
+    <!-- 根据用户ID、数据源ID和表名查询配置 -->
+    <select id="selectByUserIdAndDataSourceIdAndTableName" resultMap="BaseResultMap">
+        SELECT *
         FROM tbl_user_display_config
         WHERE user_id = #{userId}
           AND data_source_id = #{dataSourceId}
           AND table_name = #{tableName}
     </select>
 
-    <select id="findByUserIdAndDataSourceIdAndTableNameAndColumnName" resultMap="BaseResultMap">
-        SELECT <include refid="Base_Column_List"/>
+    <!-- 根据用户ID、数据源ID、表名和列名查询配置 -->
+    <select id="selectByUserIdAndDataSourceIdAndTableNameAndColumnName" resultMap="BaseResultMap">
+        SELECT *
         FROM tbl_user_display_config
         WHERE user_id = #{userId}
           AND data_source_id = #{dataSourceId}
@@ -121,19 +110,54 @@
           AND column_name = #{columnName}
     </select>
 
+    <!-- 根据ID删除配置 -->
+    <delete id="deleteById">
+        DELETE
+        FROM tbl_user_display_config
+        WHERE id = #{id}
+    </delete>
+
+    <!-- 根据用户ID删除配置 -->
     <delete id="deleteByUserId">
-        DELETE FROM tbl_user_display_config WHERE user_id = #{userId}
+        DELETE
+        FROM tbl_user_display_config
+        WHERE user_id = #{userId}
     </delete>
 
+    <!-- 根据用户ID和数据源ID删除配置 -->
     <delete id="deleteByUserIdAndDataSourceId">
-        DELETE FROM tbl_user_display_config
-        WHERE user_id = #{userId} AND data_source_id = #{dataSourceId}
+        DELETE
+        FROM tbl_user_display_config
+        WHERE user_id = #{userId}
+          AND data_source_id = #{dataSourceId}
     </delete>
 
+    <!-- 根据用户ID、数据源ID和表名删除配置 -->
     <delete id="deleteByUserIdAndDataSourceIdAndTableName">
-        DELETE FROM tbl_user_display_config
+        DELETE
+        FROM tbl_user_display_config
         WHERE user_id = #{userId}
           AND data_source_id = #{dataSourceId}
           AND table_name = #{tableName}
     </delete>
+
+    <!-- 批量插入配置 -->
+    <insert id="batchInsert" parameterType="java.util.List">
+        INSERT INTO tbl_user_display_config (
+        id, user_id, data_source_id, table_name, column_name, display_name,
+        width, fixed_position, align_type, visible, display_order, searchable, required,
+        mask_type, mask_config, sortable, sort_type, usage_count, last_used_time,
+        created_by, created_time, updated_by, updated_time
+        ) VALUES
+        <foreach collection="configs" item="item" separator=",">
+            (
+            #{item.id}, #{item.userId}, #{item.dataSourceId}, #{item.tableName},
+            #{item.columnName}, #{item.displayName}, #{item.width}, #{item.fixed},
+            #{item.align}, #{item.visible}, #{item.order}, #{item.searchable},
+            #{item.required}, #{item.maskType}, #{item.maskConfig}, #{item.sortable},
+            #{item.sortType}, #{item.usageCount}, #{item.lastUsedTime}, #{item.createdBy},
+            #{item.createdTime}, #{item.updatedBy}, #{item.updatedTime}
+            )
+        </foreach>
+    </insert>
 </mapper>

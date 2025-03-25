@@ -1,7 +1,7 @@
 package com.datascope.domain.metadata.entity;
 
 import com.datascope.domain.common.entity.BaseEntity;
-import com.datascope.domain.metadata.enums.SyncStatus;
+import com.datascope.domain.common.enums.SyncStatus;
 import com.datascope.domain.metadata.enums.SyncType;
 import lombok.Getter;
 import lombok.Setter;

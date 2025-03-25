@@ -1,6 +1,7 @@
 package com.datascope.facade.datasource;
 
 import com.datascope.facade.datasource.dto.DataSourceDTO;
+import com.datascope.facade.datasource.dto.TestConnectionRequest;
 import com.datascope.facade.datasource.enums.DataSourceStatus;
 import com.datascope.facade.datasource.enums.DataSourceType;
 
@@ -85,6 +86,14 @@ public interface DataSourceFacade {
      * @return 是否连接成功
      */
     boolean testConnection(String id);
+
+    /**
+     * 测试数据源连接
+     *
+     * @param request 连接测试请求
+     * @return 是否连接成功
+     */
+    boolean testConnection(TestConnectionRequest request);
 
     /**
      * 同步数据源元数据

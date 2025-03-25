@@ -7,7 +7,7 @@ public enum QueryStatus {
     /**
      * 执行中
      */
-    EXECUTING,
+    RUNNING,
 
     /**
      * 执行成功

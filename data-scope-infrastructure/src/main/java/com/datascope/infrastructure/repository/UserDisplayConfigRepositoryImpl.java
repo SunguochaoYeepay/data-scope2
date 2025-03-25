@@ -1,125 +1,94 @@
 package com.datascope.infrastructure.repository;
 
-import java.util.List;
-import java.util.Optional;
-
-import org.springframework.stereotype.Repository;
-
 import com.datascope.domain.query.entity.UserDisplayConfig;
 import com.datascope.domain.query.repository.UserDisplayConfigRepository;
 import com.datascope.infrastructure.mybatis.mapper.UserDisplayConfigMapper;
+import lombok.Getter;
+import lombok.Setter;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Repository;
 
-import lombok.RequiredArgsConstructor;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
-/**
- * User display configuration repository implementation
- * 
- * @author dreambt
- */
 @Repository
-@RequiredArgsConstructor
+@Getter
+@Setter
 public class UserDisplayConfigRepositoryImpl implements UserDisplayConfigRepository {
-    private final UserDisplayConfigMapper mapper;
+
+    @Autowired
+    private UserDisplayConfigMapper userDisplayConfigMapper;
 
     @Override
-    public UserDisplayConfig save(UserDisplayConfig entity) {
-        if (entity.getId() == null) {
-            mapper.insert(entity);
+    public UserDisplayConfig save(UserDisplayConfig config) {
+        if (config.getId() == null) {
+            config.setId(UUID.randomUUID().toString());
+            userDisplayConfigMapper.insert(config);
         } else {
-            mapper.update(entity);
+            userDisplayConfigMapper.update(config);
         }
-        return entity;
+        return config;
     }
 
     @Override
     public Optional<UserDisplayConfig> findById(String id) {
-        return Optional.ofNullable(mapper.findById(id));
-    }
-
-    @Override
-    public List<UserDisplayConfig> findAll() {
-        return mapper.findAll();
-    }
-
-    @Override
-    public void deleteById(String id) {
-        mapper.deleteById(id);
-    }
-
-    @Override
-    public boolean existsById(String id) {
-        return mapper.existsById(id);
-    }
-
-    @Override
-    public long count() {
-        return mapper.count();
-    }
-
-    @Override
-    public void deleteAll() {
-        mapper.deleteAll();
+        return Optional.ofNullable(userDisplayConfigMapper.selectById(id));
     }
 
     @Override
     public List<UserDisplayConfig> findByUserId(String userId) {
-        return mapper.findByUserId(userId);
+        return userDisplayConfigMapper.selectByUserId(userId);
     }
 
     @Override
     public List<UserDisplayConfig> findByUserIdAndDataSourceId(String userId, String dataSourceId) {
-        return mapper.findByUserIdAndDataSourceId(userId, dataSourceId);
+        return userDisplayConfigMapper.selectByUserIdAndDataSourceId(userId, dataSourceId);
     }
 
     @Override
     public List<UserDisplayConfig> findByUserIdAndDataSourceIdAndTableName(
-            String userId, String dataSourceId, String tableName) {
-        return mapper.findByUserIdAndDataSourceIdAndTableName(userId, dataSourceId, tableName);
+        String userId, String dataSourceId, String tableName) {
+        return userDisplayConfigMapper.selectByUserIdAndDataSourceIdAndTableName(userId, dataSourceId, tableName);
     }
 
     @Override
     public List<UserDisplayConfig> findByUserIdAndDataSourceIdAndTableNameAndColumnName(
-            String userId, String dataSourceId, String tableName, String columnName) {
-        return mapper.findByUserIdAndDataSourceIdAndTableNameAndColumnName(
-                userId, dataSourceId, tableName, columnName);
+        String userId, String dataSourceId, String tableName, String columnName) {
+        return userDisplayConfigMapper.selectByUserIdAndDataSourceIdAndTableNameAndColumnName(
+            userId, dataSourceId, tableName, columnName);
+    }
+
+    @Override
+    public void deleteById(String id) {
+        userDisplayConfigMapper.deleteById(id);
     }
 
     @Override
     public void deleteByUserId(String userId) {
-        mapper.deleteByUserId(userId);
+        userDisplayConfigMapper.deleteByUserId(userId);
     }
 
     @Override
     public void deleteByUserIdAndDataSourceId(String userId, String dataSourceId) {
-        mapper.deleteByUserIdAndDataSourceId(userId, dataSourceId);
+        userDisplayConfigMapper.deleteByUserIdAndDataSourceId(userId, dataSourceId);
     }
 
     @Override
     public void deleteByUserIdAndDataSourceIdAndTableName(
-            String userId, String dataSourceId, String tableName) {
-        mapper.deleteByUserIdAndDataSourceIdAndTableName(userId, dataSourceId, tableName);
+        String userId, String dataSourceId, String tableName) {
+        userDisplayConfigMapper.deleteByUserIdAndDataSourceIdAndTableName(userId, dataSourceId, tableName);
     }
 
     @Override
     public void copyConfigurations(String fromUserId, String toUserId) {
-        List<UserDisplayConfig> configs = findByUserId(fromUserId);
-        for (UserDisplayConfig config : configs) {
-            UserDisplayConfig newConfig = new UserDisplayConfig();
+        List<UserDisplayConfig> sourceConfigs = findByUserId(fromUserId);
+        for (UserDisplayConfig config : sourceConfigs) {
+            UserDisplayConfig newConfig = config.copy();
+            newConfig.setId(null);
             newConfig.setUserId(toUserId);
-            newConfig.setDataSourceId(config.getDataSourceId());
-            newConfig.setTableName(config.getTableName());
-            newConfig.setColumnName(config.getColumnName());
-            newConfig.setDisplayName(config.getDisplayName());
-            newConfig.setWidth(config.getWidth());
-            newConfig.setAlign(config.getAlign());
-            newConfig.setFixed(config.getFixed());
-            newConfig.setVisible(config.getVisible());
-            newConfig.setOrderNum(config.getOrderNum());
-            newConfig.setSortable(config.getSortable());
-            newConfig.setSearchable(config.getSearchable());
-            newConfig.setRequired(config.getRequired());
-            newConfig.setMaskType(config.getMaskType());
-            newConfig.setMaskConfig(config.getMaskConfig());
+            newConfig.setUsageCount(0);
+            newConfig.setLastUsedTime(null);
             save(newConfig);
         }
     }

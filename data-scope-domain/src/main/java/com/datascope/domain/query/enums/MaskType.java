@@ -1,38 +1,17 @@
 package com.datascope.domain.query.enums;
 
 /**
- * Data masking type enum
- * 
- * @author dreambt
+ * Data masking type enumeration
  */
 public enum MaskType {
-    /**
-     * No masking
-     */
-    NONE,
-
-    /**
-     * Full masking (e.g., ****)
-     */
-    FULL,
-
-    /**
-     * Left masking (e.g., ***4567)
-     */
-    LEFT,
-
-    /**
-     * Right masking (e.g., 1234***)
-     */
-    RIGHT,
-
-    /**
-     * Middle masking (e.g., 12***67)
-     */
-    MIDDLE,
-
-    /**
-     * Custom masking pattern
-     */
-    CUSTOM
+    NONE,           // No masking
+    FULL,           // Full masking (all characters)
+    LEFT,           // Mask left part
+    RIGHT,          // Mask right part
+    MIDDLE,         // Mask middle part
+    EMAIL,          // Mask email address
+    PHONE,          // Mask phone number
+    ID_CARD,        // Mask ID card number
+    BANK_CARD,      // Mask bank card number
+    CUSTOM          // Custom masking pattern
 }

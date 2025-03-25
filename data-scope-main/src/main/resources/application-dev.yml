@@ -7,8 +7,8 @@ spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://localhost:3306/data_scope?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai
-    username: root
-    password: root
+    username: test
+    password: test
     hikari:
       minimum-idle: 5
       maximum-pool-size: 20
@@ -29,9 +29,13 @@ spring:
         min-idle: 0
 
 mybatis:
-  config-location: classpath:mybatis-config.xml
   mapper-locations: classpath*:mapper/**/*.xml
   type-aliases-package: com.datascope.domain.**.entity
+  configuration:
+    map-underscore-to-camel-case: true
+    default-fetch-size: 100
+    default-statement-timeout: 30
+    log-impl: org.apache.ibatis.logging.slf4j.Slf4jImpl
 
 springdoc:
   api-docs:
@@ -50,6 +54,7 @@ logging:
     org.mybatis: DEBUG
   file:
     name: logs/data-scope.log
+    path: logs
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} - %msg%n"
     file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} - %msg%n"
@@ -58,7 +63,7 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info,metrics
+        include: "health,info,metrics"
   endpoint:
     health:
-      show-details: always
+      show-details: "always"

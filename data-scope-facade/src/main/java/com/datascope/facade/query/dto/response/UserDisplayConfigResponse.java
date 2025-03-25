@@ -1,8 +1,8 @@
 package com.datascope.facade.query.dto.response;
 
-import com.datascope.domain.query.enums.ColumnAlign;
-import com.datascope.domain.query.enums.ColumnFixed;
-import com.datascope.domain.query.enums.MaskType;
+import com.datascope.facade.query.enums.ColumnAlign;
+import com.datascope.facade.query.enums.ColumnFixed;
+import com.datascope.facade.query.enums.MaskType;
 import lombok.Data;
 
 /**
@@ -104,7 +104,7 @@ public class UserDisplayConfigResponse {
     /**
      * 最后使用时间
      */
-    private Long lastUsedAt;
+    private Long lastUsedTime;
 
     /**
      * 创建时间

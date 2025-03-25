@@ -1,0 +1,33 @@
+spring:
+  datasource:
+    driver-class-name: org.h2.Driver
+    url: jdbc:h2:mem:datascope;DB_CLOSE_DELAY=-1;MODE=MySQL
+    username: sa
+    password:
+
+  sql:
+    init:
+      mode: always
+      platform: h2
+      schema-locations: classpath:h2/schema.sql
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+    validate-on-migrate: true
+    clean-on-validation-error: true
+
+mybatis:
+  mapper-locations: classpath:mapper/*.xml
+  type-aliases-package: com.datascope.domain.query.entity
+  configuration:
+    map-underscore-to-camel-case: true
+    default-enum-type-handler: org.apache.ibatis.type.EnumTypeHandler
+    jdbc-type-for-null: NULL
+    call-setters-on-nulls: true
+
+logging:
+  level:
+    com.datascope: DEBUG
+    org.mybatis: DEBUG

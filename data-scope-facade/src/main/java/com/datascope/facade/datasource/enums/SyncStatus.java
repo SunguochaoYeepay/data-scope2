@@ -4,5 +4,15 @@ public enum SyncStatus {
     NOT_SYNCED,
     SYNCING,
     SYNCED,
-    FAILED
+    FAILED,
+
+    /**
+     * 同步成功
+     */
+    SUCCESS,
+
+    /**
+     * 同步取消
+     */
+    CANCELLED
 }

@@ -1,6 +1,9 @@
 package com.datascope.domain.datasource.service.impl;
 
+import com.datascope.domain.common.enums.SyncStatus;
 import com.datascope.domain.datasource.entity.DataSource;
+import com.datascope.domain.datasource.enums.DataSourceStatus;
+import com.datascope.domain.datasource.enums.DataSourceType;
 import com.datascope.domain.datasource.exception.DataSourceException;
 import com.datascope.domain.datasource.gateway.DataSourceConnectionGateway;
 import com.datascope.domain.datasource.gateway.PasswordEncryptorGateway;
@@ -53,10 +56,10 @@ public class DataSourceServiceImpl implements DataSourceService {
         validateDataSource(entity);
 
         DataSource existing = repository.findById(entity.getId())
-                .orElseThrow(() -> DataSourceException.notFound(entity.getId()));
+            .orElseThrow(() -> DataSourceException.notFound(entity.getId()));
 
         if (!existing.getName().equals(entity.getName())
-                && repository.existsByName(entity.getName())) {
+            && repository.existsByName(entity.getName())) {
             throw DataSourceException.nameExists(entity.getName());
         }
 
@@ -77,7 +80,7 @@ public class DataSourceServiceImpl implements DataSourceService {
     @Transactional(readOnly = true)
     public DataSource getById(String id) {
         return repository.findById(id)
-                .orElseThrow(() -> DataSourceException.notFound(id));
+            .orElseThrow(() -> DataSourceException.notFound(id));
     }
 
     @Override
@@ -132,29 +135,40 @@ public class DataSourceServiceImpl implements DataSourceService {
     }
 
     @Override
+    public boolean testConnection(DataSource connectionInfo) {
+        try {
+            validateDataSource(connectionInfo);
+            return dataSourceConnectionGateway.testConnection(connectionInfo);
+        } catch (Exception e) {
+            log.error("测试数据源连接失败: {}", connectionInfo.getName(), e);
+            return false;
+        }
+    }
+
+    @Override
     @Transactional
     public DataSource syncMetadata(String id, String operator) {
         DataSource entity = getById(id);
         try {
             // TODO: 实现元数据同步逻辑
-            entity.updateSyncStatus(DataSource.SyncStatus.SUCCESS, "同步成功");
+            entity.updateSyncStatus(SyncStatus.SUCCESS, "同步成功", operator);
             return repository.save(entity);
         } catch (Exception e) {
             log.error("同步数据源元数据失败: {}", id, e);
-            entity.updateSyncStatus(DataSource.SyncStatus.FAILED, e.getMessage());
+            entity.updateSyncStatus(SyncStatus.FAILED, e.getMessage(), operator);
             return repository.save(entity);
         }
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<DataSource> getByType(DataSource.DataSourceType type) {
+    public List<DataSource> getByType(DataSourceType type) {
         return repository.findByType(type);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<DataSource> getByStatus(DataSource.DataSourceStatus status) {
+    public List<DataSource> getByStatus(DataSourceStatus status) {
         return repository.findByStatus(status);
     }
 
@@ -172,7 +186,7 @@ public class DataSourceServiceImpl implements DataSourceService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<DataSource> getByTypeAndStatus(DataSource.DataSourceType type, DataSource.DataSourceStatus status) {
+    public List<DataSource> getByTypeAndStatus(DataSourceType type, DataSourceStatus status) {
         return repository.findByTypeAndStatus(type, status);
     }
 
@@ -188,5 +202,6 @@ public class DataSourceServiceImpl implements DataSourceService {
         Assert.notNull(entity.getPort(), "端口号不能为空");
         Assert.hasText(entity.getDatabase(), "数据库名称不能为空");
         Assert.hasText(entity.getUsername(), "用户名不能为空");
+        // schema可以为空，不做验证
     }
 }

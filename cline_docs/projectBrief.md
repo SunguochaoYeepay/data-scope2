@@ -1,58 +1,58 @@
-## Project Brief
+## 项目简介
 
-DataScope is a comprehensive data management and query system with the following features:
+DataScope 是一个全面的数据管理和查询系统，具有以下特点：
 
-### Data Source Management
+### 数据源管理
 
-- Seamless integration of different database systems (MySQL, DB2) as data sources
-- Automated extraction and persistent storage of comprehensive metadata
-- Robust, configurable synchronization mechanism to maintain data consistency
+- 无缝集成不同的数据库系统（MySQL、DB2）作为数据源
+- 自动提取和持久存储全面的元数据
+- 强大、可配置的同步机制，保持数据一致性
 
-### Intelligent Data Discovery and Query
+### 智能数据发现和查询
 
-- Intuitive interface for exploring available schemas, tables, and columns
-- Support for data retrieval through SQL queries and natural language descriptions
-- Optimization loop allowing users to iteratively refine natural language queries
-- Machine learning to infer and learn table relationships from historical query patterns
-- Manual definition and maintenance of relationships
+- 直观的界面，用于探索可用的模式、表和列
+- 支持通过 SQL 查询和自然语言描述检索数据
+- 优化循环，允许用户迭代细化自然语言查询
+- 机器学习从历史查询模式中推断和学习表关系
+- 手动定义和维护关系
 
-### Low-Code Integration and Rapid Application Development
+### 低代码集成和快速应用开发
 
-- Synchronization of query results, associated SQL, and page configuration
-- Simplified application development through tools for defining query conditions and results presentation
-- AI-assisted enhancement of the configuration process
+- 同步查询结果、相关 SQL 和页面配置
+- 通过定义查询条件和结果展示的工具简化应用开发
+- AI 辅助增强配置过程
 
-### Technical Stack and Constraints
+### 技术栈和约束
 
-- Java, Maven, SpringBoot, MyBatis, MySQL, Redis
-- Internal information management system for employees
-- Maximum 100 data sources (primarily MySQL and DB2)
-- Each data source has up to 100 tables with data volumes ranging from thousands to hundreds of millions
-- Integration with a specific low-code platform via JSON-based interaction protocol
-- Local deployment
-- Password security with salt and AES encryption
-- Separate system aspect for access control
-- Easy extension for more data source types
-- Support for various data presentation forms (query forms, view pages, chart displays)
-- Natural language query functionality using OpenRouter's LLM interface
+- Java、Maven、SpringBoot、MyBatis、MySQL、Redis
+- 面向员工的内部信息管理系统
+- 最多 100 个数据源（主要是 MySQL 和 DB2）
+- 每个数据源最多有 100 个表，数据量从数千到数亿不等
+- 通过基于 JSON 的交互协议与特定的低代码平台集成
+- 本地部署
+- 使用盐和 AES 加密确保密码安全
+- 单独的系统方面用于访问控制
+- 易于扩展以支持更多数据源类型
+- 支持各种数据展示形式（查询表单、视图页面、图表显示）
+- 使用 OpenRouter 的 LLM 接口实现自然语言查询功能
 
-### Additional Requirements
+### 附加需求
 
-- Advanced features like automatic foreign key recognition or relationship inference through data analysis
-- AI-assisted functionality
-- Query history and favorites
-- Unified API for data querying
-- Versioned SQL and API
-- Detailed LowCodeConfig design for interaction with low-code platforms
-- HTML + Tailwind CSS for prototype interfaces with FontAwesome
-- User stories documentation
-- Intelligent inference of table relationships
-- Display attribute settings with sensitive data masking
-- Configurable operation columns
-- User-specific display attribute settings
-- Query condition configuration with required conditions
-- Automatic hiding of infrequently used conditions
-- Database column data type to UI element mapping
-- API timeout of 30 seconds
-- Reasonable query frequency limits
-- Data download functionality (CSV format, max 50,000 rows)
+- 高级功能，如自动外键识别或通过数据分析推断关系
+- AI 辅助功能
+- 查询历史和收藏夹
+- 统一的数据查询 API
+- 版本化的 SQL 和 API
+- 详细的 LowCodeConfig 设计，用于与低代码平台交互
+- HTML + Tailwind CSS 原型界面，使用 FontAwesome
+- 用户故事文档
+- 智能推断表关系
+- 显示属性设置，包含敏感数据掩码
+- 可配置的操作列
+- 用户特定的显示属性设置
+- 查询条件配置，包含必需条件
+- 自动隐藏不常用的条件
+- 数据库列数据类型到 UI 元素的映射
+- API 超时时间为 30 秒
+- 合理的查询频率限制
+- 数据下载功能（CSV 格式，最多 50,000 行）

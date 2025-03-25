@@ -1,326 +1,660 @@
-# DataScope - Implementation Plan
+# SQL执行引擎实施计划
 
-## Overview
+## 概述
 
-This document outlines the implementation plan for the DataScope system, including the project structure, development phases, and key considerations. The plan follows Domain-Driven Design (DDD) principles and is organized into modules that align with the system's architecture.
+本文档详细说明了SQL执行引擎的实施计划，包括核心方法的实现细节、依赖关系和测试策略。
 
-## Project Structure
+## 1. SqlExecutionEngineImpl 实现
 
-The project will be structured according to DDD principles with the following modules:
+### 1.1 依赖注入
 
-```
-data-scope/
-├── app/                  # Application services
-├── domain/               # Domain model and business logic
-├── facade/               # API controllers and DTOs
-├── infrastructure/       # Repository implementations and external services
-├── main/                 # Application bootstrap and configuration
-└── docs/                 # Documentation
-```
+```java
 
-### Module Details
+@Service
+@RequiredArgsConstructor
+public class SqlExecutionEngineImpl implements SqlExecutionEngine {
+  private final DataSourceRepository dataSourceRepository;
+  private final DataSourceConnectionGateway connectionGateway;
 
-#### App Module
+  // 用于存储正在执行的查询，以支持取消操作
+  private final Map<String, Statement> activeStatements = new ConcurrentHashMap<>();
 
-The App module contains application services that orchestrate domain operations:
-
-```
-app/
-├── src/main/java/com/datascope/app/
-│   ├── datasource/       # Data source management services
-│   ├── metadata/         # Metadata extraction and management services
-│   ├── query/            # Query execution and management services
-│   ├── relationship/     # Relationship management services
-│   ├── lowcode/          # Low-code integration services
-│   └── common/           # Common application services
-└── src/test/java/com/datascope/app/
-    └── ...               # Unit tests for application services
+  // 其他方法实现...
+}
 ```
 
-#### Domain Module
+### 1.2 execute 方法实现
 
-The Domain module contains the core business logic and domain entities:
+```java
 
+@Override
+public QueryResult execute(DataSourceId dataSourceId, String sql, Map<String, Object> parameters) {
+  // 参数验证
+  if (dataSourceId == null || sql == null || sql.trim().isEmpty()) {
+    throw new IllegalArgumentException("DataSourceId and SQL must not be null or empty");
+  }
+
+  // 获取数据源
+  DataSource dataSource = dataSourceRepository.findById(dataSourceId.getValue())
+    .orElseThrow(() -> new DataSourceException("Data source not found: " + dataSourceId));
+
+  // 创建查询结果对象
+  QueryResult result = new QueryResult();
+  long startTime = System.currentTimeMillis();
+
+  Connection connection = null;
+  PreparedStatement stmt = null;
+  ResultSet rs = null;
+
+  try {
+    // 获取数据库连接
+    connection = connectionGateway.getConnection(dataSource);
+
+    // 准备语句
+    stmt = connection.prepareStatement(sql);
+
+    // 设置查询参数
+    if (parameters != null && !parameters.isEmpty()) {
+      setParameters(stmt, parameters);
+    }
+
+    // 生成唯一的执行ID
+    String executionId = UUID.randomUUID().toString();
+
+    // 存储语句以支持取消操作
+    activeStatements.put(executionId, stmt);
+
+    try {
+      // 执行查询
+      boolean isQuery = stmt.execute();
+
+      if (isQuery) {
+        // 处理查询结果
+        rs = stmt.getResultSet();
+        result = processResultSet(rs);
+      } else {
+        // 处理更新结果
+        int updateCount = stmt.getUpdateCount();
+        result.setTotalRows(updateCount);
+      }
+    } finally {
+      // 从活动语句映射中移除
+      activeStatements.remove(executionId);
+    }
+  } catch (SQLException e) {
+    throw new DataExecutionException("SQL execution failed: " + e.getMessage(), e);
+  } finally {
+    // 关闭资源
+    closeResources(rs, stmt, connection);
+
+    // 设置执行时间
+    long endTime = System.currentTimeMillis();
+    result.setExecutionTime(endTime - startTime);
+  }
+
+  return result;
+}
+
+private void setParameters(PreparedStatement stmt, Map<String, Object> parameters) throws SQLException {
+  // 处理命名参数
+  if (stmt instanceof NamedParameterStatement) {
+    NamedParameterStatement namedStmt = (NamedParameterStatement) stmt;
+    for (Map.Entry<String, Object> entry : parameters.entrySet()) {
+      namedStmt.setObject(entry.getKey(), entry.getValue());
+    }
+  } else {
+    // 处理位置参数（假设参数按顺序排列）
+    int paramIndex = 1;
+    for (Object value : parameters.values()) {
+      stmt.setObject(paramIndex++, value);
+    }
+  }
+}
+
+private QueryResult processResultSet(ResultSet rs) throws SQLException {
+  QueryResult result = new QueryResult();
+
+  // 获取结果集元数据
+  ResultSetMetaData metaData = rs.getMetaData();
+  int columnCount = metaData.getColumnCount();
+
+  // 设置列定义
+  List<ColumnDefinition> columns = new ArrayList<>();
+  for (int i = 1; i <= columnCount; i++) {
+    ColumnDefinition column = ColumnDefinition.builder()
+      .name(metaData.getColumnName(i))
+      .label(metaData.getColumnLabel(i))
+      .dataType(metaData.getColumnTypeName(i))
+      .nullable(metaData.isNullable(i) == ResultSetMetaData.columnNullable)
+      .autoIncrement(metaData.isAutoIncrement(i))
+      .build();
+    columns.add(column);
+  }
+  result.setColumns(columns);
+
+  // 处理数据行
+  List<Map<String, Object>> rows = new ArrayList<>();
+  long rowCount = 0;
+
+  // 设置最大行数限制，防止内存溢出
+  final int MAX_ROWS = 1000;
+  boolean hasMore = false;
+
+  while (rs.next()) {
+    rowCount++;
+
+    // 检查是否达到最大行数限制
+    if (rowCount > MAX_ROWS) {
+      hasMore = true;
+      break;
+    }
+
+    Map<String, Object> row = new HashMap<>();
+    for (int i = 1; i <= columnCount; i++) {
+      String columnName = metaData.getColumnName(i);
+      Object value = rs.getObject(i);
+      row.put(columnName, value);
+    }
+    rows.add(row);
+  }
+
+  result.setRows(rows);
+  result.setTotalRows(rowCount);
+  result.setHasMore(hasMore);
+
+  return result;
+}
+
+private void closeResources(ResultSet rs, Statement stmt, Connection connection) {
+  if (rs != null) {
+    try {
+      rs.close();
+    } catch (SQLException e) {
+      // 记录错误但不抛出
+    }
+  }
+
+  if (stmt != null) {
+    try {
+      stmt.close();
+    } catch (SQLException e) {
+      // 记录错误但不抛出
+    }
+  }
+
+  // 注意：不关闭连接，而是将其返回到连接池
+}
 ```
-domain/
-├── src/main/java/com/datascope/domain/
-│   ├── datasource/       # Data source domain entities and services
-│   │   ├── entity/       # Data source entities
-│   │   ├── repository/   # Repository interfaces
-│   │   ├── service/      # Domain services
-│   │   └── event/        # Domain events
-│   ├── metadata/         # Metadata domain entities and services
-│   ├── query/            # Query domain entities and services
-│   ├── relationship/     # Relationship domain entities and services
-│   ├── lowcode/          # Low-code integration domain entities
-│   └── common/           # Common domain components
-└── src/test/java/com/datascope/domain/
-    └── ...               # Unit tests for domain logic
+
+### 1.3 cancel 方法实现
+
+```java
+
+@Override
+public void cancel(String executionId) {
+  Statement stmt = activeStatements.get(executionId);
+  if (stmt != null) {
+    try {
+      stmt.cancel();
+    } catch (SQLException e) {
+      throw new DataExecutionException("Failed to cancel query: " + e.getMessage(), e);
+    }
+  }
+}
 ```
 
-#### Facade Module
+### 1.4 validate 方法实现
 
-The Facade module contains API controllers and DTOs:
+```java
 
-```
-facade/
-├── src/main/java/com/datascope/facade/
-│   ├── api/              # API controllers
-│   │   ├── datasource/   # Data source API endpoints
-│   │   ├── metadata/     # Metadata API endpoints
-│   │   ├── query/        # Query API endpoints
-│   │   ├── relationship/ # Relationship API endpoints
-│   │   └── lowcode/      # Low-code integration API endpoints
-│   ├── dto/              # Data Transfer Objects
-│   ├── mapper/           # DTO-Entity mappers
-│   └── exception/        # API exception handlers
-└── src/test/java/com/datascope/facade/
-    └── ...               # Unit tests for API controllers
-```
+@Override
+public boolean validate(DataSourceId dataSourceId, String sql) {
+  if (dataSourceId == null || sql == null || sql.trim().isEmpty()) {
+    return false;
+  }
 
-#### Infrastructure Module
+  // 获取数据源
+  DataSource dataSource = dataSourceRepository.findById(dataSourceId.getValue())
+    .orElseThrow(() -> new DataSourceException("Data source not found: " + dataSourceId));
 
-The Infrastructure module contains repository implementations and external service integrations:
+  Connection connection = null;
+  PreparedStatement stmt = null;
 
-```
-infrastructure/
-├── src/main/java/com/datascope/infrastructure/
-│   ├── repository/       # Repository implementations
-│   │   ├── datasource/   # Data source repository implementation
-│   │   ├── metadata/     # Metadata repository implementation
-│   │   ├── query/        # Query repository implementation
-│   │   ├── relationship/ # Relationship repository implementation
-│   │   └── lowcode/      # Low-code integration repository implementation
-│   ├── database/         # Database configuration and utilities
-│   ├── security/         # Security utilities (encryption, etc.)
-│   ├── integration/      # External service integrations
-│   │   ├── llm/          # LLM integration for natural language processing
-│   │   ├── mysql/        # MySQL-specific integration
-│   │   └── db2/          # DB2-specific integration
-│   └── cache/            # Caching implementation
-└── src/test/java/com/datascope/infrastructure/
-    └── ...               # Unit tests for infrastructure components
+  try {
+    // 获取数据库连接
+    connection = connectionGateway.getConnection(dataSource);
+
+    // 使用JDBC的prepareStatement方法来验证SQL语法
+    // 注意：这只会验证SQL语法，不会执行SQL
+    stmt = connection.prepareStatement(sql);
+    return true;
+  } catch (SQLException e) {
+    // SQL语法错误
+    return false;
+  } finally {
+    // 关闭资源
+    if (stmt != null) {
+      try {
+        stmt.close();
+      } catch (SQLException e) {
+        // 忽略
+      }
+    }
+    // 不关闭连接，而是将其返回到连接池
+  }
+}
 ```
 
-#### Main Module
+### 1.5 getMetadata 方法实现
 
-The Main module contains the application bootstrap and configuration:
+```java
 
+@Override
+public SqlMetadata getMetadata(DataSourceId dataSourceId, String sql) {
+  if (dataSourceId == null || sql == null || sql.trim().isEmpty()) {
+    throw new IllegalArgumentException("DataSourceId and SQL must not be null or empty");
+  }
+
+  // 获取数据源
+  DataSource dataSource = dataSourceRepository.findById(dataSourceId.getValue())
+    .orElseThrow(() -> new DataSourceException("Data source not found: " + dataSourceId));
+
+  Connection connection = null;
+  PreparedStatement stmt = null;
+  ResultSet rs = null;
+
+  try {
+    // 获取数据库连接
+    connection = connectionGateway.getConnection(dataSource);
+
+    // 准备语句但不执行
+    stmt = connection.prepareStatement(sql);
+
+    // 获取元数据
+    ResultSetMetaData metaData = stmt.getMetaData();
+
+    if (metaData == null) {
+      // 如果是非查询SQL，可能无法获取元数据
+      return SqlMetadata.builder()
+        .sqlType(determineSqlType(sql))
+        .tableNames(extractTableNames(sql))
+        .build();
+    }
+
+    // 提取列定义
+    int columnCount = metaData.getColumnCount();
+    List<ColumnDefinition> columns = new ArrayList<>();
+
+    for (int i = 1; i <= columnCount; i++) {
+      ColumnDefinition column = ColumnDefinition.builder()
+        .name(metaData.getColumnName(i))
+        .label(metaData.getColumnLabel(i))
+        .dataType(metaData.getColumnTypeName(i))
+        .nullable(metaData.isNullable(i) == ResultSetMetaData.columnNullable)
+        .autoIncrement(metaData.isAutoIncrement(i))
+        .build();
+      columns.add(column);
+    }
+
+    // 提取参数信息
+    ParameterMetaData paramMetaData = stmt.getParameterMetaData();
+    List<ParameterDefinition> parameters = new ArrayList<>();
+
+    if (paramMetaData != null) {
+      int paramCount = paramMetaData.getParameterCount();
+      for (int i = 1; i <= paramCount; i++) {
+        ParameterDefinition param = ParameterDefinition.builder()
+          .name("param" + i) // JDBC不提供参数名称，使用位置索引
+          .dataType(paramMetaData.getParameterTypeName(i))
+          .required(paramMetaData.isNullable(i) == ParameterMetaData.parameterNoNulls)
+          .build();
+        parameters.add(param);
+      }
+    }
+
+    // 分析SQL类型和特性
+    String sqlType = determineSqlType(sql);
+    List<String> tableNames = extractTableNames(sql);
+    boolean hasAggregation = checkForAggregation(sql);
+    boolean hasGroupBy = sql.toUpperCase().contains("GROUP BY");
+    boolean hasOrderBy = sql.toUpperCase().contains("ORDER BY");
+
+    return SqlMetadata.builder()
+      .sqlType(sqlType)
+      .tableNames(tableNames)
+      .columns(columns)
+      .parameters(parameters)
+      .hasAggregation(hasAggregation)
+      .hasGroupBy(hasGroupBy)
+      .hasOrderBy(hasOrderBy)
+      .build();
+  } catch (SQLException e) {
+    throw new DataExecutionException("Failed to get SQL metadata: " + e.getMessage(), e);
+  } finally {
+    // 关闭资源
+    closeResources(rs, stmt, connection);
+  }
+}
+
+private String determineSqlType(String sql) {
+  String upperSql = sql.trim().toUpperCase();
+  if (upperSql.startsWith("SELECT")) return "SELECT";
+  if (upperSql.startsWith("INSERT")) return "INSERT";
+  if (upperSql.startsWith("UPDATE")) return "UPDATE";
+  if (upperSql.startsWith("DELETE")) return "DELETE";
+  if (upperSql.startsWith("CREATE")) return "CREATE";
+  if (upperSql.startsWith("ALTER")) return "ALTER";
+  if (upperSql.startsWith("DROP")) return "DROP";
+  return "UNKNOWN";
+}
+
+private List<String> extractTableNames(String sql) {
+  // 简单实现，实际项目中可能需要使用SQL解析器
+  List<String> tableNames = new ArrayList<>();
+  // ... 实现表名提取逻辑
+  return tableNames;
+}
+
+private boolean checkForAggregation(String sql) {
+  String upperSql = sql.toUpperCase();
+  return upperSql.contains("COUNT(") ||
+    upperSql.contains("SUM(") ||
+    upperSql.contains("AVG(") ||
+    upperSql.contains("MIN(") ||
+    upperSql.contains("MAX(");
+}
 ```
-main/
-├── src/main/java/com/datascope/main/
-│   ├── config/           # Application configuration
-│   ├── security/         # Security configuration
-│   ├── exception/        # Global exception handling
-│   └── DataScopeApplication.java  # Main application class
-├── src/main/resources/
-│   ├── application.yml   # Application properties
-│   ├── db/migration/     # Database migration scripts
-│   └── static/           # Static resources
-└── src/test/java/com/datascope/main/
-    └── ...               # Integration tests
+
+### 1.6 estimateRowCount 方法实现
+
+```java
+
+@Override
+public long estimateRowCount(DataSourceId dataSourceId, String sql) {
+  if (dataSourceId == null || sql == null || sql.trim().isEmpty()) {
+    throw new IllegalArgumentException("DataSourceId and SQL must not be null or empty");
+  }
+
+  // 只处理SELECT查询
+  if (!sql.trim().toUpperCase().startsWith("SELECT")) {
+    return 0;
+  }
+
+  // 获取数据源
+  DataSource dataSource = dataSourceRepository.findById(dataSourceId.getValue())
+    .orElseThrow(() -> new DataSourceException("Data source not found: " + dataSourceId));
+
+  Connection connection = null;
+  PreparedStatement stmt = null;
+  ResultSet rs = null;
+
+  try {
+    // 获取数据库连接
+    connection = connectionGateway.getConnection(dataSource);
+
+    // 构建COUNT查询
+    String countSql = buildCountQuery(sql);
+
+    // 执行COUNT查询
+    stmt = connection.prepareStatement(countSql);
+    rs = stmt.executeQuery();
+
+    if (rs.next()) {
+      return rs.getLong(1);
+    }
+
+    return 0;
+  } catch (SQLException e) {
+    // 如果COUNT查询失败，使用替代方法
+    return estimateRowCountAlternative(dataSource, sql);
+  } finally {
+    // 关闭资源
+    closeResources(rs, stmt, connection);
+  }
+}
+
+private String buildCountQuery(String sql) {
+  // 简单实现，实际项目中可能需要使用SQL解析器
+  return "SELECT COUNT(*) FROM (" + sql + ") AS count_query";
+}
+
+private long estimateRowCountAlternative(DataSource dataSource, String sql) {
+  // 替代方法：执行EXPLAIN或查询计划
+  // 这是一个简化的实现，实际项目中需要根据数据库类型进行适配
+  return 1000; // 返回一个默认估计值
+}
 ```
 
-## Development Phases
+## 2. 异常处理
 
-The implementation will be divided into the following phases:
+创建专门的异常类来处理SQL执行过程中的错误：
 
-### Phase 1: Core Infrastructure (Weeks 1-3)
+```java
+public class DataExecutionException extends RuntimeException {
+  public DataExecutionException(String message) {
+    super(message);
+  }
 
-- Set up project structure and build system
-- Implement database schema and entity classes
-- Develop data source connection management
-- Implement basic security features (credential encryption)
-- Create repository interfaces and basic implementations
-- Set up testing framework
+  public DataExecutionException(String message, Throwable cause) {
+    super(message, cause);
+  }
+}
+```
 
-**Deliverables:**
-- Project skeleton with all modules
-- Database schema and migrations
-- Basic data source management functionality
-- Unit tests for core components
+## 3. 单元测试
 
-### Phase 2: Metadata Management (Weeks 4-6)
+### 3.1 基本测试
 
-- Implement metadata extraction for MySQL and DB2
-- Develop metadata synchronization mechanism
-- Create metadata exploration API
-- Implement metadata caching
-- Develop incremental update functionality
+```java
 
-**Deliverables:**
-- Metadata extraction and synchronization
-- Metadata exploration API
-- Caching mechanism
-- Unit and integration tests
+@ExtendWith(MockitoExtension.class)
+class SqlExecutionEngineImplTest {
 
-### Phase 3: Query Capabilities (Weeks 7-9)
+  @Mock
+  private DataSourceRepository dataSourceRepository;
 
-- Implement SQL query execution
-- Develop query history tracking
-- Create query saving and versioning
-- Implement query parameter management
-- Develop CSV export functionality
+  @Mock
+  private DataSourceConnectionGateway connectionGateway;
 
-**Deliverables:**
-- Query execution engine
-- Query history and management
-- Parameter handling
-- CSV export
-- Unit and integration tests
+  @InjectMocks
+  private SqlExecutionEngineImpl sqlExecutionEngine;
 
-### Phase 4: Intelligent Features (Weeks 10-12)
+  @Mock
+  private Connection connection;
 
-- Integrate with LLM for natural language processing
-- Implement relationship inference
-- Develop relationship management
-- Create advanced metadata exploration features
+  @Mock
+  private PreparedStatement statement;
 
-**Deliverables:**
-- Natural language query processing
-- Relationship inference and management
-- Enhanced metadata exploration
-- Unit and integration tests
+  @Mock
+  private ResultSet resultSet;
 
-### Phase 5: Low-Code Integration (Weeks 13-15)
+  @Mock
+  private ResultSetMetaData resultSetMetaData;
 
-- Implement API generation
-- Develop UI configuration
-- Create display template engine
-- Implement integration protocol
+  private DataSource dataSource;
+  private DataSourceId dataSourceId;
 
-**Deliverables:**
-- API generation functionality
-- UI configuration management
-- Display template engine
-- Integration protocol implementation
-- Unit and integration tests
+  @BeforeEach
+  void setUp() {
+    dataSource = new DataSource();
+    dataSource.setId("test-ds-id");
+    dataSource.setName("Test DataSource");
 
-### Phase 6: Advanced Features and Refinement (Weeks 16-18)
+    dataSourceId = DataSourceId.of("test-ds-id");
+  }
 
-- Implement data masking
-- Develop user preference learning
-- Optimize performance
-- Enhance security features
-- Conduct comprehensive testing
+  @Test
+  void testExecuteQuery() throws SQLException {
+    // 准备测试数据
+    String sql = "SELECT * FROM test_table";
+    Map<String, Object> parameters = Map.of("param1", "value1");
 
-**Deliverables:**
-- Data masking functionality
-- User preference system
-- Performance optimizations
-- Enhanced security features
-- Comprehensive test suite
+    // 设置模拟行为
+    when(dataSourceRepository.findById(dataSourceId.getValue())).thenReturn(Optional.of(dataSource));
+    when(connectionGateway.getConnection(dataSource)).thenReturn(connection);
+    when(connection.prepareStatement(sql)).thenReturn(statement);
+    when(statement.execute()).thenReturn(true);
+    when(statement.getResultSet()).thenReturn(resultSet);
+    when(resultSet.getMetaData()).thenReturn(resultSetMetaData);
+    when(resultSetMetaData.getColumnCount()).thenReturn(2);
+    when(resultSetMetaData.getColumnName(1)).thenReturn("id");
+    when(resultSetMetaData.getColumnLabel(1)).thenReturn("ID");
+    when(resultSetMetaData.getColumnTypeName(1)).thenReturn("INTEGER");
+    when(resultSetMetaData.getColumnName(2)).thenReturn("name");
+    when(resultSetMetaData.getColumnLabel(2)).thenReturn("NAME");
+    when(resultSetMetaData.getColumnTypeName(2)).thenReturn("VARCHAR");
 
-## Key Technical Considerations
+    // 模拟结果集数据
+    when(resultSet.next()).thenReturn(true, true, false);
+    when(resultSet.getObject(1)).thenReturn(1, 2);
+    when(resultSet.getObject(2)).thenReturn("Test1", "Test2");
 
-### Database Design
+    // 执行测试
+    QueryResult result = sqlExecutionEngine.execute(dataSourceId, sql, parameters);
 
-- Follow the database design rules specified in the requirements
-- Use UUID for primary keys
-- Implement proper indexing for performance
-- Set up appropriate constraints for data integrity
-- Create database migration scripts for version control
+    // 验证结果
+    assertNotNull(result);
+    assertEquals(2, result.getColumns().size());
+    assertEquals(2, result.getRows().size());
+    assertEquals("id", result.getColumns().get(0).getName());
+    assertEquals("name", result.getColumns().get(1).getName());
+    assertEquals(1, result.getRows().get(0).get("id"));
+    assertEquals("Test1", result.getRows().get(0).get("name"));
+    assertEquals(2, result.getRows().get(1).get("id"));
+    assertEquals("Test2", result.getRows().get(1).get("name"));
+    assertEquals(2, result.getTotalRows());
+    assertFalse(result.isHasMore());
 
-### Security
+    // 验证交互
+    verify(dataSourceRepository).findById(dataSourceId.getValue());
+    verify(connectionGateway).getConnection(dataSource);
+    verify(connection).prepareStatement(sql);
+    verify(statement).execute();
+    verify(resultSet, times(3)).next();
+  }
 
-- Implement salted AES encryption for database credentials
-- Secure API endpoints with appropriate authentication
-- Implement rate limiting for API requests
-- Apply data masking for sensitive information
-- Log security-related events
+  // 其他测试方法...
+}
+```
 
-### Performance
+### 3.2 边界条件测试
 
-- Implement connection pooling for database access
-- Use Redis for caching metadata and query results
-- Apply pagination for large result sets
-- Set query timeout limits (30 seconds default)
-- Implement asynchronous processing for long-running operations
+```java
 
-### Extensibility
+@Test
+void testExecuteQueryWithEmptySql() {
+  // 测试空SQL
+  assertThrows(IllegalArgumentException.class, () ->
+    sqlExecutionEngine.execute(dataSourceId, "", Map.of()));
+}
 
-- Design for extensibility to support additional database types
-- Create abstraction layers for database-specific operations
-- Implement plugin architecture for UI components
-- Design flexible API for integration with low-code platforms
+@Test
+void testExecuteQueryWithNullDataSourceId() {
+  // 测试空数据源ID
+  assertThrows(IllegalArgumentException.class, () ->
+    sqlExecutionEngine.execute(null, "SELECT 1", Map.of()));
+}
 
-### Testing
+@Test
+void testExecuteQueryWithNonExistentDataSource() {
+  // 测试不存在的数据源
+  when(dataSourceRepository.findById(dataSourceId.getValue())).thenReturn(Optional.empty());
 
-- Implement unit tests for all components
-- Create integration tests for end-to-end functionality
-- Set up performance tests for critical operations
-- Implement security testing
-- Create automated UI tests
+  assertThrows(DataSourceException.class, () ->
+    sqlExecutionEngine.execute(dataSourceId, "SELECT 1", Map.of()));
+}
 
-## Development Environment
+@Test
+void testExecuteQueryWithSqlException() throws SQLException {
+  // 测试SQL异常
+  String sql = "SELECT * FROM test_table";
 
-### Tools and Technologies
+  when(dataSourceRepository.findById(dataSourceId.getValue())).thenReturn(Optional.of(dataSource));
+  when(connectionGateway.getConnection(dataSource)).thenReturn(connection);
+  when(connection.prepareStatement(sql)).thenThrow(new SQLException("Test SQL Exception"));
 
-- **IDE**: IntelliJ IDEA or Eclipse
-- **Build Tool**: Maven
-- **Version Control**: Git
-- **CI/CD**: Jenkins or GitHub Actions
-- **Database**: MySQL for development
-- **Cache**: Redis
-- **API Documentation**: Swagger/OpenAPI
-- **Testing**: JUnit, Mockito, Testcontainers
+  assertThrows(DataExecutionException.class, () ->
+    sqlExecutionEngine.execute(dataSourceId, sql, Map.of()));
+}
+```
 
-### Development Workflow
+## 4. 集成测试
 
-1. **Feature Branches**: Create feature branches for each task
-2. **Code Review**: Require code reviews for all pull requests
-3. **Automated Testing**: Run automated tests for all changes
-4. **Continuous Integration**: Build and test on each commit
-5. **Documentation**: Update documentation with code changes
+```java
 
-## Deployment Considerations
+@SpringBootTest
+class SqlExecutionEngineIntegrationTest {
 
-### System Requirements
+  @Autowired
+  private SqlExecutionEngine sqlExecutionEngine;
 
-- **Java**: JDK 17 or higher
-- **Memory**: Minimum 4GB RAM, recommended 8GB+
-- **Storage**: Minimum 20GB, depending on metadata volume
-- **Database**: MySQL 8.0+ or compatible
-- **Redis**: Redis 6.0+ for caching
+  @Autowired
+  private DataSourceRepository dataSourceRepository;
 
-### Deployment Options
+  private DataSource testDataSource;
+  private DataSourceId testDataSourceId;
 
-- **Standalone**: Deploy as a standalone Spring Boot application
-- **Docker**: Containerized deployment with Docker and Docker Compose
-- **Kubernetes**: Scalable deployment on Kubernetes cluster
+  @BeforeEach
+  void setUp() {
+    // 创建测试数据源
+    testDataSource = new DataSource();
+    testDataSource.setName("Integration Test DS");
+    testDataSource.setType(DataSourceType.MYSQL);
+    testDataSource.setHost("localhost");
+    testDataSource.setPort(3306);
+    testDataSource.setDatabase("test_db");
+    testDataSource.setUsername("test_user");
+    testDataSource.setPassword("test_password");
+    testDataSource.init("system");
 
-### Configuration Management
+    testDataSource = dataSourceRepository.save(testDataSource);
+    testDataSourceId = DataSourceId.of(testDataSource.getId());
+  }
 
-- Use environment-specific configuration files
-- Externalize sensitive configuration (credentials, etc.)
-- Implement configuration validation on startup
+  @AfterEach
+  void tearDown() {
+    // 清理测试数据
+    dataSourceRepository.delete(testDataSource);
+  }
 
-## Risk Management
+  @Test
+  void testExecuteQueryIntegration() {
+    // 执行简单查询
+    String sql = "SELECT 1 as test_value";
+    QueryResult result = sqlExecutionEngine.execute(testDataSourceId, sql, Map.of());
 
-### Potential Risks and Mitigation Strategies
+    // 验证结果
+    assertNotNull(result);
+    assertEquals(1, result.getColumns().size());
+    assertEquals(1, result.getRows().size());
+    assertEquals("test_value", result.getColumns().get(0).getName());
+    assertEquals(1, result.getRows().get(0).get("test_value"));
+  }
 
-1. **Database Compatibility Issues**
-   - Risk: Different versions of MySQL/DB2 may have compatibility issues
-   - Mitigation: Implement abstraction layers and version detection
+  // 其他集成测试...
+}
+```
 
-2. **Performance with Large Metadata**
-   - Risk: Performance degradation with large metadata volumes
-   - Mitigation: Implement efficient caching and pagination
+## 5. 性能考虑
 
-3. **LLM Integration Challenges**
-   - Risk: LLM service may have limitations or reliability issues
-   - Mitigation: Implement fallback mechanisms and error handling
+1. **连接池管理**：确保使用连接池而不是每次查询创建新连接
+2. **查询超时**：实现查询超时机制，防止长时间运行的查询
+3. **结果集分页**：对大结果集实现分页处理，防止内存溢出
+4. **参数化查询**：使用参数化查询防止SQL注入并提高性能
+5. **资源关闭**：确保正确关闭所有JDBC资源
 
-4. **Security Vulnerabilities**
-   - Risk: Potential security vulnerabilities in the system
-   - Mitigation: Regular security audits and following best practices
+## 6. 安全考虑
 
-5. **Integration Complexity**
-   - Risk: Complex integration with low-code platforms
-   - Mitigation: Well-defined integration protocol and documentation
+1. **SQL注入防护**：使用参数化查询和输入验证
+2. **权限检查**：在执行SQL前验证用户权限
+3. **敏感数据处理**：实现数据掩码功能
+4. **查询限制**：限制查询返回的行数和执行时间
+5. **审计日志**：记录所有SQL执行操作
 
-## Conclusion
+## 7. 下一步工作
 
-This implementation plan provides a structured approach to developing the DataScope system. By following this plan, the development team can ensure that the system meets all requirements while maintaining high quality, security, and performance standards.
-
-The phased approach allows for incremental development and testing, reducing risks and enabling early feedback. Regular reviews and adjustments to the plan may be necessary as development progresses and requirements evolve.
+1. 实现QueryExecutionServiceImpl类的核心方法
+2. 集成数据掩码功能
+3. 实现查询结果导出功能
+4. 添加查询监控和管理功能
+5. 实现自然语言到SQL的转换

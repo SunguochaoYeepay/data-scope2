@@ -5,8 +5,8 @@ import com.datascope.domain.datasource.gateway.DataSourceConnectionGateway;
 import com.datascope.domain.datasource.gateway.PasswordEncryptorGateway;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.sql.Connection;
@@ -16,10 +16,12 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
 @Component
-@RequiredArgsConstructor
 public class DataSourceConnectionGatewayImpl implements DataSourceConnectionGateway {
-    private final PasswordEncryptorGateway passwordEncryptor;
-    private final Map<String, HikariDataSource> dataSources = new ConcurrentHashMap<>();
+
+    @Autowired
+    private PasswordEncryptorGateway passwordEncryptor;
+
+    private Map<String, HikariDataSource> dataSources = new ConcurrentHashMap<>();
 
     @Override
     public Connection getConnection(DataSource dataSource) throws SQLException {
@@ -31,13 +33,19 @@ public class DataSourceConnectionGatewayImpl implements DataSourceConnectionGate
     public boolean testConnection(DataSource dataSource) {
         try {
             HikariDataSource hikariDataSource = createDataSource(dataSource);
-            try (Connection connection = hikariDataSource.getConnection()) {
-                return connection.isValid(5);
+            try {
+                Connection connection = hikariDataSource.getConnection();
+                boolean isValid = connection.isValid(5);
+                connection.close();
+                return isValid;
+            } catch (SQLException e) {
+                log.error("测试数据源连接失败: {}, 错误信息: {}", dataSource.getName(), e.getMessage());
+                return false;
             } finally {
                 hikariDataSource.close();
             }
-        } catch (SQLException e) {
-            log.error("测试数据源连接失败: {}", dataSource.getId(), e);
+        } catch (Exception e) {
+            log.error("创建数据源连接池失败: {}, 错误信息: {}", dataSource.getName(), e.getMessage());
             return false;
         }
     }
@@ -68,19 +76,27 @@ public class DataSourceConnectionGatewayImpl implements DataSourceConnectionGate
         HikariConfig config = new HikariConfig();
 
         String jdbcUrl = buildJdbcUrl(dataSource);
-        String decryptedPassword = passwordEncryptor.decrypt(dataSource.getPassword(), dataSource.getSalt());
+        String password = dataSource.getPassword();
+
+        // 如果是已保存的数据源，需要解密密码
+        if (dataSource.getSalt() != null && !dataSource.getSalt().isEmpty()) {
+            password = passwordEncryptor.decrypt(dataSource.getPassword(), dataSource.getSalt());
+        }
 
         config.setJdbcUrl(jdbcUrl);
         config.setUsername(dataSource.getUsername());
-        config.setPassword(decryptedPassword);
+        config.setPassword(password);
 
         // 连接池配置
         config.setMaximumPoolSize(10);
         config.setMinimumIdle(2);
         config.setIdleTimeout(30000);
-        config.setConnectionTimeout(30000);
+        config.setConnectionTimeout(5000); // 减少连接超时时间，加快测试响应
         config.setMaxLifetime(1800000);
         config.setPoolName("HikariPool-" + dataSource.getName());
+
+        // 设置连接验证超时时间
+        config.setValidationTimeout(3000);
 
         // 根据数据源类型设置驱动类
         switch (dataSource.getType()) {
@@ -89,6 +105,9 @@ public class DataSourceConnectionGatewayImpl implements DataSourceConnectionGate
                 break;
             case DB2:
                 config.setDriverClassName("com.ibm.db2.jcc.DB2Driver");
+                break;
+            case H2:
+                config.setDriverClassName("org.h2.Driver");
                 break;
             default:
                 throw new IllegalArgumentException("不支持的数据源类型: " + dataSource.getType());
@@ -104,6 +123,10 @@ public class DataSourceConnectionGatewayImpl implements DataSourceConnectionGate
                     dataSource.getHost(), dataSource.getPort(), dataSource.getDatabase());
             case DB2:
                 return String.format("jdbc:db2://%s:%d/%s",
+                    dataSource.getHost(), dataSource.getPort(), dataSource.getDatabase());
+            case H2:
+                // H2支持多种连接模式，这里使用TCP服务器模式
+                return String.format("jdbc:h2:tcp://%s:%d/%s",
                     dataSource.getHost(), dataSource.getPort(), dataSource.getDatabase());
             default:
                 throw new IllegalArgumentException("不支持的数据源类型: " + dataSource.getType());

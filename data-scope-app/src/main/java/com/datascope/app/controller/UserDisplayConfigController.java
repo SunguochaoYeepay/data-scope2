@@ -1,45 +1,36 @@
 package com.datascope.app.controller;
 
-import java.util.List;
-
-import org.springframework.http.ResponseEntity;
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-
 import com.datascope.facade.query.UserDisplayConfigFacade;
 import com.datascope.facade.query.dto.UserDisplayConfigDTO;
-
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 /**
  * User display configuration controller
- * 
+ *
  * @author dreambt
  */
 @Tag(name = "User Display Configuration", description = "User display configuration management API")
 @RestController
 @RequestMapping("/api/v1/display-configs")
-@RequiredArgsConstructor
 public class UserDisplayConfigController {
-    private final UserDisplayConfigFacade facade;
+
+    @Autowired
+    private UserDisplayConfigFacade facade;
 
     @Operation(summary = "Create configuration")
     @PostMapping
     public ResponseEntity<UserDisplayConfigDTO> create(
             @Parameter(description = "Configuration to create", required = true)
             @Validated @RequestBody UserDisplayConfigDTO dto) {
-        return ResponseEntity.ok(facade.create(dto));
+        return ResponseEntity.ok(facade.create(dto, "system"));
     }
 
     @Operation(summary = "Update configuration")
@@ -50,7 +41,7 @@ public class UserDisplayConfigController {
             @Parameter(description = "Configuration to update", required = true)
             @Validated @RequestBody UserDisplayConfigDTO dto) {
         dto.setId(id);
-        return ResponseEntity.ok(facade.update(dto));
+        return ResponseEntity.ok(facade.update(dto, "system"));
     }
 
     @Operation(summary = "Get configuration by ID")
@@ -58,7 +49,7 @@ public class UserDisplayConfigController {
     public ResponseEntity<UserDisplayConfigDTO> getById(
             @Parameter(description = "Configuration ID", required = true)
             @PathVariable String id) {
-        UserDisplayConfigDTO dto = facade.getById(id);
+        UserDisplayConfigDTO dto = facade.findById(id);
         if (dto == null) {
             return ResponseEntity.notFound().build();
         }
@@ -68,7 +59,7 @@ public class UserDisplayConfigController {
     @Operation(summary = "Get all configurations")
     @GetMapping
     public ResponseEntity<List<UserDisplayConfigDTO>> getAll() {
-        return ResponseEntity.ok(facade.getAll());
+        return ResponseEntity.ok(facade.findByUserId(null));
     }
 
     @Operation(summary = "Delete configuration by ID")
@@ -176,7 +167,7 @@ public class UserDisplayConfigController {
     public ResponseEntity<Void> updateUsage(
             @Parameter(description = "Configuration ID", required = true)
             @PathVariable String id) {
-        facade.updateUsage(id);
+        facade.incrementUsageCount(id);
         return ResponseEntity.ok().build();
     }
 }

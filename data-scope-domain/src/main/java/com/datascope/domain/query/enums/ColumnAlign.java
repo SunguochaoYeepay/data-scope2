@@ -1,23 +1,10 @@
 package com.datascope.domain.query.enums;
 
 /**
- * Column alignment enum
- * 
- * @author dreambt
+ * Column alignment enumeration
  */
 public enum ColumnAlign {
-    /**
-     * Left alignment
-     */
     LEFT,
-
-    /**
-     * Center alignment
-     */
     CENTER,
-
-    /**
-     * Right alignment
-     */
     RIGHT
 }

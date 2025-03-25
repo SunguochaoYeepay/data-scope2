@@ -1,127 +1,38 @@
 package com.datascope.facade.query.dto;
 
-import java.time.LocalDateTime;
-
-import com.datascope.domain.query.enums.ColumnAlign;
-import com.datascope.domain.query.enums.ColumnFixed;
-import com.datascope.domain.query.enums.MaskType;
-
+import com.datascope.facade.query.enums.ColumnAlign;
+import com.datascope.facade.query.enums.ColumnFixed;
+import com.datascope.facade.query.enums.MaskType;
+import lombok.Builder;
 import lombok.Data;
 
+import java.time.LocalDateTime;
+
 /**
- * User display configuration DTO
- * 
- * @author dreambt
+ * DTO for user display configuration
  */
 @Data
+@Builder
 public class UserDisplayConfigDTO {
-    /**
-     * Primary key ID
-     */
     private String id;
-
-    /**
-     * User ID
-     */
     private String userId;
-
-    /**
-     * Data source ID
-     */
     private String dataSourceId;
-
-    /**
-     * Table name
-     */
     private String tableName;
-
-    /**
-     * Column name
-     */
     private String columnName;
-
-    /**
-     * Display name
-     */
     private String displayName;
-
-    /**
-     * Column width
-     */
-    private Integer width;
-
-    /**
-     * Column alignment
-     */
-    private ColumnAlign align;
-
-    /**
-     * Column fixed position
-     */
+    private Integer columnWidth;
     private ColumnFixed fixed;
-
-    /**
-     * Whether the column is visible
-     */
+    private ColumnAlign align;
     private Boolean visible;
-
-    /**
-     * Column order number
-     */
-    private Integer orderNum;
-
-    /**
-     * Whether the column is sortable
-     */
-    private Boolean sortable;
-
-    /**
-     * Whether the column is searchable
-     */
-    private Boolean searchable;
-
-    /**
-     * Whether the column is required
-     */
-    private Boolean required;
-
-    /**
-     * Column mask type
-     */
+    private Integer order;
     private MaskType maskType;
-
-    /**
-     * Column mask configuration
-     */
-    private String maskConfig;
-
-    /**
-     * Usage count
-     */
-    private Long usageCount;
-
-    /**
-     * Last used time
-     */
-    private LocalDateTime lastUsedAt;
-
-    /**
-     * Creation time
-     */
-    private LocalDateTime createdAt;
-
-    /**
-     * Creator
-     */
+    private String maskChar;
+    private Boolean sortable;
+    private String sortType;
+    private Integer usageCount;
+    private LocalDateTime lastUsedTime;
     private String createdBy;
-
-    /**
-     * Last modification time
-     */
-    private LocalDateTime modifiedAt;
-
-    /**
-     * Last modifier
-     */
+    private LocalDateTime createdTime;
     private String modifiedBy;
+    private LocalDateTime modifiedTime;
 }
