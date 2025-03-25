@@ -19,4 +19,17 @@ public class SqlMetadata {
     private boolean hasAggregation;
     private boolean hasGroupBy;
     private boolean hasOrderBy;
+
+    /**
+     * 设置SQL类型
+     *
+     * @param type SQL类型
+     * @return 当前对象
+     */
+    public static class SqlMetadataBuilder {
+        public SqlMetadataBuilder type(String type) {
+            this.sqlType = type;
+            return this;
+        }
+    }
 }

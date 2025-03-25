@@ -33,6 +33,7 @@ public interface DataSourceConverter {
     @Mapping(target = "remark", ignore = true)
     @Mapping(target = "nonce", ignore = true)
     @Mapping(target = "salt", ignore = true)
+    @Mapping(target = "status", defaultValue = "INACTIVE")
     DataSource toEntity(DataSourceDTO dataSourceDTO);
 
     /**
@@ -60,6 +61,7 @@ public interface DataSourceConverter {
     @Mapping(target = "remark", ignore = true)
     @Mapping(target = "nonce", ignore = true)
     @Mapping(target = "salt", ignore = true)
+    @Mapping(target = "status", defaultValue = "INACTIVE")
     void updateEntity(DataSourceDTO dataSourceDTO, @MappingTarget DataSource dataSource);
 
     /**

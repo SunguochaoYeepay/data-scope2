@@ -1,18 +1,41 @@
-# SQL执行引擎实施计划
+# SQL执行引擎实施指南
 
-## 概述
+本文档提供了SQL执行引擎实施的详细步骤和代码示例，作为开发团队的实施参考。
 
-本文档详细说明了SQL执行引擎的实施计划，包括核心方法的实现细节、依赖关系和测试策略。
+## 1. 实施SqlExecutionEngineImpl的execute方法
 
-## 1. SqlExecutionEngineImpl 实现
+### 步骤1: 更新类依赖
 
-### 1.1 依赖注入
+首先，更新`SqlExecutionEngineImpl`类，添加必要的依赖注入：
 
 ```java
+package com.datascope.domain.query.service.impl;
 
+import com.datascope.domain.datasource.entity.DataSource;
+import com.datascope.domain.datasource.gateway.DataSourceConnectionGateway;
+import com.datascope.domain.datasource.model.DataSourceId;
+import com.datascope.domain.datasource.repository.DataSourceRepository;
+import com.datascope.domain.query.exception.DataExecutionException;
+import com.datascope.domain.query.model.ColumnDefinition;
+import com.datascope.domain.query.model.QueryResult;
+import com.datascope.domain.query.model.SqlMetadata;
+import com.datascope.domain.query.service.SqlExecutionEngine;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+
+import java.sql.*;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+
+/**
+ * SQL执行引擎实现类
+ */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class SqlExecutionEngineImpl implements SqlExecutionEngine {
+
   private final DataSourceRepository dataSourceRepository;
   private final DataSourceConnectionGateway connectionGateway;
 
@@ -23,7 +46,9 @@ public class SqlExecutionEngineImpl implements SqlExecutionEngine {
 }
 ```
 
-### 1.2 execute 方法实现
+### 步骤2: 实现execute方法
+
+接下来，实现`execute`方法：
 
 ```java
 
@@ -34,9 +59,12 @@ public QueryResult execute(DataSourceId dataSourceId, String sql, Map<String, Ob
     throw new IllegalArgumentException("DataSourceId and SQL must not be null or empty");
   }
 
+  log.debug("Executing SQL query on dataSource: {}, SQL: {}, Parameters: {}",
+    dataSourceId, sql, parameters);
+
   // 获取数据源
   DataSource dataSource = dataSourceRepository.findById(dataSourceId.getValue())
-    .orElseThrow(() -> new DataSourceException("Data source not found: " + dataSourceId));
+    .orElseThrow(() -> new DataExecutionException("Data source not found: " + dataSourceId));
 
   // 创建查询结果对象
   QueryResult result = new QueryResult();
@@ -82,32 +110,58 @@ public QueryResult execute(DataSourceId dataSourceId, String sql, Map<String, Ob
       activeStatements.remove(executionId);
     }
   } catch (SQLException e) {
+    log.error("SQL execution failed: {}", e.getMessage(), e);
     throw new DataExecutionException("SQL execution failed: " + e.getMessage(), e);
   } finally {
     // 关闭资源
-    closeResources(rs, stmt, connection);
+    closeResources(rs, stmt);
 
     // 设置执行时间
     long endTime = System.currentTimeMillis();
     result.setExecutionTime(endTime - startTime);
+
+    log.debug("SQL execution completed in {}ms, rows: {}",
+      result.getExecutionTime(), result.getTotalRows());
   }
 
   return result;
 }
+```
 
+### 步骤3: 实现辅助方法
+
+添加处理参数和结果集的辅助方法：
+
+```java
 private void setParameters(PreparedStatement stmt, Map<String, Object> parameters) throws SQLException {
-  // 处理命名参数
-  if (stmt instanceof NamedParameterStatement) {
-    NamedParameterStatement namedStmt = (NamedParameterStatement) stmt;
-    for (Map.Entry<String, Object> entry : parameters.entrySet()) {
-      namedStmt.setObject(entry.getKey(), entry.getValue());
-    }
+  // 处理位置参数（假设参数按顺序排列）
+  int paramIndex = 1;
+  for (Object value : parameters.values()) {
+    setParameter(stmt, paramIndex++, value);
+  }
+}
+
+private void setParameter(PreparedStatement stmt, int index, Object value) throws SQLException {
+  if (value == null) {
+    stmt.setNull(index, Types.NULL);
+  } else if (value instanceof String) {
+    stmt.setString(index, (String) value);
+  } else if (value instanceof Integer) {
+    stmt.setInt(index, (Integer) value);
+  } else if (value instanceof Long) {
+    stmt.setLong(index, (Long) value);
+  } else if (value instanceof Double) {
+    stmt.setDouble(index, (Double) value);
+  } else if (value instanceof Boolean) {
+    stmt.setBoolean(index, (Boolean) value);
+  } else if (value instanceof Date) {
+    stmt.setTimestamp(index, new Timestamp(((Date) value).getTime()));
+  } else if (value instanceof java.time.LocalDate) {
+    stmt.setDate(index, Date.valueOf((java.time.LocalDate) value));
+  } else if (value instanceof java.time.LocalDateTime) {
+    stmt.setTimestamp(index, Timestamp.valueOf((java.time.LocalDateTime) value));
   } else {
-    // 处理位置参数（假设参数按顺序排列）
-    int paramIndex = 1;
-    for (Object value : parameters.values()) {
-      stmt.setObject(paramIndex++, value);
-    }
+    stmt.setObject(index, value);
   }
 }
 
@@ -165,12 +219,12 @@ private QueryResult processResultSet(ResultSet rs) throws SQLException {
   return result;
 }
 
-private void closeResources(ResultSet rs, Statement stmt, Connection connection) {
+private void closeResources(ResultSet rs, Statement stmt) {
   if (rs != null) {
     try {
       rs.close();
     } catch (SQLException e) {
-      // 记录错误但不抛出
+      log.warn("Failed to close ResultSet: {}", e.getMessage());
     }
   }
 
@@ -178,7 +232,7 @@ private void closeResources(ResultSet rs, Statement stmt, Connection connection)
     try {
       stmt.close();
     } catch (SQLException e) {
-      // 记录错误但不抛出
+      log.warn("Failed to close Statement: {}", e.getMessage());
     }
   }
 
@@ -186,7 +240,7 @@ private void closeResources(ResultSet rs, Statement stmt, Connection connection)
 }
 ```
 
-### 1.3 cancel 方法实现
+## 2. 实施SqlExecutionEngineImpl的cancel方法
 
 ```java
 
@@ -195,15 +249,19 @@ public void cancel(String executionId) {
   Statement stmt = activeStatements.get(executionId);
   if (stmt != null) {
     try {
+      log.debug("Cancelling query execution: {}", executionId);
       stmt.cancel();
     } catch (SQLException e) {
+      log.error("Failed to cancel query: {}", e.getMessage(), e);
       throw new DataExecutionException("Failed to cancel query: " + e.getMessage(), e);
     }
+  } else {
+    log.warn("No active statement found for execution ID: {}", executionId);
   }
 }
 ```
 
-### 1.4 validate 方法实现
+## 3. 实施SqlExecutionEngineImpl的validate方法
 
 ```java
 
@@ -213,9 +271,11 @@ public boolean validate(DataSourceId dataSourceId, String sql) {
     return false;
   }
 
+  log.debug("Validating SQL on dataSource: {}, SQL: {}", dataSourceId, sql);
+
   // 获取数据源
   DataSource dataSource = dataSourceRepository.findById(dataSourceId.getValue())
-    .orElseThrow(() -> new DataSourceException("Data source not found: " + dataSourceId));
+    .orElseThrow(() -> new DataExecutionException("Data source not found: " + dataSourceId));
 
   Connection connection = null;
   PreparedStatement stmt = null;
@@ -229,6 +289,7 @@ public boolean validate(DataSourceId dataSourceId, String sql) {
     stmt = connection.prepareStatement(sql);
     return true;
   } catch (SQLException e) {
+    log.debug("SQL validation failed: {}", e.getMessage());
     // SQL语法错误
     return false;
   } finally {
@@ -237,7 +298,7 @@ public boolean validate(DataSourceId dataSourceId, String sql) {
       try {
         stmt.close();
       } catch (SQLException e) {
-        // 忽略
+        log.warn("Failed to close Statement: {}", e.getMessage());
       }
     }
     // 不关闭连接，而是将其返回到连接池
@@ -245,7 +306,7 @@ public boolean validate(DataSourceId dataSourceId, String sql) {
 }
 ```
 
-### 1.5 getMetadata 方法实现
+## 4. 实施SqlExecutionEngineImpl的getMetadata方法
 
 ```java
 
@@ -255,9 +316,11 @@ public SqlMetadata getMetadata(DataSourceId dataSourceId, String sql) {
     throw new IllegalArgumentException("DataSourceId and SQL must not be null or empty");
   }
 
+  log.debug("Getting metadata for SQL on dataSource: {}, SQL: {}", dataSourceId, sql);
+
   // 获取数据源
   DataSource dataSource = dataSourceRepository.findById(dataSourceId.getValue())
-    .orElseThrow(() -> new DataSourceException("Data source not found: " + dataSourceId));
+    .orElseThrow(() -> new DataExecutionException("Data source not found: " + dataSourceId));
 
   Connection connection = null;
   PreparedStatement stmt = null;
@@ -296,22 +359,6 @@ public SqlMetadata getMetadata(DataSourceId dataSourceId, String sql) {
       columns.add(column);
     }
 
-    // 提取参数信息
-    ParameterMetaData paramMetaData = stmt.getParameterMetaData();
-    List<ParameterDefinition> parameters = new ArrayList<>();
-
-    if (paramMetaData != null) {
-      int paramCount = paramMetaData.getParameterCount();
-      for (int i = 1; i <= paramCount; i++) {
-        ParameterDefinition param = ParameterDefinition.builder()
-          .name("param" + i) // JDBC不提供参数名称，使用位置索引
-          .dataType(paramMetaData.getParameterTypeName(i))
-          .required(paramMetaData.isNullable(i) == ParameterMetaData.parameterNoNulls)
-          .build();
-        parameters.add(param);
-      }
-    }
-
     // 分析SQL类型和特性
     String sqlType = determineSqlType(sql);
     List<String> tableNames = extractTableNames(sql);
@@ -323,16 +370,16 @@ public SqlMetadata getMetadata(DataSourceId dataSourceId, String sql) {
       .sqlType(sqlType)
       .tableNames(tableNames)
       .columns(columns)
-      .parameters(parameters)
       .hasAggregation(hasAggregation)
       .hasGroupBy(hasGroupBy)
       .hasOrderBy(hasOrderBy)
       .build();
   } catch (SQLException e) {
+    log.error("Failed to get SQL metadata: {}", e.getMessage(), e);
     throw new DataExecutionException("Failed to get SQL metadata: " + e.getMessage(), e);
   } finally {
     // 关闭资源
-    closeResources(rs, stmt, connection);
+    closeResources(rs, stmt);
   }
 }
 
@@ -351,7 +398,31 @@ private String determineSqlType(String sql) {
 private List<String> extractTableNames(String sql) {
   // 简单实现，实际项目中可能需要使用SQL解析器
   List<String> tableNames = new ArrayList<>();
-  // ... 实现表名提取逻辑
+
+  // 这是一个非常简化的实现，仅用于演示
+  // 实际项目中应该使用SQL解析器库
+  String upperSql = sql.toUpperCase();
+  int fromIndex = upperSql.indexOf("FROM ");
+
+  if (fromIndex >= 0) {
+    String fromClause = upperSql.substring(fromIndex + 5);
+    int whereIndex = fromClause.indexOf(" WHERE ");
+    if (whereIndex >= 0) {
+      fromClause = fromClause.substring(0, whereIndex);
+    }
+
+    String[] tables = fromClause.split(",");
+    for (String table : tables) {
+      String tableName = table.trim();
+      int asIndex = tableName.indexOf(" AS ");
+      if (asIndex >= 0) {
+        tableName = tableName.substring(0, asIndex).trim();
+      }
+
+      tableNames.add(tableName);
+    }
+  }
+
   return tableNames;
 }
 
@@ -365,7 +436,7 @@ private boolean checkForAggregation(String sql) {
 }
 ```
 
-### 1.6 estimateRowCount 方法实现
+## 5. 实施SqlExecutionEngineImpl的estimateRowCount方法
 
 ```java
 
@@ -380,9 +451,11 @@ public long estimateRowCount(DataSourceId dataSourceId, String sql) {
     return 0;
   }
 
+  log.debug("Estimating row count for SQL on dataSource: {}, SQL: {}", dataSourceId, sql);
+
   // 获取数据源
   DataSource dataSource = dataSourceRepository.findById(dataSourceId.getValue())
-    .orElseThrow(() -> new DataSourceException("Data source not found: " + dataSourceId));
+    .orElseThrow(() -> new DataExecutionException("Data source not found: " + dataSourceId));
 
   Connection connection = null;
   PreparedStatement stmt = null;
@@ -405,11 +478,12 @@ public long estimateRowCount(DataSourceId dataSourceId, String sql) {
 
     return 0;
   } catch (SQLException e) {
+    log.warn("Failed to estimate row count: {}", e.getMessage());
     // 如果COUNT查询失败，使用替代方法
     return estimateRowCountAlternative(dataSource, sql);
   } finally {
     // 关闭资源
-    closeResources(rs, stmt, connection);
+    closeResources(rs, stmt);
   }
 }
 
@@ -421,16 +495,23 @@ private String buildCountQuery(String sql) {
 private long estimateRowCountAlternative(DataSource dataSource, String sql) {
   // 替代方法：执行EXPLAIN或查询计划
   // 这是一个简化的实现，实际项目中需要根据数据库类型进行适配
+  log.debug("Using alternative method to estimate row count");
   return 1000; // 返回一个默认估计值
 }
 ```
 
-## 2. 异常处理
+## 6. 创建DataExecutionException类
 
-创建专门的异常类来处理SQL执行过程中的错误：
+创建一个新的异常类来处理SQL执行过程中的错误：
 
 ```java
+package com.datascope.domain.query.exception;
+
+/**
+ * 数据执行异常
+ */
 public class DataExecutionException extends RuntimeException {
+
   public DataExecutionException(String message) {
     super(message);
   }
@@ -441,11 +522,33 @@ public class DataExecutionException extends RuntimeException {
 }
 ```
 
-## 3. 单元测试
+## 7. 单元测试
 
-### 3.1 基本测试
+为SqlExecutionEngineImpl创建单元测试：
 
 ```java
+package com.datascope.domain.query.service.impl;
+
+import com.datascope.domain.datasource.entity.DataSource;
+import com.datascope.domain.datasource.gateway.DataSourceConnectionGateway;
+import com.datascope.domain.datasource.model.DataSourceId;
+import com.datascope.domain.datasource.repository.DataSourceRepository;
+import com.datascope.domain.query.exception.DataExecutionException;
+import com.datascope.domain.query.model.QueryResult;
+import com.datascope.domain.query.model.SqlMetadata;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.sql.*;
+import java.util.Map;
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class SqlExecutionEngineImplTest {
@@ -533,128 +636,93 @@ class SqlExecutionEngineImplTest {
     verify(resultSet, times(3)).next();
   }
 
+  @Test
+  void testExecuteUpdate() throws SQLException {
+    // 准备测试数据
+    String sql = "UPDATE test_table SET name = 'Updated' WHERE id = 1";
+    Map<String, Object> parameters = Map.of();
+
+    // 设置模拟行为
+    when(dataSourceRepository.findById(dataSourceId.getValue())).thenReturn(Optional.of(dataSource));
+    when(connectionGateway.getConnection(dataSource)).thenReturn(connection);
+    when(connection.prepareStatement(sql)).thenReturn(statement);
+    when(statement.execute()).thenReturn(false);
+    when(statement.getUpdateCount()).thenReturn(1);
+
+    // 执行测试
+    QueryResult result = sqlExecutionEngine.execute(dataSourceId, sql, parameters);
+
+    // 验证结果
+    assertNotNull(result);
+    assertEquals(1, result.getTotalRows());
+
+    // 验证交互
+    verify(dataSourceRepository).findById(dataSourceId.getValue());
+    verify(connectionGateway).getConnection(dataSource);
+    verify(connection).prepareStatement(sql);
+    verify(statement).execute();
+    verify(statement).getUpdateCount();
+  }
+
+  @Test
+  void testExecuteQueryWithEmptySql() {
+    // 测试空SQL
+    assertThrows(IllegalArgumentException.class, () ->
+      sqlExecutionEngine.execute(dataSourceId, "", Map.of()));
+  }
+
+  @Test
+  void testExecuteQueryWithNullDataSourceId() {
+    // 测试空数据源ID
+    assertThrows(IllegalArgumentException.class, () ->
+      sqlExecutionEngine.execute(null, "SELECT 1", Map.of()));
+  }
+
+  @Test
+  void testExecuteQueryWithNonExistentDataSource() {
+    // 测试不存在的数据源
+    when(dataSourceRepository.findById(dataSourceId.getValue())).thenReturn(Optional.empty());
+
+    assertThrows(DataExecutionException.class, () ->
+      sqlExecutionEngine.execute(dataSourceId, "SELECT 1", Map.of()));
+  }
+
+  @Test
+  void testExecuteQueryWithSqlException() throws SQLException {
+    // 测试SQL异常
+    String sql = "SELECT * FROM test_table";
+
+    when(dataSourceRepository.findById(dataSourceId.getValue())).thenReturn(Optional.of(dataSource));
+    when(connectionGateway.getConnection(dataSource)).thenReturn(connection);
+    when(connection.prepareStatement(sql)).thenThrow(new SQLException("Test SQL Exception"));
+
+    assertThrows(DataExecutionException.class, () ->
+      sqlExecutionEngine.execute(dataSourceId, sql, Map.of()));
+  }
+
   // 其他测试方法...
 }
 ```
 
-### 3.2 边界条件测试
+## 8. 实施步骤
 
-```java
+1. 创建DataExecutionException类
+2. 更新SqlExecutionEngineImpl类，添加依赖注入
+3. 实现execute方法和辅助方法
+4. 实现cancel方法
+5. 实现validate方法
+6. 实现getMetadata方法和辅助方法
+7. 实现estimateRowCount方法和辅助方法
+8. 创建单元测试
+9. 运行测试并修复问题
+10. 进行代码审查
 
-@Test
-void testExecuteQueryWithEmptySql() {
-  // 测试空SQL
-  assertThrows(IllegalArgumentException.class, () ->
-    sqlExecutionEngine.execute(dataSourceId, "", Map.of()));
-}
+## 9. 注意事项
 
-@Test
-void testExecuteQueryWithNullDataSourceId() {
-  // 测试空数据源ID
-  assertThrows(IllegalArgumentException.class, () ->
-    sqlExecutionEngine.execute(null, "SELECT 1", Map.of()));
-}
-
-@Test
-void testExecuteQueryWithNonExistentDataSource() {
-  // 测试不存在的数据源
-  when(dataSourceRepository.findById(dataSourceId.getValue())).thenReturn(Optional.empty());
-
-  assertThrows(DataSourceException.class, () ->
-    sqlExecutionEngine.execute(dataSourceId, "SELECT 1", Map.of()));
-}
-
-@Test
-void testExecuteQueryWithSqlException() throws SQLException {
-  // 测试SQL异常
-  String sql = "SELECT * FROM test_table";
-
-  when(dataSourceRepository.findById(dataSourceId.getValue())).thenReturn(Optional.of(dataSource));
-  when(connectionGateway.getConnection(dataSource)).thenReturn(connection);
-  when(connection.prepareStatement(sql)).thenThrow(new SQLException("Test SQL Exception"));
-
-  assertThrows(DataExecutionException.class, () ->
-    sqlExecutionEngine.execute(dataSourceId, sql, Map.of()));
-}
-```
-
-## 4. 集成测试
-
-```java
-
-@SpringBootTest
-class SqlExecutionEngineIntegrationTest {
-
-  @Autowired
-  private SqlExecutionEngine sqlExecutionEngine;
-
-  @Autowired
-  private DataSourceRepository dataSourceRepository;
-
-  private DataSource testDataSource;
-  private DataSourceId testDataSourceId;
-
-  @BeforeEach
-  void setUp() {
-    // 创建测试数据源
-    testDataSource = new DataSource();
-    testDataSource.setName("Integration Test DS");
-    testDataSource.setType(DataSourceType.MYSQL);
-    testDataSource.setHost("localhost");
-    testDataSource.setPort(3306);
-    testDataSource.setDatabase("test_db");
-    testDataSource.setUsername("test_user");
-    testDataSource.setPassword("test_password");
-    testDataSource.init("system");
-
-    testDataSource = dataSourceRepository.save(testDataSource);
-    testDataSourceId = DataSourceId.of(testDataSource.getId());
-  }
-
-  @AfterEach
-  void tearDown() {
-    // 清理测试数据
-    dataSourceRepository.delete(testDataSource);
-  }
-
-  @Test
-  void testExecuteQueryIntegration() {
-    // 执行简单查询
-    String sql = "SELECT 1 as test_value";
-    QueryResult result = sqlExecutionEngine.execute(testDataSourceId, sql, Map.of());
-
-    // 验证结果
-    assertNotNull(result);
-    assertEquals(1, result.getColumns().size());
-    assertEquals(1, result.getRows().size());
-    assertEquals("test_value", result.getColumns().get(0).getName());
-    assertEquals(1, result.getRows().get(0).get("test_value"));
-  }
-
-  // 其他集成测试...
-}
-```
-
-## 5. 性能考虑
-
-1. **连接池管理**：确保使用连接池而不是每次查询创建新连接
-2. **查询超时**：实现查询超时机制，防止长时间运行的查询
-3. **结果集分页**：对大结果集实现分页处理，防止内存溢出
-4. **参数化查询**：使用参数化查询防止SQL注入并提高性能
-5. **资源关闭**：确保正确关闭所有JDBC资源
-
-## 6. 安全考虑
-
-1. **SQL注入防护**：使用参数化查询和输入验证
-2. **权限检查**：在执行SQL前验证用户权限
-3. **敏感数据处理**：实现数据掩码功能
-4. **查询限制**：限制查询返回的行数和执行时间
-5. **审计日志**：记录所有SQL执行操作
-
-## 7. 下一步工作
-
-1. 实现QueryExecutionServiceImpl类的核心方法
-2. 集成数据掩码功能
-3. 实现查询结果导出功能
-4. 添加查询监控和管理功能
-5. 实现自然语言到SQL的转换
+1. **连接管理**：不要在方法中关闭连接，而是将其返回到连接池
+2. **参数处理**：确保正确处理不同类型的参数
+3. **异常处理**：捕获并适当处理所有SQL异常
+4. **资源关闭**：确保在finally块中关闭ResultSet和Statement
+5. **日志记录**：使用适当的日志级别记录执行信息和错误
+6. **安全考虑**：使用参数化查询防止SQL注入
+7. **性能优化**：限制结果集大小，防止内存溢出

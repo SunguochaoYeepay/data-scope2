@@ -17,7 +17,7 @@ import java.util.UUID;
 @Setter
 public class UserDisplayConfigRepositoryImpl implements UserDisplayConfigRepository {
 
-    @Setter(onMethod_ = @Autowired)
+    @Autowired
     private UserDisplayConfigMapper userDisplayConfigMapper;
 
     @Override

@@ -36,12 +36,12 @@ public class DataSourceFacadeImpl implements DataSourceFacade {
     public DataSourceDTO update(DataSourceDTO dto, String operator) {
         DataSource entity = dataSourceService.getById(dto.getId());
         dataSourceConverter.updateEntity(dto, entity);
-
+        
         // 确保status字段不为空
         if (entity.getStatus() == null) {
             entity.setStatus(com.datascope.domain.datasource.enums.DataSourceStatus.INACTIVE);
         }
-
+        
         entity = dataSourceService.update(entity, operator);
         return dataSourceConverter.toDTO(entity);
     }

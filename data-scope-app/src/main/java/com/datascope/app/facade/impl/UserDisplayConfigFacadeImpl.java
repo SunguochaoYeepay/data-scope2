@@ -5,7 +5,6 @@ import com.datascope.domain.query.entity.UserDisplayConfig;
 import com.datascope.domain.query.service.UserDisplayConfigService;
 import com.datascope.facade.query.UserDisplayConfigFacade;
 import com.datascope.facade.query.dto.UserDisplayConfigDTO;
-import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -15,10 +14,10 @@ import java.util.stream.Collectors;
 @Service
 public class UserDisplayConfigFacadeImpl implements UserDisplayConfigFacade {
 
-    @Setter(onMethod_ = @Autowired)
+    @Autowired
     private UserDisplayConfigService userDisplayConfigService;
 
-    @Setter(onMethod_ = @Autowired)
+    @Autowired
     private UserDisplayConfigConverter userDisplayConfigConverter;
 
     @Override

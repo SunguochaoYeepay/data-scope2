@@ -25,7 +25,13 @@ const DATASOURCE_API = {
 // Data Source Type Mapping
 const DATASOURCE_TYPES = {
   MYSQL: 'MySQL',
-  DB2: 'DB2'
+  POSTGRESQL: 'PostgreSQL',
+  DB2: 'DB2',
+  ORACLE: 'Oracle',
+  SQLSERVER: 'SQL Server',
+  HIVE: 'Hive',
+  CLICKHOUSE: 'ClickHouse',
+  H2: 'H2'
 };
 
 // Data Source Status Mapping

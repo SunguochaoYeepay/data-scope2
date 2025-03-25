@@ -6,7 +6,6 @@ import com.datascope.facade.datasource.dto.DataSourceDTO;
 import com.datascope.facade.datasource.dto.TestConnectionRequest;
 import com.datascope.facade.datasource.enums.DataSourceStatus;
 import com.datascope.facade.datasource.enums.DataSourceType;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -23,7 +22,7 @@ import java.util.List;
 @RequestMapping("/api/datasources")
 public class DataSourceController {
 
-    @Setter(onMethod_ = @Autowired)
+    @Autowired
     private DataSourceFacade dataSourceFacade;
 
     /**

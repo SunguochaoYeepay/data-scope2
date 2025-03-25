@@ -9,6 +9,7 @@ spring:
     init:
       mode: always
       platform: h2
+      schema-locations: classpath:h2/schema.sql
 
   flyway:
     enabled: true

@@ -39,6 +39,96 @@ public class PagedQueryResult extends QueryResult {
     private boolean isLast;
 
     /**
+     * 获取当前页码
+     *
+     * @return 当前页码
+     */
+    public int getPageNumber() {
+        return pageNumber;
+    }
+
+    /**
+     * 设置当前页码
+     *
+     * @param pageNumber 当前页码
+     */
+    public void setPageNumber(int pageNumber) {
+        this.pageNumber = pageNumber;
+    }
+
+    /**
+     * 获取每页大小
+     *
+     * @return 每页大小
+     */
+    public int getPageSize() {
+        return pageSize;
+    }
+
+    /**
+     * 设置每页大小
+     *
+     * @param pageSize 每页大小
+     */
+    public void setPageSize(int pageSize) {
+        this.pageSize = pageSize;
+    }
+
+    /**
+     * 获取总页数
+     *
+     * @return 总页数
+     */
+    public int getTotalPages() {
+        return totalPages;
+    }
+
+    /**
+     * 设置总页数
+     *
+     * @param totalPages 总页数
+     */
+    public void setTotalPages(int totalPages) {
+        this.totalPages = totalPages;
+    }
+
+    /**
+     * 是否为第一页
+     *
+     * @return 是否为第一页
+     */
+    public boolean isFirst() {
+        return isFirst;
+    }
+
+    /**
+     * 设置是否为第一页
+     *
+     * @param isFirst 是否为第一页
+     */
+    public void setFirst(boolean isFirst) {
+        this.isFirst = isFirst;
+    }
+
+    /**
+     * 是否为最后一页
+     *
+     * @return 是否为最后一页
+     */
+    public boolean isLast() {
+        return isLast;
+    }
+
+    /**
+     * 设置是否为最后一页
+     *
+     * @param isLast 是否为最后一页
+     */
+    public void setLast(boolean isLast) {
+        this.isLast = isLast;
+    }
+
+    /**
      * 从QueryResult创建PagedQueryResult
      *
      * @param result     查询结果

@@ -77,6 +77,20 @@ public interface QueryExecutionService {
     QueryExecution executePagedSql(String dataSourceId, String sql, Map<String, Object> parameters, int pageNumber, int pageSize);
 
     /**
+     * 执行分页SQL查询，支持排序
+     *
+     * @param dataSourceId 数据源ID
+     * @param sql          SQL语句
+     * @param parameters   查询参数
+     * @param pageNumber   页码（从1开始）
+     * @param pageSize     每页大小
+     * @param sortFields   排序字段列表
+     * @return 分页查询执行记录
+     */
+    QueryExecution executePagedSql(String dataSourceId, String sql, Map<String, Object> parameters,
+                                   int pageNumber, int pageSize, List<QueryResultSortService.SortField> sortFields);
+
+    /**
      * 获取分页查询结果
      *
      * @param id         查询执行记录ID

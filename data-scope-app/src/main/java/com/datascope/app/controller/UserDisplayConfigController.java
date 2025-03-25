@@ -5,7 +5,6 @@ import com.datascope.facade.query.dto.UserDisplayConfigDTO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -23,7 +22,7 @@ import java.util.List;
 @RequestMapping("/api/v1/display-configs")
 public class UserDisplayConfigController {
 
-    @Setter(onMethod_ = @Autowired)
+    @Autowired
     private UserDisplayConfigFacade facade;
 
     @Operation(summary = "Create configuration")

@@ -5,7 +5,6 @@ import com.datascope.domain.datasource.gateway.DataSourceConnectionGateway;
 import com.datascope.domain.datasource.gateway.PasswordEncryptorGateway;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -19,7 +18,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @Component
 public class DataSourceConnectionGatewayImpl implements DataSourceConnectionGateway {
 
-    @Setter(onMethod_ = @Autowired)
+    @Autowired
     private PasswordEncryptorGateway passwordEncryptor;
 
     private Map<String, HikariDataSource> dataSources = new ConcurrentHashMap<>();
@@ -107,6 +106,9 @@ public class DataSourceConnectionGatewayImpl implements DataSourceConnectionGate
             case DB2:
                 config.setDriverClassName("com.ibm.db2.jcc.DB2Driver");
                 break;
+            case H2:
+                config.setDriverClassName("org.h2.Driver");
+                break;
             default:
                 throw new IllegalArgumentException("不支持的数据源类型: " + dataSource.getType());
         }
@@ -121,6 +123,10 @@ public class DataSourceConnectionGatewayImpl implements DataSourceConnectionGate
                     dataSource.getHost(), dataSource.getPort(), dataSource.getDatabase());
             case DB2:
                 return String.format("jdbc:db2://%s:%d/%s",
+                    dataSource.getHost(), dataSource.getPort(), dataSource.getDatabase());
+            case H2:
+                // H2支持多种连接模式，这里使用TCP服务器模式
+                return String.format("jdbc:h2:tcp://%s:%d/%s",
                     dataSource.getHost(), dataSource.getPort(), dataSource.getDatabase());
             default:
                 throw new IllegalArgumentException("不支持的数据源类型: " + dataSource.getType());

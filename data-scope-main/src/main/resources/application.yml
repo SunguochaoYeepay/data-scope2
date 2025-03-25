@@ -33,9 +33,12 @@ spring:
   web:
     resources:
       static-locations: classpath:/static/
+  messages:
+    basename: i18n/messages_zh_CN
+    cache-duration: 60
 
 server:
-  port: 8080
+  port: 8081
   # 移除上下文路径，使静态资源可以直接访问
   # servlet:
   #   context-path: /api

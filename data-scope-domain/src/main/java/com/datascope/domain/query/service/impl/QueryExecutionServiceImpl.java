@@ -1,6 +1,8 @@
 package com.datascope.domain.query.service.impl;
 
+import com.datascope.domain.datasource.entity.DataSource;
 import com.datascope.domain.datasource.model.DataSourceId;
+import com.datascope.domain.datasource.repository.DataSourceRepository;
 import com.datascope.domain.query.model.PagedQueryResult;
 import com.datascope.domain.query.model.QueryExecution;
 import com.datascope.domain.query.model.QueryResult;
@@ -19,9 +21,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -42,6 +42,7 @@ public class QueryExecutionServiceImpl implements QueryExecutionService {
     private final QueryResultSortService queryResultSortService;
     private final QueryResultFilterService queryResultFilterService;
     private final QueryResultStatisticsService queryResultStatisticsService;
+    private final DataSourceRepository dataSourceRepository;
 
     // 查询超时时间（秒）
     private static final int QUERY_TIMEOUT_SECONDS = 60;
@@ -305,6 +306,23 @@ public class QueryExecutionServiceImpl implements QueryExecutionService {
     @Override
     @Transactional
     public QueryExecution executePagedSql(String dataSourceId, String sql, Map<String, Object> parameters, int pageNumber, int pageSize) {
+        return executePagedSql(dataSourceId, sql, parameters, pageNumber, pageSize, null);
+    }
+
+    /**
+     * 执行分页SQL查询，支持排序
+     *
+     * @param dataSourceId 数据源ID
+     * @param sql          SQL语句
+     * @param parameters   查询参数
+     * @param pageNumber   页码
+     * @param pageSize     每页大小
+     * @param sortFields   排序字段列表
+     * @return 查询执行记录
+     */
+    @Override
+    public QueryExecution executePagedSql(String dataSourceId, String sql, Map<String, Object> parameters,
+                                          int pageNumber, int pageSize, List<SortField> sortFields) {
         log.info("Executing paged SQL query on data source {}: {}", dataSourceId, sql);
 
         // 验证参数
@@ -322,12 +340,35 @@ public class QueryExecutionServiceImpl implements QueryExecutionService {
             parameters
         );
 
+        // 获取数据源信息
+        Optional<DataSource> dataSourceOpt = dataSourceRepository.findById(dataSourceId);
+        if (dataSourceOpt.isEmpty()) {
+            throw new IllegalArgumentException("Data source not found: " + dataSourceId);
+        }
+        DataSource dataSource = dataSourceOpt.get();
+
         // 添加分页信息到参数中
-        Map<String, Object> pagedParameters = parameters != null ? parameters : Map.of();
+        Map<String, Object> pagedParameters = new HashMap<>();
+        if (parameters != null) {
+            pagedParameters.putAll(parameters);
+        }
         pagedParameters.put("_page_number", pageNumber);
         pagedParameters.put("_page_size", pageSize);
         pagedParameters.put("_offset", (pageNumber - 1) * pageSize);
         pagedParameters.put("_limit", pageSize);
+        pagedParameters.put("_db_type", dataSource.getType().name());
+
+        // 添加排序参数
+        if (sortFields != null && !sortFields.isEmpty()) {
+            List<Map<String, Object>> sortFieldMaps = new ArrayList<>();
+            for (SortField sortField : sortFields) {
+                Map<String, Object> sortFieldMap = new HashMap<>();
+                sortFieldMap.put("fieldName", sortField.getFieldName());
+                sortFieldMap.put("direction", sortField.getDirection().name());
+                sortFieldMaps.add(sortFieldMap);
+            }
+            pagedParameters.put("_sort_fields", sortFieldMaps);
+        }
 
         // 保存查询执行记录
         execution = queryExecutionRepository.save(execution);
@@ -754,8 +795,17 @@ public class QueryExecutionServiceImpl implements QueryExecutionService {
             throw new IllegalStateException("Query execution has no results: " + id);
         }
 
-        // 计算基本统计信息
-        List<StatisticsResult> results = queryResultStatisticsService.calculateBasicStatistics(execution.getResult(), fieldName);
+        // 定义基本统计函数列表：COUNT, SUM, AVG, MIN, MAX
+        List<StatisticsFunction> basicFunctions = List.of(
+            StatisticsFunction.COUNT,
+            StatisticsFunction.SUM,
+            StatisticsFunction.AVG,
+            StatisticsFunction.MIN,
+            StatisticsFunction.MAX
+        );
+
+        // 计算统计信息
+        List<StatisticsResult> results = queryResultStatisticsService.calculate(execution.getResult(), fieldName, basicFunctions);
 
         log.info("Basic statistics calculated for query execution {}, field {}", id, fieldName);
         return results;
@@ -787,7 +837,7 @@ public class QueryExecutionServiceImpl implements QueryExecutionService {
             throw new IllegalStateException("Query execution has no results: " + id);
         }
 
-        // 计算完整统计信息
+        // 使用统计服务计算完整统计信息
         List<StatisticsResult> results = queryResultStatisticsService.calculateFullStatistics(execution.getResult(), fieldName);
 
         log.info("Full statistics calculated for query execution {}, field {}", id, fieldName);
@@ -798,20 +848,38 @@ public class QueryExecutionServiceImpl implements QueryExecutionService {
     public StatisticsResult calculateFilteredStatistics(String id, FilterGroup filterGroup, String fieldName, StatisticsFunction function) {
         log.info("Calculating filtered statistics for query execution {}, field {}, function {}", id, fieldName, function);
 
-        if (filterGroup == null) {
-            throw new IllegalArgumentException("Filter group cannot be null");
-        }
         if (fieldName == null || fieldName.isEmpty()) {
             throw new IllegalArgumentException("Field name cannot be null or empty");
         }
         if (function == null) {
             throw new IllegalArgumentException("Statistics function cannot be null");
         }
+        if (filterGroup == null) {
+            throw new IllegalArgumentException("Filter group cannot be null");
+        }
 
-        // 获取过滤后的结果
-        QueryResult filteredResult = getFilteredResult(id, filterGroup);
+        // 获取查询执行记录
+        Optional<QueryExecution> executionOpt = queryExecutionRepository.findById(id);
+        if (executionOpt.isEmpty()) {
+            throw new IllegalArgumentException("Query execution not found: " + id);
+        }
 
-        // 计算统计信息
+        QueryExecution execution = executionOpt.get();
+
+        // 检查查询是否已完成
+        if (!execution.isCompleted()) {
+            throw new IllegalStateException("Cannot calculate statistics for query that is not completed: " + id);
+        }
+
+        // 检查是否有结果
+        if (execution.getResult() == null) {
+            throw new IllegalStateException("Query execution has no results: " + id);
+        }
+
+        // 先过滤查询结果
+        QueryResult filteredResult = queryResultFilterService.filter(execution.getResult(), filterGroup);
+
+        // 然后计算统计信息
         StatisticsResult result = queryResultStatisticsService.calculate(filteredResult, fieldName, function);
 
         log.info("Filtered statistics calculated for query execution {}, field {}, function {}", id, fieldName, function);
