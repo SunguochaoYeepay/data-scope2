@@ -1,32 +1,27 @@
-## Product Context
+## 产品背景
 
-### Why this project exists?
+### 项目存在的原因
 
-This project, DataScope, exists to provide a comprehensive data management and query system for internal employees. It
-aims to simplify data access and integration with low-code platforms, enabling faster application development.
+DataScope 项目旨在为内部员工提供一个全面的数据管理和查询系统。它的目标是简化数据访问并与低代码平台集成，从而加速应用程序开发。
 
-### What problems does it solve?
+### 解决的问题
 
-DataScope solves the following problems:
+DataScope 解决了以下问题：
 
-* **Data Silos:** Integrates different database systems (MySQL, DB2) into a unified data source.
-* **Complex Data Discovery:** Provides an intuitive interface to explore schemas, tables, and columns.
-* **Slow Application Development:** Enables seamless integration with low-code platforms for rapid application
-  development.
-* **Limited Data Access:** Empowers users to retrieve data using both SQL queries and natural language descriptions.
-* **Data Security Concerns:** Implements comprehensive data masking to protect sensitive information.
-* **Query Management Challenges:** Provides tracking and management of query execution with proper status handling.
+* **数据孤岛**：将不同的数据库系统（MySQL、DB2）集成到统一的数据源中。
+* **复杂的数据发现**：提供直观的界面来探索模式、表和列。
+* **应用开发缓慢**：实现与低代码平台的无缝集成，加速应用开发。
+* **有限的数据访问**：使用户能够通过 SQL 查询和自然语言描述检索数据。
+* **数据安全问题**：实施全面的数据掩码功能，保护敏感信息。
+* **查询管理挑战**：提供查询执行的跟踪和管理，具有适当的状态处理。
 
-### How it should work?
+### 工作方式
 
-DataScope should work as follows:
+DataScope 应按以下方式工作：
 
-1. **Data Source Management:** Allow users to connect to various database systems and automatically extract metadata.
-2. **Intelligent Data Discovery and Query:** Provide a user-friendly interface for exploring data sources and querying
-   data using SQL or natural language.
-3. **Low-Code Integration:** Facilitate seamless integration with low-code platforms by providing configuration options
-   and APIs.
-4. **AI-Powered Assistance:** Offer AI-powered features to enhance the configuration and query process.
-5. **Data Security:** Implement data masking and access control to protect sensitive information.
-6. **Query Execution and Management:** Track and manage query execution with proper status handling and result
-   processing.
+1. **数据源管理**：允许用户连接到各种数据库系统并自动提取元数据。
+2. **智能数据发现和查询**：提供用户友好的界面，用于探索数据源和使用 SQL 或自然语言查询数据。
+3. **低代码集成**：通过提供配置选项和 API，促进与低代码平台的无缝集成。
+4. **AI 辅助功能**：提供 AI 驱动的功能，增强配置和查询过程。
+5. **数据安全**：实施数据掩码和访问控制，保护敏感信息。
+6. **查询执行和管理**：跟踪和管理查询执行，具有适当的状态处理和结果处理。

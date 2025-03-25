@@ -1,6 +1,6 @@
-## Technical Context
+## 技术上下文
 
-### Technologies used?
+### 使用的技术
 
 * Java
 * Maven
@@ -8,33 +8,33 @@
 * MyBatis
 * MySQL
 * Redis
-* OpenRouter (for LLM integration)
+* OpenRouter（用于 LLM 集成）
 * HTML
 * Tailwind CSS
-* FontAwesome (or other open-source UI component library)
+* FontAwesome（或其他开源 UI 组件库）
 
-### Development setup?
+### 开发环境设置
 
-The project uses Maven for dependency management and building. The development environment should include:
+项目使用 Maven 进行依赖管理和构建。开发环境应包括：
 
-* JDK 17 or later
-* Maven 3.6 or later
-* MySQL server
-* Redis server
-* A suitable IDE (e.g., IntelliJ IDEA, Eclipse)
+* JDK 17 或更高版本
+* Maven 3.6 或更高版本
+* MySQL 服务器
+* Redis 服务器
+* 合适的 IDE（例如 IntelliJ IDEA、Eclipse）
 
-### Technical constraints?
+### 技术约束
 
-* The system should not synchronize data from the data sources, only metadata.
-* Password should be encrypted with salt and AES.
-* Access control is handled separately.
-* The system should be easily extensible to support more data source types.
-* The system should provide a unified API for querying data.
-* SQL and API should be versioned.
-* API interfaces should be designed with low-code platform integration in mind.
-* Each API interface should have a default timeout of 30 seconds.
-* User query frequency should be limited.
-* Data download should be limited to 50000 rows.
-* Data masking should be applied to sensitive information according to configured rules.
-* Query execution should be tracked and managed with proper status handling.
-* Natural language queries should be converted to SQL using OpenRouter's LLM interface.
+* 系统不应从数据源同步数据，只同步元数据。
+* 密码应使用盐和 AES 加密。
+* 访问控制由单独的系统处理。
+* 系统应易于扩展，以支持更多的数据源类型。
+* 系统应提供统一的 API 用于查询数据。
+* SQL 和 API 应进行版本控制。
+* API 接口应考虑低代码平台集成。
+* 每个 API 接口应有 30 秒的默认超时时间。
+* 用户查询频率应受到限制。
+* 数据下载应限制为 50000 行。
+* 应根据配置的规则对敏感信息应用数据掩码。
+* 查询执行应被跟踪和管理，具有适当的状态处理。
+* 自然语言查询应使用 OpenRouter 的 LLM 接口转换为 SQL。
