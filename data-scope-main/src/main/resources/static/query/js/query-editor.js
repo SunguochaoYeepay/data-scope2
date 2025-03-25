@@ -1,741 +1,789 @@
 /**
  * DataScope Query Editor JavaScript
  *
- * This file contains the functionality for the SQL query editor,
- * including query execution, result handling, and UI interactions.
+ * This file contains the functionality for the query editor page,
+ * including SQL execution, result display, and query management.
  */
 
-// Global variables
-let editor; // CodeMirror editor instance
-let currentDataSourceId = null;
-let currentQueryId = null;
-let currentQueryName = '';
-let currentQueryDescription = '';
-let isExecuting = false;
-let resultData = null;
-let currentPage = 1;
-let pageSize = 10;
-let totalPages = 1;
-let sortColumn = null;
-let sortDirection = 'asc';
+// API Base URL
+const API_BASE_URL = '/api';
 
-// DOM elements
-const queryNameInput = document.getElementById('queryName');
-const executeButton = document.getElementById('executeButton');
-const saveButton = document.getElementById('saveButton');
-const favoriteButton = document.getElementById('favoriteButton');
-const exportButton = document.getElementById('exportButton');
-const configButton = document.getElementById('configButton');
-const dataSourceSelect = document.getElementById('dataSourceSelect');
-const resultsTable = document.getElementById('resultsTable');
-const resultsBody = document.getElementById('resultsBody');
-const resultsHeader = document.getElementById('resultsHeader');
-const paginationContainer = document.getElementById('paginationContainer');
-const statusMessage = document.getElementById('statusMessage');
-const loadingIndicator = document.getElementById('loadingIndicator');
+// Query API Endpoints
+const QUERY_API = {
+  EXECUTE: `${API_BASE_URL}/queries/execute`,
+  VALIDATE: `${API_BASE_URL}/queries/validate`,
+  METADATA: `${API_BASE_URL}/queries/metadata`,
+  ESTIMATE: `${API_BASE_URL}/queries/estimate`,
+  CANCEL: (id) => `${API_BASE_URL}/queries/${id}/cancel`,
+  SAVE: `${API_BASE_URL}/queries`,
+  GET: (id) => `${API_BASE_URL}/queries/${id}`,
+  FAVORITE: (id) => `${API_BASE_URL}/queries/${id}/favorite`
+};
+
+// Data Source API Endpoints
+const DATASOURCE_API = {
+  LIST: `${API_BASE_URL}/datasources`,
+  GET: (id) => `${API_BASE_URL}/datasources/${id}`
+};
+
+// DOM Elements
+const queryForm = document.getElementById('query-form');
+const sqlEditor = document.getElementById('sql-editor');
+const dataSourceSelect = document.getElementById('data-source');
+const executeButton = document.getElementById('execute-button');
+const cancelButton = document.getElementById('cancel-button');
+const saveButton = document.getElementById('save-button');
+const favoriteButton = document.getElementById('favorite-button');
+const queryNameInput = document.getElementById('query-name');
+const queryDescriptionInput = document.getElementById('query-description');
+const resultsContainer = document.getElementById('results-container');
+const resultsTable = document.getElementById('results-table');
+const resultsTableHead = document.querySelector('#results-table thead');
+const resultsTableBody = document.querySelector('#results-table tbody');
+const paginationContainer = document.getElementById('pagination');
+const paginationInfo = document.getElementById('pagination-info');
+const loadingIndicator = document.getElementById('loading-indicator');
+const errorContainer = document.getElementById('error-container');
+const errorMessage = document.getElementById('error-message');
+const successContainer = document.getElementById('success-container');
+const successMessage = document.getElementById('success-message');
+
+// State
+let currentQuery = {
+  id: null,
+  name: '',
+  description: '',
+  sql: '',
+  dataSourceId: '',
+  favorite: false,
+  parameters: {}
+};
+let currentExecution = {
+  id: null,
+  status: null
+};
+let queryResults = null;
+let currentPage = 1;
+let pageSize = 100;
+let sortFields = [];
+let isExecuting = false;
 
 /**
  * Initialize the query editor
  */
 function initQueryEditor() {
-  // Initialize CodeMirror
-  editor = CodeMirror.fromTextArea(document.getElementById("sqlEditor"), {
-    mode: "text/x-sql",
-    theme: "monokai",
-    lineNumbers: true,
-    autoCloseBrackets: true,
-    matchBrackets: true,
-    indentUnit: 4,
-    lineWrapping: true,
-    extraKeys: {
-      "Ctrl-Enter": executeQuery,
-      "Cmd-Enter": executeQuery
-    }
-  });
-
-  // Set editor height
-  editor.setSize(null, 200);
-
   // Load data sources
   loadDataSources();
 
-  // Add event listeners
-  executeButton.addEventListener('click', executeQuery);
-  saveButton.addEventListener('click', saveQuery);
-  favoriteButton.addEventListener('click', toggleFavorite);
-  exportButton.addEventListener('click', exportResults);
-  configButton.addEventListener('click', showConfigDialog);
-  dataSourceSelect.addEventListener('change', onDataSourceChange);
-  queryNameInput.addEventListener('change', updateQueryName);
+  // Set up event listeners
+  if (queryForm) {
+    queryForm.addEventListener('submit', handleExecuteQuery);
+  }
 
-  // Check for query ID in URL
+  if (executeButton) {
+    executeButton.addEventListener('click', handleExecuteQuery);
+  }
+
+  if (cancelButton) {
+    cancelButton.addEventListener('click', handleCancelQuery);
+  }
+
+  if (saveButton) {
+    saveButton.addEventListener('click', handleSaveQuery);
+  }
+
+  if (favoriteButton) {
+    favoriteButton.addEventListener('click', handleToggleFavorite);
+  }
+
+  // Check if we're editing an existing query
   const urlParams = new URLSearchParams(window.location.search);
   const queryId = urlParams.get('id');
+
   if (queryId) {
     loadQuery(queryId);
   }
+
+  // Set up keyboard shortcuts
+  document.addEventListener('keydown', (e) => {
+    // Ctrl+Enter or Cmd+Enter to execute query
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+      e.preventDefault();
+      handleExecuteQuery(e);
+    }
+  });
 }
 
 /**
- * Load available data sources
+ * Load data sources from API
  */
-function loadDataSources() {
-  fetch('/api/datasources')
-    .then(response => {
-      if (!response.ok) {
-        throw new Error('Failed to load data sources');
+async function loadDataSources() {
+  try {
+    const response = await fetch(DATASOURCE_API.LIST, {
+      headers: {
+        'X-User-Id': 'current-user' // In a real app, this would be the actual user ID
       }
-      return response.json();
-    })
-    .then(apiResponse => {
-      // 检查API响应是否成功
-      if (!apiResponse.success) {
-        throw new Error(apiResponse.message || 'Failed to load data sources');
-      }
+    });
 
-      // 获取实际的数据源列表
-      const dataSources = apiResponse.data;
+    if (!response.ok) {
+      throw new Error('Failed to load data sources');
+    }
 
-      // Clear existing options
-      dataSourceSelect.innerHTML = '';
+    const result = await response.json();
 
-      // Add default option
-      const defaultOption = document.createElement('option');
-      defaultOption.value = '';
-      defaultOption.textContent = '选择数据源';
-      dataSourceSelect.appendChild(defaultOption);
+    // Check if API response is successful
+    if (!result.success) {
+      throw new Error(result.message || 'Failed to load data sources');
+    }
 
-      // 只添加活跃状态的数据源
-      const activeSources = dataSources.filter(ds => ds.status === 'ACTIVE');
+    // Get data from API response
+    const dataSources = result.data;
 
-      // Add data sources
-      activeSources.forEach(dataSource => {
+    // Clear existing options
+    dataSourceSelect.innerHTML = '<option value="">选择数据源</option>';
+
+    // Add data sources to dropdown
+    dataSources.forEach(dataSource => {
+      if (dataSource.status === 'ACTIVE') {
         const option = document.createElement('option');
         option.value = dataSource.id;
         option.textContent = dataSource.name;
         dataSourceSelect.appendChild(option);
-      });
-
-      // Select first data source if available
-      if (activeSources.length > 0 && !currentDataSourceId) {
-        dataSourceSelect.value = activeSources[0].id;
-        currentDataSourceId = activeSources[0].id;
-      } else if (currentDataSourceId) {
-        dataSourceSelect.value = currentDataSourceId;
       }
-    })
-    .catch(error => {
-      showNotification('加载数据源失败: ' + error.message, 'error');
     });
+  } catch (error) {
+    console.error('Error loading data sources:', error);
+    showError('加载数据源失败: ' + error.message);
+  }
 }
 
 /**
- * Handle data source change
+ * Load query from API
  */
-function onDataSourceChange() {
-  currentDataSourceId = dataSourceSelect.value;
+async function loadQuery(queryId) {
+  try {
+    showLoading();
+
+    const response = await fetch(QUERY_API.GET(queryId), {
+      headers: {
+        'X-User-Id': 'current-user' // In a real app, this would be the actual user ID
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to load query');
+    }
+
+    const result = await response.json();
+
+    // Check if API response is successful
+    if (!result.success) {
+      throw new Error(result.message || 'Failed to load query');
+    }
+
+    // Get data from API response
+    const query = result.data;
+
+    // Update state
+    currentQuery = {
+      id: query.id,
+      name: query.name,
+      description: query.description,
+      sql: query.sql,
+      dataSourceId: query.dataSourceId,
+      favorite: query.favorite,
+      parameters: query.parameters || {}
+    };
+
+    // Update UI
+    queryNameInput.value = currentQuery.name;
+    queryDescriptionInput.value = currentQuery.description;
+    sqlEditor.value = currentQuery.sql;
+    dataSourceSelect.value = currentQuery.dataSourceId;
+
+    // Update favorite button
+    updateFavoriteButton(currentQuery.favorite);
+
+    hideLoading();
+  } catch (error) {
+    console.error('Error loading query:', error);
+    showError('加载查询失败: ' + error.message);
+    hideLoading();
+  }
 }
 
 /**
- * Update query name
+ * Handle execute query
  */
-function updateQueryName() {
-  currentQueryName = queryNameInput.value;
-}
+async function handleExecuteQuery(e) {
+  e.preventDefault();
 
-/**
- * Execute the current SQL query
- */
-function executeQuery() {
   if (isExecuting) {
-    return; // Prevent multiple executions
+    return;
   }
 
-  const sql = editor.getValue().trim();
+  const sql = sqlEditor.value.trim();
+  const dataSourceId = dataSourceSelect.value;
+
   if (!sql) {
-    showNotification('Please enter a SQL query', 'warning');
+    showError('请输入SQL查询');
     return;
   }
 
-  if (!currentDataSourceId) {
-    showNotification('Please select a data source', 'warning');
+  if (!dataSourceId) {
+    showError('请选择数据源');
     return;
   }
 
-  // Show loading indicator
-  isExecuting = true;
-  loadingIndicator.classList.remove('hidden');
-  statusMessage.textContent = 'Executing query...';
-  statusMessage.classList.remove('hidden');
-  executeButton.disabled = true;
+  try {
+    isExecuting = true;
+    showLoading();
+    updateExecuteButtonState(true);
 
-  // Clear previous results
-  clearResults();
+    // Clear previous results
+    clearResults();
 
-  // Execute query
-  fetch('/api/queries/execute', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'X-User-Id': 'current-user' // 在实际应用中，这应该是实际的用户ID
-    },
-    body: JSON.stringify({
-      dataSourceId: currentDataSourceId,
+    // Prepare request
+    const request = {
       sql: sql,
-      parameters: {},
-      page: currentPage - 1, // API使用0基索引
+      dataSourceId: dataSourceId,
+      parameters: currentQuery.parameters || {},
+      page: currentPage - 1, // API uses 0-based indexing
       size: pageSize,
-      sortColumn: sortColumn,
-      sortDirection: sortDirection
-    })
-  })
-    .then(response => {
-      if (!response.ok) {
-        return response.json().then(errorData => {
-          throw new Error(errorData.message || 'Query execution failed');
-        });
-      }
-      return response.json();
-    })
-    .then(apiResponse => {
-      // 检查API响应是否成功
-      if (!apiResponse.success) {
-        throw new Error(apiResponse.message || 'Query execution failed');
-      }
+      sortFields: sortFields
+    };
 
-      // 获取实际的查询结果数据
-      const data = apiResponse.data;
-
-      // Store result data
-      resultData = data;
-
-      // Display results
-      displayResults(data);
-
-      // Update status
-      statusMessage.textContent = `查询执行成功。返回 ${data.totalRows} 条记录。`;
-      statusMessage.classList.remove('text-red-500', 'hidden');
-      statusMessage.classList.add('text-green-500');
-
-      // Update pagination
-      totalPages = Math.ceil(data.totalRows / pageSize);
-      updatePagination();
-    })
-    .catch(error => {
-      showNotification('Error executing query: ' + error.message, 'error');
-      statusMessage.textContent = 'Error: ' + error.message;
-      statusMessage.classList.remove('hidden');
-      statusMessage.classList.add('text-red-500');
-      resultsTable.classList.add('hidden');
-    })
-    .finally(() => {
-      // Hide loading indicator
-      isExecuting = false;
-      loadingIndicator.classList.add('hidden');
-      executeButton.disabled = false;
+    // Execute query
+    const response = await fetch(QUERY_API.EXECUTE, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-User-Id': 'current-user' // In a real app, this would be the actual user ID
+      },
+      body: JSON.stringify(request)
     });
+
+    if (!response.ok) {
+      throw new Error('查询执行失败');
+    }
+
+    const result = await response.json();
+
+    // Check if API response is successful
+    if (!result.success) {
+      throw new Error(result.message || '查询执行失败');
+    }
+
+    // Get data from API response
+    const data = result.data;
+
+    // Update current execution
+    currentExecution = {
+      id: data.executionId,
+      status: data.status
+    };
+
+    // Update query results
+    queryResults = data;
+
+    // Display results
+    displayResults(data);
+
+    // Show success message
+    showSuccess('查询执行成功');
+
+    isExecuting = false;
+    hideLoading();
+    updateExecuteButtonState(false);
+  } catch (error) {
+    console.error('Error executing query:', error);
+    showError('查询执行失败: ' + error.message);
+    isExecuting = false;
+    hideLoading();
+    updateExecuteButtonState(false);
+  }
+}
+
+/**
+ * Handle cancel query
+ */
+async function handleCancelQuery() {
+  if (!currentExecution.id || !isExecuting) {
+    return;
+  }
+
+  try {
+    const response = await fetch(QUERY_API.CANCEL(currentExecution.id), {
+      method: 'POST',
+      headers: {
+        'X-User-Id': 'current-user' // In a real app, this would be the actual user ID
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to cancel query');
+    }
+
+    const result = await response.json();
+
+    // Check if API response is successful
+    if (!result.success) {
+      throw new Error(result.message || 'Failed to cancel query');
+    }
+
+    // Show success message
+    showSuccess('查询已取消');
+
+    isExecuting = false;
+    updateExecuteButtonState(false);
+  } catch (error) {
+    console.error('Error cancelling query:', error);
+    showError('取消查询失败: ' + error.message);
+  }
+}
+
+/**
+ * Handle save query
+ */
+async function handleSaveQuery() {
+  const name = queryNameInput.value.trim();
+  const description = queryDescriptionInput.value.trim();
+  const sql = sqlEditor.value.trim();
+  const dataSourceId = dataSourceSelect.value;
+
+  if (!name) {
+    showError('请输入查询名称');
+    return;
+  }
+
+  if (!sql) {
+    showError('请输入SQL查询');
+    return;
+  }
+
+  if (!dataSourceId) {
+    showError('请选择数据源');
+    return;
+  }
+
+  try {
+    showLoading();
+
+    // Prepare request
+    const request = {
+      id: currentQuery.id, // Will be null for new queries
+      name: name,
+      description: description,
+      sql: sql,
+      dataSourceId: dataSourceId,
+      parameters: currentQuery.parameters || {}
+    };
+
+    // Save query
+    const response = await fetch(QUERY_API.SAVE, {
+      method: currentQuery.id ? 'PUT' : 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-User-Id': 'current-user' // In a real app, this would be the actual user ID
+      },
+      body: JSON.stringify(request)
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to save query');
+    }
+
+    const result = await response.json();
+
+    // Check if API response is successful
+    if (!result.success) {
+      throw new Error(result.message || 'Failed to save query');
+    }
+
+    // Get data from API response
+    const savedQuery = result.data;
+
+    // Update state
+    currentQuery = {
+      id: savedQuery.id,
+      name: savedQuery.name,
+      description: savedQuery.description,
+      sql: savedQuery.sql,
+      dataSourceId: savedQuery.dataSourceId,
+      favorite: savedQuery.favorite,
+      parameters: savedQuery.parameters || {}
+    };
+
+    // Update URL if this is a new query
+    if (!request.id) {
+      window.history.replaceState({}, '', `/query/editor.html?id=${savedQuery.id}`);
+    }
+
+    // Show success message
+    showSuccess('查询已保存');
+
+    hideLoading();
+  } catch (error) {
+    console.error('Error saving query:', error);
+    showError('保存查询失败: ' + error.message);
+    hideLoading();
+  }
+}
+
+/**
+ * Handle toggle favorite
+ */
+async function handleToggleFavorite() {
+  if (!currentQuery.id) {
+    showError('请先保存查询');
+    return;
+  }
+
+  try {
+    const response = await fetch(QUERY_API.FAVORITE(currentQuery.id), {
+      method: 'POST',
+      headers: {
+        'X-User-Id': 'current-user' // In a real app, this would be the actual user ID
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to update favorite status');
+    }
+
+    const result = await response.json();
+
+    // Check if API response is successful
+    if (!result.success) {
+      throw new Error(result.message || 'Failed to update favorite status');
+    }
+
+    // Get data from API response
+    const data = result.data;
+
+    // Update state
+    currentQuery.favorite = data.favorite;
+
+    // Update UI
+    updateFavoriteButton(currentQuery.favorite);
+
+    // Show success message
+    showSuccess(`查询已${currentQuery.favorite ? '添加到' : '从'}收藏夹${currentQuery.favorite ? '' : '中移除'}`);
+  } catch (error) {
+    console.error('Error updating favorite status:', error);
+    showError('更新收藏状态失败: ' + error.message);
+  }
 }
 
 /**
  * Display query results
  */
 function displayResults(data) {
-  if (!data || !data.columns || !data.rows) {
-    resultsTable.classList.add('hidden');
+  if (!data) {
     return;
   }
 
-  // Show results table
-  resultsTable.classList.remove('hidden');
+  // Show results container
+  resultsContainer.classList.remove('hidden');
 
-  // Create header row
-  resultsHeader.innerHTML = '';
+  // Get columns and rows
+  const columns = data.columns || [];
+  const rows = data.rows || [];
+
+  // Clear existing table
+  resultsTableHead.innerHTML = '';
+  resultsTableBody.innerHTML = '';
+
+  // Create table header
   const headerRow = document.createElement('tr');
 
-  data.columns.forEach(column => {
+  columns.forEach(column => {
     const th = document.createElement('th');
-    th.className = 'px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer';
-    th.scope = 'col';
+    th.className = 'px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider';
+    th.textContent = column.name;
 
-    // Create header content with sort icon
-    const headerContent = document.createElement('div');
-    headerContent.className = 'flex items-center';
+    // Add sort functionality if column is sortable
+    if (column.sortable) {
+      th.classList.add('cursor-pointer', 'hover:bg-gray-100');
 
-    // 使用label或name作为显示名称
-    const columnName = document.createElement('span');
-    columnName.textContent = column.label || column.name;
-    headerContent.appendChild(columnName);
+      // Check if column is already sorted
+      const sortField = sortFields.find(field => field.field === column.name);
 
-    // Add sort icon if this is the sort column
-    if (sortColumn === column.name) {
-      const sortIcon = document.createElement('i');
-      sortIcon.className = `fas fa-sort-${sortDirection === 'asc' ? 'up' : 'down'} ml-1`;
-      headerContent.appendChild(sortIcon);
-    }
+      if (sortField) {
+        th.classList.add(sortField.direction === 'asc' ? 'sorted-asc' : 'sorted-desc');
+        th.innerHTML = `${column.name} <i class="fas fa-sort-${sortField.direction === 'asc' ? 'up' : 'down'} ml-1"></i>`;
+      } else {
+        th.innerHTML = `${column.name} <i class="fas fa-sort ml-1 text-gray-300"></i>`;
+      }
 
-    th.appendChild(headerContent);
-
-    // 只有可排序的列才添加排序事件
-    if (column.sortable !== false) {
-      th.addEventListener('click', () => {
-        if (sortColumn === column.name) {
-          // Toggle direction if already sorting by this column
-          sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
-        } else {
-          // Set new sort column
-          sortColumn = column.name;
-          sortDirection = 'asc';
-        }
-
-        // Re-execute query with new sort
-        executeQuery();
-      });
-    } else {
-      th.classList.remove('cursor-pointer');
+      th.addEventListener('click', () => handleSort(column.name));
     }
 
     headerRow.appendChild(th);
   });
 
-  resultsHeader.appendChild(headerRow);
+  resultsTableHead.appendChild(headerRow);
 
-  // Create data rows
-  resultsBody.innerHTML = '';
+  // Create table body
+  if (rows.length === 0) {
+    const emptyRow = document.createElement('tr');
+    const emptyCell = document.createElement('td');
+    emptyCell.className = 'px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center';
+    emptyCell.colSpan = columns.length;
+    emptyCell.textContent = '没有数据';
+    emptyRow.appendChild(emptyCell);
+    resultsTableBody.appendChild(emptyRow);
+  } else {
+    rows.forEach(row => {
+      const tr = document.createElement('tr');
+      tr.className = 'hover:bg-gray-50';
 
-  // 如果没有数据，显示空状态
-  if (data.rows.length === 0) {
-    const tr = document.createElement('tr');
-    const td = document.createElement('td');
-    td.colSpan = data.columns.length;
-    td.className = 'px-6 py-4 text-center text-sm text-gray-500';
-    td.textContent = '没有查询结果';
-    tr.appendChild(td);
-    resultsBody.appendChild(tr);
-    return;
-  }
+      columns.forEach(column => {
+        const td = document.createElement('td');
+        td.className = 'px-6 py-4 whitespace-nowrap text-sm text-gray-500';
 
-  data.rows.forEach(row => {
-    const tr = document.createElement('tr');
-    tr.className = 'hover:bg-gray-50';
+        const value = row[column.name];
+        td.textContent = value !== null && value !== undefined ? value : '';
 
-    data.columns.forEach(column => {
-      const td = document.createElement('td');
-      td.className = 'px-6 py-4 whitespace-nowrap text-sm text-gray-500';
+        tr.appendChild(td);
+      });
 
-      // 使用列名作为字段名
-      const fieldName = column.name;
-      const value = row[fieldName];
-
-      // Format cell value based on column type
-      if (value === null || value === undefined) {
-        td.innerHTML = '<span class="text-gray-300">NULL</span>';
-      } else if (column.dataType === 'DATE' || column.dataType === 'TIMESTAMP' ||
-        column.type === 'DATE' || column.type === 'TIMESTAMP') {
-        td.textContent = formatDate(value);
-      } else if (column.dataType === 'NUMERIC' || column.dataType === 'DECIMAL' ||
-        column.type === 'NUMERIC' || column.type === 'DECIMAL') {
-        td.textContent = formatNumber(value);
-      } else {
-        td.textContent = value;
-      }
-
-      tr.appendChild(td);
+      resultsTableBody.appendChild(tr);
     });
-
-    resultsBody.appendChild(tr);
-  });
-
-  // 更新分页信息
-  const paginationInfo = document.getElementById('paginationInfo');
-  if (paginationInfo) {
-    const start = (currentPage - 1) * pageSize + 1;
-    const end = Math.min(start + pageSize - 1, data.totalRows);
-    paginationInfo.textContent = `显示 ${start} 到 ${end} 条，共 ${data.totalRows} 条结果`;
   }
+
+  // Update pagination
+  updatePagination(data);
 }
 
 /**
- * Update pagination controls
+ * Update pagination
  */
-function updatePagination() {
-  paginationContainer.innerHTML = '';
-
-  if (totalPages <= 1) {
+function updatePagination(data) {
+  if (!data) {
     return;
   }
 
-  // Previous button
-  const prevButton = createPaginationButton('Previous', currentPage > 1);
-  prevButton.classList.add('rounded-l-md');
-  if (currentPage > 1) {
-    prevButton.addEventListener('click', () => goToPage(currentPage - 1));
-  }
-  paginationContainer.appendChild(prevButton);
+  // Get pagination info
+  const totalRows = data.totalRows || 0;
+  const totalPages = Math.ceil(totalRows / pageSize);
+  const hasMore = data.hasMore || false;
 
-  // Page buttons
-  const maxVisiblePages = 5;
-  let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
-  let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+  // Update pagination info text
+    const start = (currentPage - 1) * pageSize + 1;
+  const end = Math.min(start + pageSize - 1, totalRows);
 
-  if (endPage - startPage + 1 < maxVisiblePages) {
-    startPage = Math.max(1, endPage - maxVisiblePages + 1);
+  if (paginationInfo) {
+    paginationInfo.textContent = `显示 ${start} 到 ${end} 条，共 ${totalRows} 条结果`;
   }
 
-  for (let i = startPage; i <= endPage; i++) {
-    const pageButton = document.createElement('a');
-    pageButton.href = '#';
-    pageButton.className = `relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
-      i === currentPage
-        ? 'z-10 bg-indigo-50 border-indigo-500 text-indigo-600'
-        : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
-    }`;
-    pageButton.textContent = i.toString();
+  // Clear existing pagination controls
+  if (paginationContainer) {
+    paginationContainer.innerHTML = '';
 
-    if (i !== currentPage) {
-      pageButton.addEventListener('click', (e) => {
+    // Don't show pagination if there's only one page
+    if (totalPages <= 1) {
+      return;
+    }
+
+    // Previous button
+    const prevButton = document.createElement('a');
+    prevButton.href = '#';
+    prevButton.className = `relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium ${currentPage > 1 ? 'text-gray-500 hover:bg-gray-50' : 'text-gray-300 cursor-not-allowed'}`;
+    prevButton.innerHTML = '<span class="sr-only">上一页</span><i class="fas fa-chevron-left"></i>';
+
+    if (currentPage > 1) {
+      prevButton.addEventListener('click', (e) => {
         e.preventDefault();
-        goToPage(i);
+        goToPage(currentPage - 1);
       });
     }
 
-    paginationContainer.appendChild(pageButton);
+    paginationContainer.appendChild(prevButton);
+
+    // Page numbers
+    const maxVisiblePages = 5;
+    let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+    let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+
+    if (endPage - startPage + 1 < maxVisiblePages) {
+      startPage = Math.max(1, endPage - maxVisiblePages + 1);
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+      const pageButton = document.createElement('a');
+      pageButton.href = '#';
+      pageButton.className = `relative inline-flex items-center px-4 py-2 border ${i === currentPage ? 'bg-indigo-50 border-indigo-500 text-indigo-600 z-10' : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'}`;
+      pageButton.textContent = i;
+
+      if (i !== currentPage) {
+        pageButton.addEventListener('click', (e) => {
+          e.preventDefault();
+          goToPage(i);
+        });
+      }
+
+      paginationContainer.appendChild(pageButton);
+    }
+
+    // Next button
+    const nextButton = document.createElement('a');
+    nextButton.href = '#';
+    nextButton.className = `relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium ${currentPage < totalPages ? 'text-gray-500 hover:bg-gray-50' : 'text-gray-300 cursor-not-allowed'}`;
+    nextButton.innerHTML = '<span class="sr-only">下一页</span><i class="fas fa-chevron-right"></i>';
+
+    if (currentPage < totalPages) {
+      nextButton.addEventListener('click', (e) => {
+        e.preventDefault();
+        goToPage(currentPage + 1);
+      });
+    }
+
+    paginationContainer.appendChild(nextButton);
   }
-
-  // Next button
-  const nextButton = createPaginationButton('Next', currentPage < totalPages);
-  nextButton.classList.add('rounded-r-md');
-  if (currentPage < totalPages) {
-    nextButton.addEventListener('click', () => goToPage(currentPage + 1));
-  }
-  paginationContainer.appendChild(nextButton);
-}
-
-/**
- * Create a pagination button
- */
-function createPaginationButton(label, isEnabled) {
-  const button = document.createElement('a');
-  button.href = '#';
-  button.className = `relative inline-flex items-center px-2 py-2 border border-gray-300 ${
-    isEnabled ? 'bg-white text-gray-500 hover:bg-gray-50' : 'bg-gray-100 text-gray-300 cursor-not-allowed'
-  }`;
-
-  const span = document.createElement('span');
-  span.className = 'sr-only';
-  span.textContent = label;
-  button.appendChild(span);
-
-  const icon = document.createElement('i');
-  icon.className = `fas fa-chevron-${label === 'Previous' ? 'left' : 'right'}`;
-  button.appendChild(icon);
-
-  if (!isEnabled) {
-    button.addEventListener('click', (e) => e.preventDefault());
-  }
-
-  return button;
 }
 
 /**
  * Go to a specific page
  */
 function goToPage(page) {
-  if (page < 1 || page > totalPages || page === currentPage) {
+  if (page < 1 || page === currentPage) {
     return;
   }
 
   currentPage = page;
-  executeQuery();
+  handleExecuteQuery(new Event('click'));
+}
+
+/**
+ * Handle sort
+ */
+function handleSort(columnName) {
+  // Check if column is already sorted
+  const existingSortIndex = sortFields.findIndex(field => field.field === columnName);
+
+  if (existingSortIndex !== -1) {
+    // Toggle direction
+    if (sortFields[existingSortIndex].direction === 'asc') {
+      sortFields[existingSortIndex].direction = 'desc';
+    } else {
+      // Remove sort if already desc
+      sortFields.splice(existingSortIndex, 1);
+    }
+  } else {
+    // Add new sort
+    sortFields.push({
+      field: columnName,
+      direction: 'asc'
+    });
+  }
+
+  // Reset to first page
+  currentPage = 1;
+
+  // Re-execute query with new sort
+  handleExecuteQuery(new Event('click'));
 }
 
 /**
  * Clear results
  */
 function clearResults() {
-  resultsHeader.innerHTML = '';
-  resultsBody.innerHTML = '';
-  paginationContainer.innerHTML = '';
-  resultsTable.classList.add('hidden');
+  resultsContainer.classList.add('hidden');
+  resultsTableHead.innerHTML = '';
+  resultsTableBody.innerHTML = '';
+
+  if (paginationContainer) {
+    paginationContainer.innerHTML = '';
+  }
+
+  if (paginationInfo) {
+    paginationInfo.textContent = '';
+  }
 }
 
 /**
- * Save the current query
+ * Update favorite button
  */
-function saveQuery() {
-  const sql = editor.getValue().trim();
-  if (!sql) {
-    showNotification('请输入SQL查询', 'warning');
-    return;
-  }
-
-  if (!currentQueryName) {
-    showNotification('请输入查询名称', 'warning');
-    return;
-  }
-
-  if (!currentDataSourceId) {
-    showNotification('请选择数据源', 'warning');
-    return;
-  }
-
-  const queryData = {
-    id: currentQueryId,
-    name: currentQueryName,
-    description: currentQueryDescription,
-    dataSourceId: currentDataSourceId,
-    sql: sql
-  };
-
-  const method = currentQueryId ? 'PUT' : 'POST';
-  const url = currentQueryId ? `/api/queries/${currentQueryId}` : '/api/queries';
-
-  fetch(url, {
-    method: method,
-    headers: {
-      'Content-Type': 'application/json',
-      'X-User-Id': 'current-user' // 在实际应用中，这应该是实际的用户ID
-    },
-    body: JSON.stringify(queryData)
-  })
-    .then(response => {
-      if (!response.ok) {
-        return response.json().then(errorData => {
-          throw new Error(errorData.message || 'Failed to save query');
-        });
-      }
-      return response.json();
-    })
-    .then(apiResponse => {
-      // 检查API响应是否成功
-      if (!apiResponse.success) {
-        throw new Error(apiResponse.message || 'Failed to save query');
-      }
-
-      // 获取保存的查询数据
-      const data = apiResponse.data;
-
-      currentQueryId = data.id;
-      showNotification('查询保存成功', 'success');
-
-      // Update URL with query ID
-      const url = new URL(window.location);
-      url.searchParams.set('id', currentQueryId);
-      window.history.pushState({}, '', url);
-    })
-    .catch(error => {
-      showNotification('保存查询失败: ' + error.message, 'error');
-    });
-}
-
-/**
- * Load a query by ID
- */
-function loadQuery(queryId) {
-  fetch(`/api/queries/${queryId}`)
-    .then(response => {
-      if (!response.ok) {
-        throw new Error('Query not found');
-      }
-      return response.json();
-    })
-    .then(apiResponse => {
-      // 检查API响应是否成功
-      if (!apiResponse.success) {
-        throw new Error(apiResponse.message || 'Query not found');
-      }
-
-      // 获取查询数据
-      const data = apiResponse.data;
-
-      currentQueryId = data.id;
-      currentQueryName = data.name;
-      currentQueryDescription = data.description || '';
-      currentDataSourceId = data.dataSourceId;
-
-      // Update UI
-      queryNameInput.value = currentQueryName;
-      editor.setValue(data.sql);
-
-      // Select data source
-      if (dataSourceSelect.querySelector(`option[value="${currentDataSourceId}"]`)) {
-        dataSourceSelect.value = currentDataSourceId;
-      } else {
-        // 数据源可能尚未加载，将在加载后选择
-        // 或者数据源可能已被删除或停用
-        showNotification('警告：查询关联的数据源可能不可用', 'warning');
-      }
-
-      showNotification('查询加载成功', 'success');
-    })
-    .catch(error => {
-      showNotification('加载查询失败: ' + error.message, 'error');
-    });
-}
-
-/**
- * Toggle favorite status
- */
-function toggleFavorite() {
-  if (!currentQueryId) {
-    showNotification('请先保存查询', 'warning');
-    return;
-  }
-
-  fetch(`/api/queries/${currentQueryId}/favorite`, {
-    method: 'POST',
-    headers: {
-      'X-User-Id': 'current-user' // 在实际应用中，这应该是实际的用户ID
+function updateFavoriteButton(isFavorite) {
+  if (favoriteButton) {
+    if (isFavorite) {
+      favoriteButton.classList.remove('bg-gray-200', 'hover:bg-gray-300');
+      favoriteButton.classList.add('bg-yellow-500', 'hover:bg-yellow-600');
+      favoriteButton.querySelector('i').classList.remove('text-gray-600');
+      favoriteButton.querySelector('i').classList.add('text-white');
+    } else {
+      favoriteButton.classList.remove('bg-yellow-500', 'hover:bg-yellow-600');
+      favoriteButton.classList.add('bg-gray-200', 'hover:bg-gray-300');
+      favoriteButton.querySelector('i').classList.remove('text-white');
+      favoriteButton.querySelector('i').classList.add('text-gray-600');
     }
-  })
-    .then(response => {
-      if (!response.ok) {
-        throw new Error('Failed to update favorite status');
-      }
-      return response.json();
-    })
-    .then(apiResponse => {
-      // 检查API响应是否成功
-      if (!apiResponse.success) {
-        throw new Error(apiResponse.message || 'Failed to update favorite status');
-      }
-
-      // 获取收藏状态
-      const data = apiResponse.data;
-      const isFavorite = data.favorite;
-
-      // 更新按钮文本
-      favoriteButton.innerHTML = `<i class="fas fa-star mr-2"></i>${isFavorite ? '取消收藏' : '收藏'}`;
-
-      showNotification(`查询已${isFavorite ? '添加到' : '从'}收藏夹${isFavorite ? '' : '中移除'}`, 'success');
-    })
-    .catch(error => {
-      showNotification('更新收藏状态失败: ' + error.message, 'error');
-    });
+  }
 }
 
 /**
- * Export results to CSV
+ * Update execute button state
  */
-function exportResults() {
-  if (!resultData || !resultData.columns || !resultData.rows || resultData.rows.length === 0) {
-    showNotification('No results to export', 'warning');
-    return;
-  }
-
-  // Create CSV content
-  const headers = resultData.columns.map(col => col.name);
-  const csvContent = [
-    headers.join(','),
-    ...resultData.rows.map(row =>
-      headers.map(header => {
-        const value = row[header];
-        // Handle null values and escape commas
-        if (value === null || value === undefined) {
-          return '';
-        } else if (typeof value === 'string' && value.includes(',')) {
-          return `"${value}"`;
+function updateExecuteButtonState(isExecuting) {
+  if (executeButton) {
+    if (isExecuting) {
+      executeButton.disabled = true;
+      executeButton.classList.add('opacity-50', 'cursor-not-allowed');
+      executeButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> 执行中...';
         } else {
-          return value;
+      executeButton.disabled = false;
+      executeButton.classList.remove('opacity-50', 'cursor-not-allowed');
+      executeButton.innerHTML = '<i class="fas fa-play mr-2"></i> 执行';
         }
-      }).join(',')
-    )
-  ].join('\n');
-
-  // Create download link
-  const blob = new Blob([csvContent], {type: 'text/csv;charset=utf-8;'});
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.setAttribute('download', `query_results_${new Date().toISOString().slice(0, 10)}.csv`);
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-}
-
-/**
- * Show configuration dialog
- */
-function showConfigDialog() {
-  // Implementation for configuration dialog
-  // This would include options for:
-  // - Page size
-  // - Date/number formatting
-  // - Column visibility
-  // - etc.
-  alert('Configuration dialog not implemented yet');
-}
-
-/**
- * Format a date value
- */
-function formatDate(value) {
-  if (!value) return '';
-  try {
-    const date = new Date(value);
-    return date.toLocaleString();
-  } catch (e) {
-    return value;
   }
 }
 
 /**
- * Format a number value
+ * Show loading indicator
  */
-function formatNumber(value) {
-  if (value === null || value === undefined) return '';
-  try {
-    return Number(value).toLocaleString();
-  } catch (e) {
-    return value;
+function showLoading() {
+  if (loadingIndicator) {
+    loadingIndicator.classList.remove('hidden');
   }
 }
 
 /**
- * Show notification
+ * Hide loading indicator
  */
-function showNotification(message, type = 'info') {
-  // Create notification element
-  const notification = document.createElement('div');
-  notification.className = `fixed bottom-4 right-4 px-4 py-2 rounded-lg shadow-lg flex items-center space-x-2 ${
-    type === 'error' ? 'bg-red-500 text-white' :
-      type === 'success' ? 'bg-green-500 text-white' :
-        type === 'warning' ? 'bg-yellow-500 text-white' :
-          'bg-blue-500 text-white'
-  }`;
+function hideLoading() {
+  if (loadingIndicator) {
+    loadingIndicator.classList.add('hidden');
+  }
+}
 
-  // Icon
-  const icon = document.createElement('i');
-  icon.className = `fas ${
-    type === 'error' ? 'fa-exclamation-circle' :
-      type === 'success' ? 'fa-check-circle' :
-        type === 'warning' ? 'fa-exclamation-triangle' :
-          'fa-info-circle'
-  }`;
-  notification.appendChild(icon);
+/**
+ * Show error message
+ */
+function showError(message) {
+  if (errorContainer && errorMessage) {
+    errorMessage.textContent = message;
+    errorContainer.classList.remove('hidden');
 
-  // Message
-  const messageEl = document.createElement('span');
-  messageEl.textContent = message;
-  notification.appendChild(messageEl);
-
-  // Close button
-  const closeButton = document.createElement('button');
-  closeButton.className = 'ml-2 text-white';
-  closeButton.innerHTML = '<i class="fas fa-times"></i>';
-  closeButton.addEventListener('click', () => {
-    document.body.removeChild(notification);
-  });
-  notification.appendChild(closeButton);
-
-  // Add to body
-  document.body.appendChild(notification);
-
-  // Auto-remove after 5 seconds
-  setTimeout(() => {
-    if (document.body.contains(notification)) {
-      document.body.removeChild(notification);
+    // Hide after 5 seconds
+    setTimeout(() => {
+      errorContainer.classList.add('hidden');
+    }, 5000);
     }
-  }, 5000);
+}
+
+/**
+ * Show success message
+ */
+function showSuccess(message) {
+  if (successContainer && successMessage) {
+    successMessage.textContent = message;
+    successContainer.classList.remove('hidden');
+
+    // Hide after 5 seconds
+    setTimeout(() => {
+      successContainer.classList.add('hidden');
+    }, 5000);
+  }
 }
 
 // Initialize when DOM is loaded
