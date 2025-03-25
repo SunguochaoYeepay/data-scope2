@@ -6,7 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * 查询结果列定义
+ * 列定义
  */
 @Data
 @Builder
@@ -20,14 +20,14 @@ public class ColumnDefinition {
     private String name;
 
     /**
-     * 字段名
-     */
-    private String field;
-
-    /**
-     * 列标签（别名）
+     * 列标签
      */
     private String label;
+
+    /**
+     * 字段名（用于数据访问）
+     */
+    private String field;
 
     /**
      * 数据类型

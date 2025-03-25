@@ -1,47 +1,34 @@
 package com.datascope.domain.datasource.model;
 
-import java.util.UUID;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * 数据源ID值对象
  */
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class DataSourceId {
-    private final String value;
+    private String value;
 
-    public DataSourceId(String value) {
-        if (value == null) {
-            throw new IllegalArgumentException("DataSource ID cannot be null");
-        }
-        this.value = value;
+    /**
+     * 创建数据源ID
+     *
+     * @param id 数据源ID字符串
+     * @return 数据源ID对象
+     */
+    public static DataSourceId of(String id) {
+        return new DataSourceId(id);
     }
 
-    public static DataSourceId create() {
-        return new DataSourceId(UUID.randomUUID().toString());
-    }
-
-    public static DataSourceId of(String value) {
-        return new DataSourceId(value);
-    }
-
+    /**
+     * 获取数据源ID值
+     *
+     * @return 数据源ID字符串
+     */
     public String getValue() {
-        return value;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        DataSourceId that = (DataSourceId) o;
-        return value.equals(that.value);
-    }
-
-    @Override
-    public int hashCode() {
-        return value.hashCode();
-    }
-
-    @Override
-    public String toString() {
         return value;
     }
 }

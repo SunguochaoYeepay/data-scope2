@@ -1,39 +1,49 @@
 package com.datascope.app.response;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
  * API 响应封装类
+ *
+ * @param <T> 响应数据类型
  */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@Schema(description = "API响应")
 public class ApiResponse<T> {
+
     /**
-     * 响应码
+     * 状态码
      */
+    @Schema(description = "状态码", example = "200")
     private int code;
 
     /**
-     * 响应消息
+     * 消息
      */
+    @Schema(description = "消息", example = "操作成功")
     private String message;
 
     /**
-     * 响应数据
+     * 数据
      */
+    @Schema(description = "数据")
     private T data;
 
     /**
      * 成功响应
      *
-     * @param data 响应数据
-     * @param <T>  数据类型
+     * @param data 数据
+     * @param <R>  数据类型
      * @return API响应
      */
-    public static <T> ApiResponse<T> success(T data) {
+    public static <R> ApiResponse<R> success(R data) {
         return new ApiResponse<>(200, "操作成功", data);
     }
 
@@ -42,39 +52,28 @@ public class ApiResponse<T> {
      *
      * @return API响应
      */
-    public static <T> ApiResponse<T> success() {
+    public static ApiResponse<Void> success() {
         return new ApiResponse<>(200, "操作成功", null);
     }
 
     /**
-     * 失败响应
+     * 错误响应
      *
-     * @param code    错误码
+     * @param code    状态码
      * @param message 错误消息
      * @return API响应
      */
-    public static <T> ApiResponse<T> error(int code, String message) {
+    public static <R> ApiResponse<R> error(int code, String message) {
         return new ApiResponse<>(code, message, null);
     }
 
     /**
-     * 失败响应（默认错误码 500）
+     * 错误响应（500错误）
      *
      * @param message 错误消息
      * @return API响应
      */
-    public static <T> ApiResponse<T> error(String message) {
+    public static <R> ApiResponse<R> error(String message) {
         return new ApiResponse<>(500, message, null);
-    }
-
-    /**
-     * 设置响应数据并返回当前对象
-     *
-     * @param data 响应数据
-     * @return 当前对象
-     */
-    public ApiResponse<T> setData(T data) {
-        this.data = data;
-        return this;
     }
 }

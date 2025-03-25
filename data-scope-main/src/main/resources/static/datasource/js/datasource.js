@@ -493,10 +493,8 @@ class DataSourceManager {
         // Show success message
         this.showSuccess(id ? 'Data source updated successfully' : 'Data source created successfully');
 
-        // Redirect to list page after a short delay
-        setTimeout(() => {
-          window.location.href = '/datasource/list.html';
-        }, 1500);
+        // Redirect to list page immediately
+        window.location.href = '/datasource/list.html';
       } else {
         this.showError(result.message || 'Failed to save data source');
       }

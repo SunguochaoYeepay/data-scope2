@@ -18,7 +18,7 @@ import java.util.Map;
 public class QueryResult {
 
     /**
-     * 列定义
+     * 列信息
      */
     private List<ColumnDefinition> columns;
 
@@ -33,42 +33,19 @@ public class QueryResult {
     private long totalRows;
 
     /**
-     * 执行时间（毫秒）
-     */
-    private long executionTime;
-
-    /**
      * 是否有更多数据
      */
     private boolean hasMore;
+
+    /**
+     * 执行时间（毫秒）
+     */
+    private long executionTime;
 
     /**
      * 查询ID
      */
     private String queryId;
 
-    /**
-     * 数据源ID
-     */
-    private String dataSourceId;
-
-    /**
-     * SQL语句
-     */
-    private String sql;
-
-    /**
-     * 查询参数
-     */
-    private Map<String, Object> parameters;
-
-    /**
-     * 错误信息
-     */
-    private String errorMessage;
-
-    /**
-     * 是否成功
-     */
-    private boolean success = true;
+    // 移除内部类 ColumnInfo，使用外部的 ColumnDefinition 类
 }
