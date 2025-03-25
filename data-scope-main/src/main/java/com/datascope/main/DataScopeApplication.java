@@ -1,6 +1,5 @@
 package com.datascope.main;
 
-import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
@@ -21,8 +20,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 })
 @EnableTransactionManagement
 @EnableConfigurationProperties
-@ComponentScan(basePackages = "com.datascope")
-@MapperScan(basePackages = "com.datascope.infrastructure.mybatis.mapper")
+@ComponentScan(basePackages = "com.datascope.*")
 @EntityScan(basePackages = "com.datascope.domain.*.entity")
 public class DataScopeApplication {
 

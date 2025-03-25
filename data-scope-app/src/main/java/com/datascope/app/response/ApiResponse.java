@@ -5,9 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * 标准API响应格式
- *
- * @param <T> 响应数据类型
+ * API 响应封装类
  */
 @Data
 @NoArgsConstructor
@@ -29,78 +27,54 @@ public class ApiResponse<T> {
     private T data;
 
     /**
-     * 是否成功
-     */
-    private boolean success;
-
-    /**
-     * 创建成功响应
+     * 成功响应
      *
      * @param data 响应数据
      * @param <T>  数据类型
-     * @return API响应对象
+     * @return API响应
      */
     public static <T> ApiResponse<T> success(T data) {
-        return new ApiResponse<>(200, "Success", data, true);
+        return new ApiResponse<>(200, "操作成功", data);
     }
 
     /**
-     * 创建成功响应（带自定义消息）
+     * 成功响应（无数据）
      *
-     * @param message 成功消息
-     * @param data    响应数据
-     * @param <T>     数据类型
-     * @return API响应对象
+     * @return API响应
      */
-    public static <T> ApiResponse<T> success(String message, T data) {
-        return new ApiResponse<>(200, message, data, true);
+    public static <T> ApiResponse<T> success() {
+        return new ApiResponse<>(200, "操作成功", null);
     }
 
     /**
-     * 创建错误响应
-     *
-     * @param message 错误消息
-     * @param <T>     数据类型
-     * @return API响应对象
-     */
-    public static <T> ApiResponse<T> error(String message) {
-        return new ApiResponse<>(500, message, null, false);
-    }
-
-    /**
-     * 创建错误响应（带自定义错误码）
+     * 失败响应
      *
      * @param code    错误码
      * @param message 错误消息
-     * @param <T>     数据类型
-     * @return API响应对象
+     * @return API响应
      */
     public static <T> ApiResponse<T> error(int code, String message) {
-        return new ApiResponse<>(code, message, null, false);
+        return new ApiResponse<>(code, message, null);
     }
 
     /**
-     * 创建错误响应（带数据）
+     * 失败响应（默认错误码 500）
      *
      * @param message 错误消息
-     * @param data    响应数据
-     * @param <T>     数据类型
-     * @return API响应对象
+     * @return API响应
      */
-    public static <T> ApiResponse<T> error(String message, T data) {
-        return new ApiResponse<>(500, message, data, false);
+    public static <T> ApiResponse<T> error(String message) {
+        return new ApiResponse<>(500, message, null);
     }
 
     /**
-     * 创建错误响应（带自定义错误码和数据）
+     * 设置响应数据并返回当前对象
      *
-     * @param code    错误码
-     * @param message 错误消息
-     * @param data    响应数据
-     * @param <T>     数据类型
-     * @return API响应对象
+     * @param data 响应数据
+     * @return 当前对象
      */
-    public static <T> ApiResponse<T> error(int code, String message, T data) {
-        return new ApiResponse<>(code, message, data, false);
+    public ApiResponse<T> setData(T data) {
+        this.data = data;
+        return this;
     }
 }

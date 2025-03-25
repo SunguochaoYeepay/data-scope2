@@ -7,7 +7,7 @@ import com.datascope.domain.query.service.QueryService;
 import com.datascope.domain.query.service.SqlExecutionEngine;
 import com.datascope.facade.query.QueryFacade;
 import com.datascope.facade.query.dto.QueryDTO;
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -17,13 +17,19 @@ import java.util.Map;
  * 查询门面实现类
  */
 @Service
-@RequiredArgsConstructor
 public class QueryFacadeImpl implements QueryFacade {
 
-    private final QueryExecutionService queryExecutionService;
-    private final QueryService queryService;
-    private final QueryConverter queryConverter;
-    private final SqlExecutionEngine sqlExecutionEngine;
+    @Autowired
+    private QueryExecutionService queryExecutionService;
+
+    @Autowired
+    private QueryService queryService;
+
+    @Autowired
+    private QueryConverter queryConverter;
+
+    @Autowired
+    private SqlExecutionEngine sqlExecutionEngine;
 
     @Override
     public QueryDTO executeQuery(String query, String dataSourceId) {

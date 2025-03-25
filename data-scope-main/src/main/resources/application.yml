@@ -55,8 +55,8 @@ logging:
     path: logs
 
 mybatis:
-  mapper-locations: classpath:mapper/**/*.xml
-  type-aliases-package: com.datascope.domain.**.model,com.datascope.domain.**.entity
+  #  mapper-locations: classpath:mapper/**/*.xml
+  #  type-aliases-package: com.datascope.domain.**.model,com.datascope.domain.**.entity
   configuration:
     map-underscore-to-camel-case: true
     default-fetch-size: 100

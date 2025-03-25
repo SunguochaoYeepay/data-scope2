@@ -56,7 +56,7 @@
         <!-- Tools -->
         <jmh.version>1.33</jmh.version>
         <lombok.version>1.18.36</lombok.version>
-        <mapstruct.version>1.6.0.Beta2</mapstruct.version>
+        <mapstruct.version>1.6.3</mapstruct.version>
         <mapstruct-lombok.version>0.2.0</mapstruct-lombok.version>
 
         <flyway.version>9.22.3</flyway.version>
@@ -184,21 +184,12 @@
                 <groupId>org.projectlombok</groupId>
                 <artifactId>lombok</artifactId>
                 <version>${lombok.version}</version>
+                <scope>provided</scope>
             </dependency>
             <dependency>
                 <groupId>org.mapstruct</groupId>
                 <artifactId>mapstruct</artifactId>
                 <version>${mapstruct.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.mapstruct</groupId>
-                <artifactId>mapstruct-processor</artifactId>
-                <version>${mapstruct.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.projectlombok</groupId>
-                <artifactId>lombok-mapstruct-binding</artifactId>
-                <version>${mapstruct-lombok.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -214,7 +205,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-compiler-plugin</artifactId>
-                    <version>3.11.0</version>
+                    <version>3.13.0</version>
                     <configuration>
                         <failOnError>true</failOnError>
                         <verbose>true</verbose>
