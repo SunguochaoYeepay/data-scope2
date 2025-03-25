@@ -8,104 +8,67 @@ import lombok.NoArgsConstructor;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * 查询结果
+ */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class QueryResult {
+
+    /**
+     * 列定义
+     */
     private List<ColumnDefinition> columns;
+
+    /**
+     * 数据行
+     */
     private List<Map<String, Object>> rows;
+
+    /**
+     * 总行数
+     */
     private long totalRows;
-    private boolean hasMore;
+
+    /**
+     * 执行时间（毫秒）
+     */
     private long executionTime;
 
     /**
-     * 获取总行数
-     *
-     * @return 总行数
-     */
-    public long getTotalRows() {
-        return totalRows;
-    }
-
-    /**
-     * 设置总行数
-     *
-     * @param totalRows 总行数
-     */
-    public void setTotalRows(long totalRows) {
-        this.totalRows = totalRows;
-    }
-
-    /**
-     * 获取列定义列表
-     *
-     * @return 列定义列表
-     */
-    public List<ColumnDefinition> getColumns() {
-        return columns;
-    }
-
-    /**
-     * 设置列定义列表
-     *
-     * @param columns 列定义列表
-     */
-    public void setColumns(List<ColumnDefinition> columns) {
-        this.columns = columns;
-    }
-
-    /**
-     * 获取数据行列表
-     *
-     * @return 数据行列表
-     */
-    public List<Map<String, Object>> getRows() {
-        return rows;
-    }
-
-    /**
-     * 设置数据行列表
-     *
-     * @param rows 数据行列表
-     */
-    public void setRows(List<Map<String, Object>> rows) {
-        this.rows = rows;
-    }
-
-    /**
      * 是否有更多数据
-     *
-     * @return 是否有更多数据
      */
-    public boolean isHasMore() {
-        return hasMore;
-    }
+    private boolean hasMore;
 
     /**
-     * 设置是否有更多数据
-     *
-     * @param hasMore 是否有更多数据
+     * 查询ID
      */
-    public void setHasMore(boolean hasMore) {
-        this.hasMore = hasMore;
-    }
+    private String queryId;
 
     /**
-     * 获取执行时间
-     *
-     * @return 执行时间
+     * 数据源ID
      */
-    public long getExecutionTime() {
-        return executionTime;
-    }
+    private String dataSourceId;
 
     /**
-     * 设置执行时间
-     *
-     * @param executionTime 执行时间
+     * SQL语句
      */
-    public void setExecutionTime(long executionTime) {
-        this.executionTime = executionTime;
-    }
+    private String sql;
+
+    /**
+     * 查询参数
+     */
+    private Map<String, Object> parameters;
+
+    /**
+     * 错误信息
+     */
+    private String errorMessage;
+
+    /**
+     * 是否成功
+     */
+    private boolean success = true;
 }

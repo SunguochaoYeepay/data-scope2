@@ -15,17 +15,20 @@ import com.datascope.domain.query.service.QueryResultSortService.SortDirection;
 import com.datascope.domain.query.service.QueryResultSortService.SortField;
 import com.datascope.domain.query.service.QueryResultStatisticsService.StatisticsFunction;
 import com.datascope.domain.query.service.QueryResultStatisticsService.StatisticsResult;
+import com.datascope.domain.query.util.QueryResultExporter;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * 查询执行服务实现
@@ -289,18 +292,33 @@ public class QueryExecutionServiceImpl implements QueryExecutionService {
     }
 
     private void exportToCsv(QueryResult result, String filePath) {
-        // 简单实现，实际项目中需要更完善的CSV导出逻辑
-        log.info("CSV export to: {}", filePath);
+        try {
+            QueryResultExporter.exportToCsv(result, filePath);
+            log.info("CSV export completed: {}", filePath);
+        } catch (IOException e) {
+            log.error("Failed to export CSV: {}", e.getMessage(), e);
+            throw new RuntimeException("Failed to export CSV: " + e.getMessage(), e);
+        }
     }
 
     private void exportToJson(QueryResult result, String filePath) {
-        // 简单实现，实际项目中需要更完善的JSON导出逻辑
-        log.info("JSON export to: {}", filePath);
+        try {
+            QueryResultExporter.exportToJson(result, filePath);
+            log.info("JSON export completed: {}", filePath);
+        } catch (IOException e) {
+            log.error("Failed to export JSON: {}", e.getMessage(), e);
+            throw new RuntimeException("Failed to export JSON: " + e.getMessage(), e);
+        }
     }
 
     private void exportToExcel(QueryResult result, String filePath) {
-        // 简单实现，实际项目中需要更完善的Excel导出逻辑
-        log.info("Excel export to: {}", filePath);
+        try {
+            QueryResultExporter.exportToExcel(result, filePath);
+            log.info("Excel export completed: {}", filePath);
+        } catch (IOException e) {
+            log.error("Failed to export Excel: {}", e.getMessage(), e);
+            throw new RuntimeException("Failed to export Excel: " + e.getMessage(), e);
+        }
     }
 
     @Override
@@ -309,17 +327,6 @@ public class QueryExecutionServiceImpl implements QueryExecutionService {
         return executePagedSql(dataSourceId, sql, parameters, pageNumber, pageSize, null);
     }
 
-    /**
-     * 执行分页SQL查询，支持排序
-     *
-     * @param dataSourceId 数据源ID
-     * @param sql          SQL语句
-     * @param parameters   查询参数
-     * @param pageNumber   页码
-     * @param pageSize     每页大小
-     * @param sortFields   排序字段列表
-     * @return 查询执行记录
-     */
     @Override
     public QueryExecution executePagedSql(String dataSourceId, String sql, Map<String, Object> parameters,
                                           int pageNumber, int pageSize, List<SortField> sortFields) {
@@ -356,7 +363,6 @@ public class QueryExecutionServiceImpl implements QueryExecutionService {
         pagedParameters.put("_page_size", pageSize);
         pagedParameters.put("_offset", (pageNumber - 1) * pageSize);
         pagedParameters.put("_limit", pageSize);
-        pagedParameters.put("_db_type", dataSource.getType().name());
 
         // 添加排序参数
         if (sortFields != null && !sortFields.isEmpty()) {
@@ -698,6 +704,32 @@ public class QueryExecutionServiceImpl implements QueryExecutionService {
     }
 
     @Override
+    public List<StatisticsResult> calculateBasicStatistics(String id, String fieldName) {
+        return calculateStatistics(id, fieldName, List.of(
+            StatisticsFunction.COUNT,
+            StatisticsFunction.SUM,
+            StatisticsFunction.AVG,
+            StatisticsFunction.MIN,
+            StatisticsFunction.MAX
+        ));
+    }
+
+    @Override
+    public List<StatisticsResult> calculateFullStatistics(String id, String fieldName) {
+        return calculateStatistics(id, fieldName, List.of(
+            StatisticsFunction.COUNT,
+            StatisticsFunction.SUM,
+            StatisticsFunction.AVG,
+            StatisticsFunction.MIN,
+            StatisticsFunction.MAX,
+            StatisticsFunction.MEDIAN,
+            StatisticsFunction.MODE,
+            StatisticsFunction.VARIANCE,
+            StatisticsFunction.STDDEV
+        ));
+    }
+
+    @Override
     public StatisticsResult calculateStatistics(String id, String fieldName, StatisticsFunction function) {
         log.info("Calculating statistics for query execution {}, field {}, function {}", id, fieldName, function);
 
@@ -763,84 +795,11 @@ public class QueryExecutionServiceImpl implements QueryExecutionService {
         }
 
         // 计算统计信息
-        List<StatisticsResult> results = queryResultStatisticsService.calculate(execution.getResult(), fieldName, functions);
+        List<StatisticsResult> results = functions.stream()
+            .map(function -> queryResultStatisticsService.calculate(execution.getResult(), fieldName, function))
+            .collect(Collectors.toList());
 
         log.info("Multiple statistics calculated for query execution {}, field {}", id, fieldName);
-        return results;
-    }
-
-    @Override
-    public List<StatisticsResult> calculateBasicStatistics(String id, String fieldName) {
-        log.info("Calculating basic statistics for query execution {}, field {}", id, fieldName);
-
-        if (fieldName == null || fieldName.isEmpty()) {
-            throw new IllegalArgumentException("Field name cannot be null or empty");
-        }
-
-        // 获取查询执行记录
-        Optional<QueryExecution> executionOpt = queryExecutionRepository.findById(id);
-        if (executionOpt.isEmpty()) {
-            throw new IllegalArgumentException("Query execution not found: " + id);
-        }
-
-        QueryExecution execution = executionOpt.get();
-
-        // 检查查询是否已完成
-        if (!execution.isCompleted()) {
-            throw new IllegalStateException("Cannot calculate statistics for query that is not completed: " + id);
-        }
-
-        // 检查是否有结果
-        if (execution.getResult() == null) {
-            throw new IllegalStateException("Query execution has no results: " + id);
-        }
-
-        // 定义基本统计函数列表：COUNT, SUM, AVG, MIN, MAX
-        List<StatisticsFunction> basicFunctions = List.of(
-            StatisticsFunction.COUNT,
-            StatisticsFunction.SUM,
-            StatisticsFunction.AVG,
-            StatisticsFunction.MIN,
-            StatisticsFunction.MAX
-        );
-
-        // 计算统计信息
-        List<StatisticsResult> results = queryResultStatisticsService.calculate(execution.getResult(), fieldName, basicFunctions);
-
-        log.info("Basic statistics calculated for query execution {}, field {}", id, fieldName);
-        return results;
-    }
-
-    @Override
-    public List<StatisticsResult> calculateFullStatistics(String id, String fieldName) {
-        log.info("Calculating full statistics for query execution {}, field {}", id, fieldName);
-
-        if (fieldName == null || fieldName.isEmpty()) {
-            throw new IllegalArgumentException("Field name cannot be null or empty");
-        }
-
-        // 获取查询执行记录
-        Optional<QueryExecution> executionOpt = queryExecutionRepository.findById(id);
-        if (executionOpt.isEmpty()) {
-            throw new IllegalArgumentException("Query execution not found: " + id);
-        }
-
-        QueryExecution execution = executionOpt.get();
-
-        // 检查查询是否已完成
-        if (!execution.isCompleted()) {
-            throw new IllegalStateException("Cannot calculate statistics for query that is not completed: " + id);
-        }
-
-        // 检查是否有结果
-        if (execution.getResult() == null) {
-            throw new IllegalStateException("Query execution has no results: " + id);
-        }
-
-        // 使用统计服务计算完整统计信息
-        List<StatisticsResult> results = queryResultStatisticsService.calculateFullStatistics(execution.getResult(), fieldName);
-
-        log.info("Full statistics calculated for query execution {}, field {}", id, fieldName);
         return results;
     }
 
