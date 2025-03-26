@@ -13,6 +13,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Maven module configuration
 - Docker deployment support
 - Monitoring setup with Prometheus and Grafana
+- Visual SQL query builder implementation
+  - Add TableSelector component for selecting tables and managing joins
+  - Add FieldSelector component for selecting and configuring result fields
+  - Add ConditionBuilder component for building WHERE conditions
+  - Add support for nested condition groups with AND/OR operators
+  - Add ExpressionEditor component for creating complex SQL expressions
+    - Support for CASE WHEN statements
+    - Support for SQL functions (aggregation, string, date, math)
+    - Support for mathematical operations
+    - Support for custom expressions
+  - Update FieldSelector to support expression fields
+  - Update QueryBuilder to handle expression fields in generated SQL
+  - Add QueryManager component for query saving, loading and history management
+  - Add predefined query templates for common query patterns
+  - Implement query configuration persistence using local storage
+  - Add search and filter functionality for saved queries
+  - Integrate query builder with existing query system
+  - Add uuid package for generating unique identifiers
+  - Add query cancellation feature with improved UI feedback
+    - Enhanced cancel button with visual indicators
+    - Proper status update across components after cancellation
+    - User-friendly error messages for cancelled queries
+    - Improved UI for cancelling queries during execution with runtime timer
 
 ### Changed
 - None
@@ -24,7 +47,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - None
 
 ### Fixed
-- None
+- 修复了查询执行按钮样式和交互问题，提供统一的视觉反馈
+- 优化了执行按钮的禁用状态显示，提供更清晰的灰色外观和禁用指针，避免用户误解
+- 统一了 SQL 编辑器、自然语言查询和查询构建器的执行按钮视觉反馈样式
+- 移除了查询结果区域的冗余错误消息，仅保留右上角的错误消息，改善用户体验
+- 提高了加载指示器的层级(z-index)，确保它始终显示在最上层，不会被其他组件覆盖
+- 为加载指示器添加了取消按钮，允许用户随时取消正在执行的查询
+- 统一了自然语言查询和 SQL 查询的加载体验，提供一致的用户界面
+- 移除了重复的加载指示器，解决多个加载状态同时显示的问题
+- 完全移除了 QueryEditor 中的自定义加载指示器，只使用全局加载服务提供的指示器，避免重复显示
 
 ### Security
 - Initial security configuration

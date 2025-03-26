@@ -3,7 +3,7 @@ import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
 
 // 定义加载服务类型
 interface LoadingService {
-  show(text?: string): void
+  show(text?: string, options?: { showCancelButton?: boolean, onCancel?: () => void }): void
   hide(): void
 }
 
@@ -21,11 +21,19 @@ const createLoadingContainer = () => {
 }
 
 // 创建加载实例
-const createLoading = (text?: string) => {
+const createLoading = (text?: string, options?: { showCancelButton?: boolean, onCancel?: () => void }) => {
   createLoadingContainer()
 
   // 移除现有实例
   if (loadingInstance) {
+    hide()
+  }
+
+  // 准备事件处理
+  const handleCancel = () => {
+    if (options?.onCancel) {
+      options.onCancel()
+    }
     hide()
   }
 
@@ -34,7 +42,9 @@ const createLoading = (text?: string) => {
     fullScreen: true,
     size: 'lg',
     color: 'white',
-    text: text || '加载中...'
+    text: text || '加载中...',
+    showCancelButton: options?.showCancelButton || false,
+    onCancel: handleCancel
   })
 
   render(loadingVNode, loadingContainer!)
@@ -42,8 +52,8 @@ const createLoading = (text?: string) => {
 }
 
 // 显示加载
-const show = (text?: string) => {
-  createLoading(text)
+const show = (text?: string, options?: { showCancelButton?: boolean, onCancel?: () => void }) => {
+  createLoading(text, options)
 }
 
 // 隐藏加载

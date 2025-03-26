@@ -1,13 +1,5 @@
 <template>
   <div class="container mx-auto px-4 py-6">
-    <!-- 加载遮罩 -->
-    <div v-if="isLoadingQuery" class="absolute inset-0 bg-white bg-opacity-70 flex items-center justify-center z-50">
-      <div class="text-center">
-        <div class="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-        <p class="text-gray-600">正在加载查询...</p>
-      </div>
-    </div>
-    
     <!-- 标题和操作按钮区域 -->
     <div class="md:flex md:items-center md:justify-between mb-6">
       <div class="flex-1 min-w-0">
@@ -38,9 +30,13 @@
         </button>
         <button
           v-if="!isExecuting"
-          @click="executeQuery"
-          :disabled="!canExecuteQuery"
-          class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+          @click="checkAndExecuteQuery"
+          :title="getExecuteButtonTooltip()"
+          :class="[
+            'inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white',
+            canExecuteQuery ? 'bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500' : 
+            'bg-indigo-300 cursor-not-allowed opacity-60'
+          ]"
         >
           <i class="fas fa-play mr-2"></i>
           执行
@@ -48,10 +44,14 @@
         <button
           v-else
           @click="cancelQuery"
-          class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+          class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 relative"
         >
           <i class="fas fa-stop mr-2"></i>
-          取消
+          取消查询
+          <span class="absolute -top-1 -right-1 flex h-3 w-3">
+            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+            <span class="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+          </span>
         </button>
       </div>
     </div>
@@ -223,7 +223,12 @@
           <div class="p-4">
             <!-- SQL编辑器 -->
             <div v-if="activeTab === 'editor'" class="h-64">
-              <SqlEditor v-model="sqlQuery" :data-source-id="selectedDataSourceId" @execute="executeQuery" @save="saveQuery" />
+              <SqlEditor 
+                v-model="sqlQuery" 
+                :data-source-id="selectedDataSourceId" 
+                @execute="(errorMsg) => errorMsg ? showError(errorMsg) : executeQuery()" 
+                @save="saveQuery" 
+              />
             </div>
             
             <!-- 自然语言查询 -->
@@ -237,31 +242,54 @@
             </div>
             
             <!-- 查询构建器 -->
-            <div v-else-if="activeTab === 'builder'" class="h-64 flex items-center justify-center">
-              <p class="text-gray-500">查询构建器功能正在开发中...</p>
+            <div v-else-if="activeTab === 'builder'" class="h-full">
+              <QueryManager
+                ref="queryManagerRef"
+                :current-query="builderQuery"
+                :can-save="!!selectedDataSourceId && builderQuery.trim().length > 0"
+                :query-state="builderState"
+                @load="handleLoadQuery"
+              />
+              <QueryBuilder 
+                ref="queryBuilderRef"
+                v-model="builderQuery" 
+                :data-source-id="selectedDataSourceId" 
+                @execute="executeBuilderQuery" 
+                @save="saveQuery"
+                @update:state="updateBuilderState"
+              />
             </div>
           </div>
         </div>
         
-        <!-- 状态消息 -->
-        <div v-if="statusMessage" class="bg-blue-50 border-l-4 border-blue-400 p-4">
-          <div class="flex">
-            <div class="flex-shrink-0">
-              <i class="fas fa-info-circle text-blue-400"></i>
-            </div>
-            <div class="ml-3">
-              <p class="text-sm text-blue-700">
-                {{ statusMessage }}
-              </p>
+        <!-- 仅显示错误消息 -->
+        <transition name="fade">
+          <div v-if="statusMessage && queryError" 
+              class="fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg border-l-4 max-w-md transform transition-all duration-300 bg-red-50 border-red-500 text-red-700"
+          >
+            <div class="flex items-center">
+              <div class="flex-shrink-0 mr-3">
+                <div class="w-8 h-8 rounded-full flex items-center justify-center bg-red-100">
+                  <i class="fas fa-exclamation-circle text-lg text-red-500"></i>
+                </div>
+              </div>
+              <div class="flex-1">
+                <h3 class="text-sm font-semibold pb-0.5 text-red-800">错误提示</h3>
+                <p class="text-sm">
+                  {{ statusMessage }}
+                </p>
+              </div>
+              <div class="ml-3">
+                <button 
+                  @click="statusMessage = null" 
+                  class="inline-flex rounded-full p-1.5 text-red-500 hover:bg-red-100"
+                >
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-        
-        <!-- 加载指示器 -->
-        <div v-if="isExecuting" class="flex justify-center items-center p-4">
-          <div class="w-6 h-6 border-2 border-gray-300 border-t-indigo-600 rounded-full animate-spin mr-3"></div>
-          <span>正在执行查询...</span>
-        </div>
+        </transition>
         
         <!-- 查询结果区域 -->
         <div v-if="queryStore.hasResult || queryError" class="bg-white shadow rounded-lg">
@@ -307,14 +335,14 @@
     
     <!-- 保存查询对话框 -->
     <SaveQueryModal
-      v-model:visible="isSaveModalVisible"
-      :query="{
-        id: currentQueryId || '',
-        name: queryName || '未命名查询',
-        queryText: activeTab === 'editor' ? sqlQuery : nlQuery,
-        queryType: activeTab === 'editor' ? 'SQL' : 'NATURAL_LANGUAGE',
-        dataSourceId: selectedDataSourceId
-      }"
+    v-model:visible="isSaveModalVisible"
+    :query="{
+    id: currentQueryId || '',
+    name: queryName || '未命名查询',
+    queryText: activeTab === 'editor' ? sqlQuery : (activeTab === 'nlq' ? nlQuery : builderQuery),
+    queryType: activeTab === 'builder' || activeTab === 'editor' ? 'SQL' : 'NATURAL_LANGUAGE',
+    dataSourceId: selectedDataSourceId
+    }"
       :data-sources="dataSourceStore.dataSources"
       @save="handleSaveQuery"
     />
@@ -328,6 +356,7 @@ import { useQueryStore } from '@/stores/query'
 import { useDataSourceStore } from '@/stores/datasource'
 import { useDark, useToggle } from '@vueuse/core'
 import type { Query, SaveQueryParams } from '@/types/query'
+import type { QueryBuilderState } from '@/types/builder'
 
 // 导入组件
 import MetadataExplorer from '@/components/query/MetadataExplorer.vue'
@@ -335,6 +364,8 @@ import SqlEditor from '@/components/query/SqlEditor.vue'
 import QueryResults from '@/components/query/QueryResults.vue'
 import SaveQueryModal from '@/components/query/SaveQueryModal.vue'
 import NaturalLanguageQuery from '@/components/query/NaturalLanguageQuery.vue'
+import QueryBuilder from '@/components/query/QueryBuilder.vue'
+import QueryManager from '@/components/query/QueryManager.vue'
 
 // 路由
 const route = useRoute()
@@ -352,6 +383,7 @@ const activeTab = ref<'editor' | 'nlq' | 'builder'>('editor')
 const selectedDataSourceId = ref('')
 const sqlQuery = ref('')
 const nlQuery = ref('')
+const builderQuery = ref('')
 const isExecuting = ref(false)
 const queryError = ref<string | null>(null)
 const statusMessage = ref<string | null>(null)
@@ -364,6 +396,25 @@ const isFavorite = ref(false)
 const showExportOptions = ref(false)
 const leftPanel = ref<'metadata' | 'saved'>('metadata')
 const savedQuerySearch = ref('')
+const executionTime = ref(0)
+const executionTimer = ref<number | null>(null)
+const builderState = ref<QueryBuilderState>({
+  selectedDataSourceId: '',
+  tables: [],
+  selectedTables: [],
+  joins: [],
+  fieldSelections: [],
+  whereConditions: {
+    id: '',
+    conditions: [],
+    groups: [],
+    logicalOperator: 'AND'
+  },
+  groupByFields: [],
+  sortDefinitions: []
+})
+const queryBuilderRef = ref(null)
+const queryManagerRef = ref(null)
 
 // 加载状态
 onMounted(async () => {
@@ -393,21 +444,16 @@ const refreshMetadata = async () => {
   if (!selectedDataSourceId.value) return
   
   try {
-    statusMessage.value = '正在刷新元数据...'
     // 使用更通用的方式获取元数据
     // 如果dataSourceStore没有直接的refreshMetadata方法，我们可以尝试重新获取数据源信息
     await dataSourceStore.fetchDataSources()
-    
-    // 显示成功消息
-    statusMessage.value = '元数据刷新成功'
-    setTimeout(() => {
-      statusMessage.value = null
-    }, 3000)
   } catch (error) {
     console.error('刷新元数据失败:', error)
+    queryError.value = '刷新元数据失败'
     statusMessage.value = '刷新元数据失败'
     setTimeout(() => {
       statusMessage.value = null
+      queryError.value = null
     }, 5000)
   }
 }
@@ -419,15 +465,26 @@ const selectedDataSource = computed(() => {
 
 // 计算属性：是否可以执行查询
 const canExecuteQuery = computed(() => {
-  if (!selectedDataSourceId.value) return false
-  
-  if (activeTab.value === 'editor') {
-    return sqlQuery.value.trim().length > 0
-  } else if (activeTab.value === 'nlq') {
-    return nlQuery.value.trim().length > 0
-  } else {
+  if (!selectedDataSourceId.value) {
     return false
   }
+  
+  if (activeTab.value === 'editor' && (!sqlQuery.value || !sqlQuery.value.trim())) {
+    return false
+  }
+  
+  if (activeTab.value === 'nlq' && (!nlQuery.value || !nlQuery.value.trim())) {
+    return false
+  }
+  
+  if (activeTab.value === 'builder') {
+    // 检查builder状态
+    if (!builderState.value.selectedTables || builderState.value.selectedTables.length === 0) {
+      return false
+    }
+  }
+  
+  return true
 })
 
 // 从ID加载查询
@@ -473,40 +530,97 @@ const loadQueryById = async (queryId: string) => {
 
 // 执行SQL查询
 const executeQuery = async () => {
-  if (!canExecuteQuery.value || isExecuting.value) return
+  if (isExecuting.value) return
   
-  isExecuting.value = true
-  queryError.value = null
-  statusMessage.value = '准备执行查询...'
+  // 重置错误状态
+  queryError.value = null;
+  statusMessage.value = null;
+  
+  // 检查数据源选择
+  if (!selectedDataSourceId.value) {
+    queryError.value = '请在左侧面板中选择一个数据源';
+    statusMessage.value = queryError.value;
+    setTimeout(() => {
+      statusMessage.value = null;
+      queryError.value = null;
+    }, 5000);
+    return;
+  }
+  
+  // 检查查询内容
+  let queryText = '';
+  let queryType = 'SQL';
+  
+  if (activeTab.value === 'editor') {
+    queryText = sqlQuery.value.trim();
+    queryType = 'SQL';
+    if (queryText.length === 0) {
+      queryError.value = '请在SQL编辑器中输入查询语句';
+      statusMessage.value = queryError.value;
+      setTimeout(() => {
+        statusMessage.value = null;
+        queryError.value = null;
+      }, 5000);
+      return;
+    }
+  } else if (activeTab.value === 'builder') {
+    queryText = builderQuery.value.trim();
+    queryType = 'SQL';
+    if (queryText.length === 0) {
+      queryError.value = '查询构建器未生成有效的查询语句';
+      statusMessage.value = queryError.value;
+      setTimeout(() => {
+        statusMessage.value = null;
+        queryError.value = null;
+      }, 5000);
+      return;
+    }
+  } else if (activeTab.value === 'nlq') {
+    queryText = nlQuery.value.trim();
+    queryType = 'NATURAL_LANGUAGE';
+    if (queryText.length === 0) {
+      queryError.value = '请在自然语言查询输入框中输入问题';
+      statusMessage.value = queryError.value;
+      setTimeout(() => {
+        statusMessage.value = null;
+        queryError.value = null;
+      }, 5000);
+      return;
+    }
+  }
+  
+  isExecuting.value = true;
+  queryError.value = null;
+  statusMessage.value = null;
+  
+  // 重置并启动执行时间计时器
+  executionTime.value = 0
+  if (executionTimer.value) {
+    clearInterval(executionTimer.value)
+  }
+  executionTimer.value = window.setInterval(() => {
+    executionTime.value += 1
+  }, 1000)
   
   try {
-    // 根据当前活动标签页选择查询内容
-    const query = activeTab.value === 'editor' ? sqlQuery.value : nlQuery.value
-    const queryType = activeTab.value === 'editor' ? 'SQL' : 'NATURAL_LANGUAGE'
-    
     let result;
     
     // 根据查询类型执行不同的查询
     if (queryType === 'SQL') {
       result = await queryStore.executeQuery({
         dataSourceId: selectedDataSourceId.value,
-        queryText: query,
-        queryType
+        queryText: queryText,
+        queryType: 'SQL'
       });
     } else {
       result = await queryStore.executeNaturalLanguageQuery({
         dataSourceId: selectedDataSourceId.value,
-        question: query
+        question: queryText
       });
     }
     
     // 更新当前查询ID
     currentQueryId.value = queryStore.currentQueryResult?.id || null
-    statusMessage.value = `查询执行成功，返回 ${queryStore.currentQueryResult?.rowCount || 0} 条记录`;
-    
-    setTimeout(() => {
-      statusMessage.value = null
-    }, 3000);
   } catch (error) {
     queryError.value = error instanceof Error ? error.message : '执行查询时出错'
     statusMessage.value = '查询执行失败'
@@ -514,24 +628,84 @@ const executeQuery = async () => {
       statusMessage.value = null
     }, 5000)
   } finally {
+    // 清除执行时间计时器
+    if (executionTimer.value) {
+      clearInterval(executionTimer.value)
+      executionTimer.value = null
+    }
     isExecuting.value = false
   }
 }
 
+// 获取执行按钮提示信息
+const getExecuteButtonTooltip = () => {
+  if (!selectedDataSourceId.value) {
+    return '请在左侧面板中选择一个数据源';
+  }
+  
+  if (activeTab.value === 'editor' && sqlQuery.value.trim().length === 0) {
+    return '请在SQL编辑器中输入查询语句';
+  } else if (activeTab.value === 'builder' && builderQuery.value.trim().length === 0) {
+    return '查询构建器未生成有效的查询语句';
+  } else if (activeTab.value === 'nlq' && nlQuery.value.trim().length === 0) {
+    return '请在自然语言查询输入框中输入问题';
+  }
+  
+  return '执行查询';
+}
+
+// 模拟延时函数
+const simulateDelay = (min: number, max: number) => {
+  const delay = Math.floor(Math.random() * (max - min + 1)) + min;
+  return new Promise(resolve => setTimeout(resolve, delay));
+}
+
 // 取消查询
 const cancelQuery = async () => {
-  if (!currentQueryId.value) return
+  if (!isExecuting.value) return
   
   try {
     statusMessage.value = '正在取消查询...'
-    await queryStore.cancelQuery(currentQueryId.value)
+    
+    // 模拟网络延迟
+    await simulateDelay(800, 1500)
+    
+    // 如果有查询ID，尝试通过store取消
+    if (currentQueryId.value) {
+      await queryStore.cancelQuery(currentQueryId.value)
+    }
+    
+    // 即使没有currentQueryId，也要强制取消当前执行状态
+    isExecuting.value = false
+    
+    // 清除执行时间计时器
+    if (executionTimer.value) {
+      clearInterval(executionTimer.value)
+      executionTimer.value = null
+    }
+    
+    // 更新状态信息
     statusMessage.value = '查询已取消'
+    
+    // 添加模拟的错误消息
+    queryError.value = '查询已被用户取消'
+    
     setTimeout(() => {
       statusMessage.value = null
     }, 3000)
   } catch (error) {
     console.error('取消查询失败:', error)
     statusMessage.value = '取消查询失败'
+    
+    // 即使取消失败，也要强制取消执行状态
+    isExecuting.value = false
+    
+    // 清除执行时间计时器
+    if (executionTimer.value) {
+      clearInterval(executionTimer.value)
+      executionTimer.value = null
+    }
+    
     setTimeout(() => {
       statusMessage.value = null
     }, 5000)
@@ -566,6 +740,11 @@ const toggleFavorite = async () => {
 // 保存查询
 const saveQuery = () => {
   isSaveModalVisible.value = true
+}
+
+// 执行构建器查询
+const executeBuilderQuery = () => {
+  executeQuery()
 }
 
 // 处理保存查询
@@ -697,6 +876,70 @@ const toggleQueryFavorite = async (queryId: string) => {
 const loadSavedQuery = async (queryId: string) => {
   await loadQueryById(queryId)
 }
+
+// 处理查询构建器加载
+const handleLoadQuery = (query: { sql: string, state?: QueryBuilderState }) => {
+  builderQuery.value = query.sql
+  if (query.state && queryBuilderRef.value && 'loadState' in queryBuilderRef.value) {
+    // 调用QueryBuilder组件的loadState方法 (如果存在)
+    (queryBuilderRef.value as any).loadState(query.state)
+  }
+}
+
+// 更新查询构建器状态
+const updateBuilderState = (state: QueryBuilderState) => {
+  builderState.value = state
+}
+
+// 计算属性：已格式化的执行时间
+const formattedExecutionTime = computed(() => {
+  const minutes = Math.floor(executionTime.value / 60)
+  const seconds = executionTime.value % 60
+  
+  if (minutes > 0) {
+    return `${minutes}分 ${seconds}秒`
+  } else {
+    return `${seconds}秒`
+  }
+})
+
+// 显示错误消息
+const showError = (message: string) => {
+  queryError.value = message;
+  statusMessage.value = message;
+  setTimeout(() => {
+    statusMessage.value = null;
+    queryError.value = null;
+  }, 5000);
+}
+
+// 检查条件并执行查询
+const checkAndExecuteQuery = () => {
+  // 检查条件
+  if (!canExecuteQuery.value) {
+    // 确定错误原因
+    if (!selectedDataSourceId.value) {
+      showError('请在左侧面板中选择一个数据源');
+      return;
+    }
+    
+    if (activeTab.value === 'editor' && !sqlQuery.value.trim()) {
+      showError('请在SQL编辑器中输入查询语句');
+      return;
+    } else if (activeTab.value === 'builder' && !builderQuery.value.trim()) {
+      showError('查询构建器未生成有效的查询语句');
+      return;
+    } else if (activeTab.value === 'nlq' && !nlQuery.value.trim()) {
+      showError('请在自然语言查询输入框中输入问题');
+      return;
+    }
+    
+    return;
+  }
+  
+  // 如果条件满足，执行查询
+  executeQuery();
+}
 </script>
 
 <style scoped>
@@ -712,6 +955,15 @@ const loadSavedQuery = async (queryId: string) => {
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
+}
+
+/* 消息渐变动画 */
+.fade-enter-active, .fade-leave-active {
+  transition: opacity 0.3s, transform 0.3s;
+}
+.fade-enter-from, .fade-leave-to {
+  opacity: 0;
+  transform: translateX(20px);
 }
 
 /* 调整滚动条样式 */

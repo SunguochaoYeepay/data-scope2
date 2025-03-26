@@ -5,12 +5,24 @@ const props = withDefaults(defineProps<{
   color?: 'primary' | 'secondary' | 'white' // 颜色
   fullScreen?: boolean // 是否全屏显示
   text?: string // 加载文本
+  showCancelButton?: boolean // 是否显示取消按钮
 }>(), {
   size: 'md',
   color: 'primary',
   fullScreen: false,
-  text: ''
+  text: '',
+  showCancelButton: false
 })
+
+// 定义事件
+const emit = defineEmits<{
+  (e: 'cancel'): void
+}>()
+
+// 取消加载
+const onCancel = () => {
+  emit('cancel')
+}
 
 // 计算尺寸类
 const sizeClass = {
@@ -32,7 +44,7 @@ const colorClass = {
   <div 
     :class="[
       'flex items-center justify-center',
-      { 'fixed inset-0 bg-gray-900 bg-opacity-50 z-50': fullScreen }
+      { 'fixed inset-0 bg-gray-900 bg-opacity-50 z-[2000]': fullScreen }
     ]"
   >
     <div class="flex flex-col items-center">
@@ -63,6 +75,16 @@ const colorClass = {
       >
         {{ text }}
       </span>
+      
+      <!-- 取消按钮 -->
+      <button
+        v-if="showCancelButton && fullScreen"
+        @click="onCancel"
+        class="mt-4 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-md text-sm font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors"
+      >
+        <i class="fas fa-times-circle mr-1.5"></i>
+        取消查询
+      </button>
     </div>
   </div>
 </template>

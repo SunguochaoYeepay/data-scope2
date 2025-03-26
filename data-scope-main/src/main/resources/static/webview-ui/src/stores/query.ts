@@ -96,7 +96,16 @@ export const useQueryStore = defineStore('query', () => {
   const executeQuery = async (params: ExecuteQueryParams) => {
     isExecuting.value = true
     error.value = null
-    loading.show('执行查询中...')
+    loading.show('执行查询中...', {
+      showCancelButton: true,
+      onCancel: () => {
+        if (currentQuery.value?.id) {
+          cancelQuery(currentQuery.value.id)
+        } else {
+          isExecuting.value = false
+        }
+      }
+    })
     
     try {
       const result = await queryService.executeQuery(params)
@@ -151,7 +160,16 @@ export const useQueryStore = defineStore('query', () => {
   const executeNaturalLanguageQuery = async (params: NaturalLanguageQueryParams) => {
     isExecuting.value = true
     error.value = null
-    loading.show('处理自然语言查询中...')
+    loading.show('处理自然语言查询中...', {
+      showCancelButton: true,
+      onCancel: () => {
+        if (currentQuery.value?.id) {
+          cancelQuery(currentQuery.value.id)
+        } else {
+          isExecuting.value = false
+        }
+      }
+    })
     
     try {
       const response = await queryService.executeNaturalLanguageQuery(params)
@@ -212,11 +230,24 @@ export const useQueryStore = defineStore('query', () => {
         historyQuery.status = 'CANCELLED'
       }
       
+      // 强制设置执行状态为未执行
+      isExecuting.value = false
+      
+      // 更新结果状态（如果有结果）
+      if (currentQueryResult.value && currentQueryResult.value.id === queryId) {
+        currentQueryResult.value.status = 'CANCELLED'
+      }
+      
       message.success('查询已取消')
       return true
     } catch (err) {
+      console.error('取消查询错误:', err)
       error.value = err instanceof Error ? err : new Error(String(err))
       message.error('取消查询失败')
+      
+      // 即使API调用失败，也要强制停止执行状态
+      isExecuting.value = false
+      
       return false
     } finally {
       loading.hide()
